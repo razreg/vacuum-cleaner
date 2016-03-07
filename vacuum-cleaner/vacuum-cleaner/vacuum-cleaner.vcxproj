@@ -74,6 +74,12 @@
   <ItemGroup>
     <Text Include="readme.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AbstractSensor.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AbstractSensor.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
