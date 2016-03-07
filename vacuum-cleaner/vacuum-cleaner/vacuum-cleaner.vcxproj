@@ -78,6 +78,7 @@
     <ClCompile Include="AbstractSensor.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AbstractAlgorithm.h" />
     <ClInclude Include="AbstractSensor.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

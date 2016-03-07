@@ -26,5 +26,8 @@
     <ClInclude Include="AbstractSensor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="AbstractAlgorithm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
