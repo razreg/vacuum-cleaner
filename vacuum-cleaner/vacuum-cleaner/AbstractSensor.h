@@ -1,3 +1,5 @@
+#pragma once
+
 enum class Direction { East, West, South, North, Stay };
 
 struct SensorInformation {

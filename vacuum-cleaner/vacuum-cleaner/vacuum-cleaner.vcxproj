@@ -75,11 +75,15 @@
     <Text Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AbstractSensor.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="NaiveAlgorithm.cpp" />
+    <ClCompile Include="SensorImpl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractAlgorithm.h" />
     <ClInclude Include="AbstractSensor.h" />
+    <ClInclude Include="NaiveAlgorithm.h" />
+    <ClInclude Include="SensorImpl.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
