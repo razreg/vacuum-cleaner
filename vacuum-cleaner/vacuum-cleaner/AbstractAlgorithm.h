@@ -20,5 +20,5 @@ public:
 	* when steps == MaxSteps - MaxStepsAfterWinner
 	* parameter stepsTillFinishing == MaxStepsAfterWinner
 	*/
-	virtual Direction aboutToFinish(int stepsTillFinishing) = 0;
+	virtual void aboutToFinish(int stepsTillFinishing) = 0;
 };

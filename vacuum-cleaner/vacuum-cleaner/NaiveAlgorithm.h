@@ -8,7 +8,7 @@ using namespace std;
 
 class NaiveAlgorithm : public AbstractAlgorithm {
 
-	AbstractSensor sensor; // TODO fix
+	AbstractSensor *sensor;
 
 public:
 
@@ -16,13 +16,11 @@ public:
 		srand(time(NULL));
 	};
 
-	void setSensor(AbstractSensor& sensor) {
-		this->sensor = sensor;
+	void setSensor(AbstractSensor& sensor) override {
+		this->sensor = &sensor;
 	};
 
-	Direction step();
+	Direction step() override;
 
-	Direction aboutToFinish(int stepsTillFinishing) {
-		// TODO
-	}
+	void aboutToFinish(int stepsTillFinishing) override {}
 };

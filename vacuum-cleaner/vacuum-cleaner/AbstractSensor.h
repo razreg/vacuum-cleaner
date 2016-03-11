@@ -1,5 +1,10 @@
 #pragma once
 
+const int EAST = 0;
+const int WEST = 1;
+const int SOUTH = 2;
+const int NORTH = 3;
+
 enum class Direction { East, West, South, North, Stay };
 
 struct SensorInformation {

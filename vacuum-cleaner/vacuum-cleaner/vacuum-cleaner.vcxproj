@@ -75,15 +75,21 @@
     <Text Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="House.cpp" />
+    <ClCompile Include="Simulator.cpp" />
     <ClCompile Include="NaiveAlgorithm.cpp" />
     <ClCompile Include="SensorImpl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractAlgorithm.h" />
     <ClInclude Include="AbstractSensor.h" />
+    <ClInclude Include="Battery.h" />
+    <ClInclude Include="House.h" />
     <ClInclude Include="NaiveAlgorithm.h" />
+    <ClInclude Include="Position.h" />
+    <ClInclude Include="Score.h" />
     <ClInclude Include="SensorImpl.h" />
+    <ClInclude Include="Simulator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

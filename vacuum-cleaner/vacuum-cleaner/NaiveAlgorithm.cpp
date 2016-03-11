@@ -2,7 +2,7 @@
 
 Direction NaiveAlgorithm::step() {
 
-	SensorInformation sensorInformation = this->sensor.sense();
+	SensorInformation sensorInformation = this->sensor->sense();
 
 	// construct a vector of valid directions
 	vector<Direction> directions;
