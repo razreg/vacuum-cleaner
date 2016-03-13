@@ -128,9 +128,9 @@ map<string, int> getConfiguration(string configFilePath) {
 
 	return configMap;
 
-	// build configuration from map
-
+	// raz- I just copied what you did here to NaiveAlgorithm.cpp.. hope I am not wrong!
 	/*
+	// build configuration from map
 	Configuration config;
 	map<string, int>::iterator mapIterator;
 	mapIterator = configMap.find("MaxSteps");
@@ -183,6 +183,7 @@ bool EndsWith(const string& filename, const string& suffix) {
 	return equal(filename.begin() + filename.size() - suffix.size(), filename.end(), suffix.begin());
 }
 
+//makes sure that the surrounding of the house is a wall
 void check_house_surroundings(House& house){
 	int i, j;
 	int lastRow = house.getNumRows - 1;

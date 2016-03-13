@@ -1,7 +1,6 @@
 #include "NaiveAlgorithm.h"
 
 
-// raz- I just copied what you did in simulator.cpp to here.. hope I am not wrong!
 void NaiveAlgorithm::setConfiguration(map<string, int> config){
 	Configuration con;
 	map<string, int>::iterator mapIterator;
