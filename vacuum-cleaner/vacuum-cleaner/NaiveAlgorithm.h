@@ -20,6 +20,8 @@ public:
 		this->sensor = &sensor;
 	};
 
+	void setConfiguration(map<string, int> config) override;
+
 	Direction step() override;
 
 	void aboutToFinish(int stepsTillFinishing) override {}

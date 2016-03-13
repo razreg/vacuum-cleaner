@@ -3,6 +3,10 @@
 #include <map>
 #include <iostream>
 #include <fstream>
+#include <list>
+#include <dirent.h>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
 #include "House.h"
 
 // exit codes

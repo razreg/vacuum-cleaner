@@ -58,7 +58,8 @@ public:
 			2000 
 			- (positionInCopmetition - 1) * 50 
 			- (winnerNumSteps - thisNumSteps) * 10 
-			- (sumDirtInHouse - dirtCollected) * 3 			+ (isBackInDocking ? 50 : -200));
+			- (sumDirtInHouse - dirtCollected) * 3 
+			+ (isBackInDocking ? 50 : -200));
 	}
 
 };
