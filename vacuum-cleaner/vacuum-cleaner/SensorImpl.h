@@ -1,7 +1,6 @@
 #pragma once
 #include "AbstractSensor.h"
 #include "House.h"
-#include "Position.h"
 
 extern const int EAST, WEST, SOUTH, NORTH;
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "AbstractAlgorithm.h"
+#include "Battery.h"
 #include <stdlib.h>
 #include <ctime>
 #include <vector>
@@ -9,6 +10,9 @@ using namespace std;
 class NaiveAlgorithm : public AbstractAlgorithm {
 
 	AbstractSensor *sensor;
+	Battery battery;
+	int maxSteps;
+	int maxStepsAfterWinner;
 
 public:
 

@@ -1,10 +1,9 @@
 #include "House.h"
 
-
 House& House::deseriallize(const string& filePath) {
-	// TODO read file and generate a house from it
+
 	string currLine, shortName, description;
-	int numRows, numCols, j, i = 0;
+	int numRows, numCols;
 	vector<vector<char>>* matrix;
 
 	string houseFileError = "Error: house file [" + filePath + "] is invalid";
@@ -14,49 +13,32 @@ House& House::deseriallize(const string& filePath) {
 	if (houseFileStream) {
 		failedToParsefile = false; // seems like we're lucky
 		try {
-			while (getline(houseFileStream, currLine)) {
-				switch (i)
-				{
-					case -1: //TODO do i need this?
-
-						//case of an error
-					case 0:
-						shortName = currLine;
-						i++;
-						break;
-					case 1:
-						description = currLine;
-						i++;
-						break;
-					case 2:
-						numRows = stoi(currLine);
-						i++;
-						break;
-					case 3:
-						numCols = stoi(currLine);
-						i++;
-						break;
-					default:
-						for (j = 0; j < numCols; ++j){
-							try{
-								(*matrix)[i][j] = currLine.at(j);
-							}
-							catch (exception e){
-								i = -1;
-								break;
-							}	
-						}
-						i++;
-						break;
-
-
+			// read first three lines
+			failedToParsefile = 
+				getline(houseFileStream, shortName).good() &&
+				getline(houseFileStream, description).good() &&
+				getline(houseFileStream, currLine).good();
+			// read next two lines
+			if (!failedToParsefile) {
+				numRows = stoi(currLine);
+				failedToParsefile = getline(houseFileStream, currLine).good();
+				numCols = stoi(currLine);
+			}
+			// read matrix
+			if (!failedToParsefile) {
+				int i = 0;
+				while (i < numRows && getline(houseFileStream, currLine)) {
+					for (int j = 0; j < numCols; ++j) {
+						(*matrix)[i][j] = currLine.at(j);
+					}
+					i++;
 				}
 			}
-			houseFileStream.close();
 		}
 		catch (exception e) {
 			failedToParsefile = true; // not so lucky after all
 		}
+		houseFileStream.close();
 	}
 
 	if (failedToParsefile) {
@@ -69,3 +51,47 @@ House& House::deseriallize(const string& filePath) {
 
 }
 
+Position House::getDockingStation() {
+
+	if ((*matrix)[dockingStation.X][dockingStation.Y] != DOCK) {
+		for (int i = 0; i < numRows; i++) {
+			for (int j = 0; j < numCols; j++) {
+				if ((*matrix)[i][j] == DOCK) {
+					dockingStation = { i, j };
+					return dockingStation;
+				}
+			}
+		}
+		//TODO throw exception
+	}
+	return dockingStation;
+	
+}
+
+void House::validateWalls() const {
+
+	for (int i = 0; i < numCols; i++) {
+		if ((*matrix)[0][i] == DOCK || (*matrix)[numRows - 1][i] == DOCK) {
+			// throw exception - docking station overriden
+		}
+		(*matrix)[0][i] = (*matrix)[numRows - 1][i] = WALL;
+	}
+	for (int i = 1; i < numRows - 1; i++) {
+		if ((*matrix)[i][0] == DOCK || (*matrix)[i][numCols - 1] == DOCK) {
+			// throw exception - docking station overriden
+		}
+		(*matrix)[i][0] = (*matrix)[i][numCols - 1] = WALL;
+	}
+}
+
+//returns the sum of dust in the house, for the simulator to know when the robot is done cleaning.
+//should be called before the robot starts working.
+int House::getTotalDust() const {
+	int sum = 0;
+	for (int i = 0; i < numRows; i++) {
+		for (int j = 0; j < numCols; j++) {
+			sum += getDirtLevel(i, j);
+		}
+	}
+	return sum;
+}

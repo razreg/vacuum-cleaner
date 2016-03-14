@@ -93,7 +93,6 @@
     <ClInclude Include="Battery.h" />
     <ClInclude Include="House.h" />
     <ClInclude Include="NaiveAlgorithm.h" />
-    <ClInclude Include="Position.h" />
     <ClInclude Include="Score.h" />
     <ClInclude Include="SensorImpl.h" />
     <ClInclude Include="Simulator.h" />

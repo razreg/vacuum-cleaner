@@ -1,5 +1,4 @@
 #pragma once
-#include "Position.h"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -8,6 +7,16 @@
 using namespace std;
 
 const char WALL = 'W';
+const char DOCK = 'D';
+
+struct Position {
+
+	int X;
+	int Y;
+
+	Position(int xPos, int yPos) : X(xPos), Y(yPos) {};
+
+};
 
 class House {
 
@@ -16,6 +25,7 @@ class House {
 	int numRows;
 	int numCols;
 	vector<vector<char>>* matrix;
+	Position dockingStation = {0, 0};
 
 public:
 
@@ -29,6 +39,7 @@ public:
 		if (matrix != nullptr) {
 			delete[] matrix;
 		}
+		delete &dockingStation;
 	}
 
 	string getShortName(){
@@ -51,16 +62,16 @@ public:
 		return this->matrix;
 	}
 
+	// dust level at given position - 0 if dust level is undefined (wall, docking station, etc.)
 	int getDirtLevel(Position& position) const {
-		char value = (*matrix)[position.X][position.Y];
-		if (value == ' '){ 
-			//space is equal to 0
+		return getDirtLevel(position.X, position.Y);
+	}
+
+	int getDirtLevel(int x, int y) const {
+		if ((*matrix)[x][y] < '0' || (*matrix)[x][y] > '9') {
 			return 0;
 		}
-		if (value < '0' || value > '9') {
-			// TODO handle illegal position (wall, docking, outside the house, etc.) - throw exception?
-		}
-		return value - '0';
+		return (*matrix)[x][y] - '0';
 	}
 
 	bool isWall(Position& position) const {
@@ -68,21 +79,11 @@ public:
 		return toupper((*matrix)[position.X][position.Y]) == WALL;
 	}
 
-	Position getDockingStation(){
-		int i, j;
-		Position pos = { 0, 0 };
-		for (i = 0; i < numRows; i++){
-			for (j = 0; j < numCols; j++){
-				if ((*matrix)[i][j] == 'D'){
-					pos = { i, j };
-					return pos;
-				}
-					
-			}
-		}
+	Position getDockingStation();
+	
+	void validateWalls() const;
 
-		//TODO return error message? exit?
-	}
+	int getTotalDust() const;
 
 	static House& deseriallize(const string& filePath);
 };
