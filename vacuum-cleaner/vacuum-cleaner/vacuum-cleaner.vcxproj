@@ -83,6 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="House.cpp" />
+    <ClCompile Include="Robot.cpp" />
     <ClCompile Include="Simulator.cpp" />
     <ClCompile Include="NaiveAlgorithm.cpp" />
     <ClCompile Include="SensorImpl.cpp" />
@@ -91,8 +92,10 @@
     <ClInclude Include="AbstractAlgorithm.h" />
     <ClInclude Include="AbstractSensor.h" />
     <ClInclude Include="Battery.h" />
+    <ClInclude Include="Common.h" />
     <ClInclude Include="House.h" />
     <ClInclude Include="NaiveAlgorithm.h" />
+    <ClInclude Include="Robot.h" />
     <ClInclude Include="Score.h" />
     <ClInclude Include="SensorImpl.h" />
     <ClInclude Include="Simulator.h" />

@@ -3,21 +3,11 @@
 
 void NaiveAlgorithm::setConfiguration(map<string, int> config){
 
-	map<string, int>::iterator mapIterator;
+	maxSteps = config.find(MAX_STEPS)->second;
+	maxStepsAfterWinner = config.find(MAX_STEPS_AFTER_WINNER)->second;
 
-	mapIterator = config.find("MaxSteps");
-	maxSteps = (mapIterator != config.end()) ? mapIterator->second : DEFAULT_MAX_STEPS;
-	mapIterator = config.find("MaxStepsAfterWinner");
-	maxStepsAfterWinner = (mapIterator != config.end()) ? mapIterator->second : DEFAULT_MAX_STEPS_AFTER_WINNER;
-
-	mapIterator = config.find("BatteryCapacity");
-	battery.setCapacity((mapIterator != config.end()) ? mapIterator->second : DEFAULT_BATTERY_CAPACITY);
-
-	mapIterator = config.find("BatteryConsumptionRate");
-	battery.setConsumptionRate((mapIterator != config.end()) ? mapIterator->second : DEFAULT_BATTERY_CONSUMPTION_RATE);
-	
-	mapIterator = config.find("BatteryRechargeRate");
-	battery.setRechargeRate((mapIterator != config.end()) ? mapIterator->second : DEFAULT_BATTERY_RECHARGE_RATE);
+	battery = new Battery(config.find(BATTERY_CAPACITY)->second, 
+		config.find(BATTERY_CONSUMPTION_RATE)->second, config.find(BATTERY_RECHARGE_RATE)->second);
 }
 
 Direction NaiveAlgorithm::step() {
@@ -32,6 +22,7 @@ Direction NaiveAlgorithm::step() {
 			directions.push_back(static_cast<Direction>(i));
 		}
 	}
+	directions[rand() % directions.size()];
 
 	return directions[rand() % directions.size()];
 }
