@@ -5,7 +5,8 @@ namespace fs = boost::filesystem;
 
 // TODO add debug printing (mark as "DEBUG: ". It would be good to add simple logging in common.h with timestamps
 int main(int argc, char** argv) {
-	
+
+	Logger logger("Simulator");
 	string usage = "Usage: simulator [-config <config_file_location>] [-house_path <houses_path_location>]";
 
 	string housesPath;
@@ -17,6 +18,7 @@ int main(int argc, char** argv) {
 	string workingDir(fs::current_path()); //getting full path to working directoy
 	configPath = workingDir;
 	housesPath = workingDir;
+	logger.debug("Parsing command line arguments");
 	for (int i = 1; i < argc; ++i) {
 		if (argv[i] == "-config") {
 			configPath = argv[i + 1];
@@ -26,42 +28,51 @@ int main(int argc, char** argv) {
 		}
 		else if (i == 2 || i == 4) {
 			// this argument is the first or third argument and not "-config" or "-house_path"
-			cout << "Error: invalid arguments. " << usage << endl;
+			logger.fatal("Invalid arguments. " + usage);
 			return INVALID_ARGUMENTS;
 		}
 	}
+	logger.info("Using config file directory path as [" + configPath + "]");
+	logger.info("Using house files directory path as [" + housesPath + "]");
 	try {
+		logger.info("Loading houses from directory");
 		getHouseList(housesPath, houseList);
 	}
 	catch (fs::filesystem_error& e) {
-		cout << "Error: houses directory path [" << housesPath << "] is invalid" << endl;
+		logger.fatal("houses directory path [" + housesPath + "] is invalid");
 		return INVALID_ARGUMENTS;
 	}
 	catch (exception& e) {
-		cout << "Error: " << e.what() << endl;
+		logger.fatal(e.what());
 		return INVALID_ARGUMENTS;
 	}
 	try {
+		logger.info("Loading configuration from directory");
 		getConfiguration(configPath, configMap);
 	}
 	catch (exception& e) {
-		cout << "Error: " << e.what() << endl;
+		logger.fatal(e.what());
 		return INVALID_CONFIGURATION;
 	}
 
 	int maxSteps = configMap.find(MAX_STEPS)->second;
 	int maxStepsAfterWinner = configMap.find(MAX_STEPS_AFTER_WINNER)->second;
-	
+	logger.info("MaxSteps=" + to_string(maxSteps) + ", MaxStepsAfterWinner=" + to_string(maxStepsAfterWinner));
+
 	NaiveAlgorithm algorithm;
 
 	// TODO catch exceptions that might come from algorithm or something else and exit gracefully (but be more specific)
-	for (list<House>::const_iterator it = houseList.begin(), end = houseList.end(); it != end; ++it) {
+	logger.info("Starting simulation of algorithm: NaiveAlgorithm");
+	for (list<House>::const_iterator it = houseList.begin(), end = houseList.end(), int i = 1; it != end; ++it, ++i) {
 
 		House currHouse(*it); // copy constructor called
+		logger.info("Simulation started for house number [" + to_string(i) + "] - Name: " + currHouse.getShortName());
+		// TODO implement a method to print the house for debug purposes (place in House)
 		SensorImpl sensor;
 		sensor.setHouse(currHouse);
 		Score currScore;
 
+		logger.info("Initializing robot");
 		Robot robot(configMap, algorithm, sensor, currHouse.getDockingStation());
 		int steps = 0;
 		int stepsAfterWinner = 0;
@@ -69,13 +80,13 @@ int main(int argc, char** argv) {
 		while (steps < maxSteps && stepsAfterWinner < maxStepsAfterWinner) {
 			if (robot.getBatteryValue() == 0) {
 				// dead battery - we fast forward now to the point when time is up
+				logger.info("Robot has dead battery");
 				steps = maxSteps;
 				break;
 			}
 			robot.step(); // this also updates the sensor and the battery but not the house
-			// TODO log step (INFO)
 			if (!currHouse.isInside(robot.getPosition()) || currHouse.isWall(robot.getPosition())) {
-				cout << "ERROR: The algorithm has performed an illegal step." << endl;
+				logger.warn("The algorithm has performed an illegal step.");
 				currScore.reportBadBehavior();
 				break;
 			}
@@ -85,6 +96,7 @@ int main(int argc, char** argv) {
 			}
 			steps++; // TODO increment stepsAfterWinner if winner were found (and update score)
 			if (currHouse.getTotalDust() == 0) {
+				logger.info("House is clean of dust");
 				break; // clean house
 			}
 			// TODO notify aboutToFinish to algorithm if necessary
@@ -99,6 +111,7 @@ int main(int argc, char** argv) {
 		else {
 			currScore.setPositionInCopmetition(1); // TODO change to support more than one algorithms in ex2
 		}
+		logger.info("Score for house " + currHouse.getShortName() + " is " + to_string(currScore.getScore()));
 	}
 	// TODO print score
 
@@ -118,6 +131,7 @@ void getConfiguration(const string& configFileDir, map<string, int>& configMap) 
 		failedToParseConfig = false; // seems like we're lucky
 		try {
 			while (getline(configFileStream, currLine)) {
+				logger.debug("Read line from config file: " + currLine);
 				int positionOfEquals = currLine.find("=");
 				string key = currLine.substr(0, positionOfEquals);
 				if (positionOfEquals != string::npos) {
@@ -133,7 +147,6 @@ void getConfiguration(const string& configFileDir, map<string, int>& configMap) 
 	}
 	if (failedToParseConfig) {
 		string configError = "configuration file directoy [" + configFileDir + "] is invalid";
-		cout << configError << endl;
 		throw exception(configError.c_str());
 	}
 
@@ -143,25 +156,30 @@ void getConfiguration(const string& configFileDir, map<string, int>& configMap) 
 	if (mapIterator == configMap.end()) {
 		configMap.insert(pair<string, int>(MAX_STEPS, DEFAULT_MAX_STEPS));
 	}
+	logger.info("Configuration parameter: " + MAX_STEPS + "=" + configMap.find(MAX_STEPS));
 	mapIterator = configMap.find(MAX_STEPS_AFTER_WINNER);
 	if (mapIterator == configMap.end()) {
 		configMap.insert(pair<string, int>(MAX_STEPS_AFTER_WINNER, DEFAULT_MAX_STEPS_AFTER_WINNER));
 	}
+	logger.info("Configuration parameter: " + MAX_STEPS_AFTER_WINNER + "=" + configMap.find(MAX_STEPS_AFTER_WINNER));
 	mapIterator = configMap.find(BATTERY_CAPACITY);
 	if (mapIterator == configMap.end()) {
 		configMap.insert(pair<string, int>(BATTERY_CAPACITY, DEFAULT_BATTERY_CAPACITY));
 	}
+	logger.info("Configuration parameter: " + BATTERY_CAPACITY + "=" + configMap.find(BATTERY_CAPACITY));
 	mapIterator = configMap.find(BATTERY_CONSUMPTION_RATE);
 	if (mapIterator == configMap.end()) {
 		configMap.insert(pair<string, int>(BATTERY_CONSUMPTION_RATE, DEFAULT_BATTERY_CONSUMPTION_RATE));
 	}
+	logger.info("Configuration parameter: " + BATTERY_CONSUMPTION_RATE + "=" + configMap.find(BATTERY_CONSUMPTION_RATE));
 	mapIterator = configMap.find(BATTERY_RECHARGE_RATE);
 	if (mapIterator == configMap.end()) {
 		configMap.insert(pair<string, int>(BATTERY_RECHARGE_RATE, DEFAULT_BATTERY_RECHARGE_RATE));
 	}
+	logger.info("Configuration parameter: " + BATTERY_RECHARGE_RATE + "=" + configMap.find(BATTERY_RECHARGE_RATE));
 }
 
-
+// TODO add log messages (debug and info) - including inside deseriallize (logger.debug() lines read from file)
 void getHouseList(string housesPath, list<House>& houses) {
 
 	int i = 0;

@@ -4,10 +4,13 @@
 #include "AbstractAlgorithm.h"
 #include "Battery.h"
 
+Logger logger("Robot");
+static const string directions[] = { "East", "West", "South", "North", "Stay" };
+
 class Robot {
 
 	AbstractAlgorithm& algorithm;
-	SensorImpl& sensor;
+	SensorImpl& sensor; // TODO need to use abstract sensor? Waiting for Amir's response
 	Battery battery;
 	Position position;
 
