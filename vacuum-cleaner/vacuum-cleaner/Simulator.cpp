@@ -30,15 +30,31 @@ int main(int argc, char** argv) {
 			return INVALID_ARGUMENTS;
 		}
 	}
-	getHouseList(housesPath, houseList); // TODO catch exception and exit gracefully?
-	getConfiguration(configPath, configMap); // TODO catch exception and exit gracefully?
+	try {
+		getHouseList(housesPath, houseList);
+	}
+	catch (fs::filesystem_error& e) {
+		cout << "Error: houses directory path [" << housesPath << "] is invalid" << endl;
+		return INVALID_ARGUMENTS;
+	}
+	catch (exception& e) {
+		cout << "Error: " << e.what() << endl;
+		return INVALID_ARGUMENTS;
+	}
+	try {
+		getConfiguration(configPath, configMap);
+	}
+	catch (exception& e) {
+		cout << "Error: " << e.what() << endl;
+		return INVALID_CONFIGURATION;
+	}
 
 	int maxSteps = configMap.find(MAX_STEPS)->second;
 	int maxStepsAfterWinner = configMap.find(MAX_STEPS_AFTER_WINNER)->second;
 	
 	NaiveAlgorithm algorithm;
 
-	// TODO catch exceptions that might come from algorithm or something else and exit gracefully
+	// TODO catch exceptions that might come from algorithm or something else and exit gracefully (but be more specific)
 	for (list<House>::const_iterator it = houseList.begin(), end = houseList.end(); it != end; ++it) {
 
 		House currHouse(*it); // copy constructor called
@@ -91,8 +107,6 @@ int main(int argc, char** argv) {
 
 void getConfiguration(const string& configFileDir, map<string, int>& configMap) {
 	
-	string configError = "Error: configuration file directoy [" + configFileDir + "] is invalid";
-
 	fs::path path = configFileDir; // TODO check if safe or might throw exception
 	path /= "config.ini"; // adds appropriate file separator if needed
 
@@ -113,12 +127,14 @@ void getConfiguration(const string& configFileDir, map<string, int>& configMap) 
 			}
 			configFileStream.close();
 		}
-		catch (exception e) {
+		catch (exception& e) {
 			failedToParseConfig = true; // not so lucky after all
 		}
 	}
 	if (failedToParseConfig) {
-		cout << configError << endl; // TODO throw custom exception (create our own class - perhaps even in the simulator header)
+		string configError = "configuration file directoy [" + configFileDir + "] is invalid";
+		cout << configError << endl;
+		throw exception(configError.c_str());
 	}
 
 	// fix map with defaults if missing configuration item
@@ -146,27 +162,20 @@ void getConfiguration(const string& configFileDir, map<string, int>& configMap) 
 }
 
 
-void getHouseList(string housePath, list<House>& houses) {
-
-	string houseError = "Error: house file's path [" + housePath + "] is invalid";
+void getHouseList(string housesPath, list<House>& houses) {
 
 	int i = 0;
 	const boost::regex pattern("(.*)\.house");
 	fs::directory_iterator endIterator;
 	boost::smatch what;
-	try {
-		for (fs::directory_iterator iter(housePath); iter != endItr; ++iter) {
-			if (fs::is_regular_file(iter->status()) &&
-				boost::regex_match(iter->path().filename(), what, pattern)) {
-				House& house = House::deseriallize(iter->path().string());
-				house.getDockingStation(); // TODO handle exception (this line verifies there is a D in the house)
-				house.validateWalls(); // TODO handle exception if docking station overriden
-				houses.push_back(house);
-			}
+	for (fs::directory_iterator iter(housesPath); iter != endItr; ++iter) {
+		if (fs::is_regular_file(iter->status()) &&
+			boost::regex_match(iter->path().filename(), what, pattern)) {
+			House& house = House::deseriallize(iter->path().string());
+			house.getDockingStation();
+			house.validateWalls();
+			houses.push_back(house);
 		}
-	}
-	catch (fs::filesystem_error e) {
-		cout << houseError << endl; // TODO throw custom exception (create our own class - perhaps even in the simulator header)
 	}
 }
 

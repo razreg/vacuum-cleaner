@@ -1,12 +1,14 @@
 #include "House.h"
 
+using namespace std;
+
 House& House::deseriallize(const string& filePath) {
 
 	string currLine, shortName, description;
 	int numRows, numCols;
 	char** matrix;
 
-	string houseFileError = "Error: house file [" + filePath + "] is invalid";
+	string houseFileError = "house file [" + filePath + "] is invalid";
 
 	ifstream houseFileStream(filePath);
 	bool failedToParsefile = true; // assume we are going to fail
@@ -44,7 +46,8 @@ House& House::deseriallize(const string& filePath) {
 	}
 
 	if (failedToParsefile) {
-		cout << houseFileError << endl; // TODO throw custom exception (create our own class - perhaps even in the simulator header)
+		cout << "ERROR: " << houseFileError << endl; 
+		throw exception(houseFileError.c_str());
 	}
 
 	//creating the house based on the previously calculated fields
@@ -64,7 +67,7 @@ Position House::getDockingStation() {
 				}
 			}
 		}
-		//TODO throw exception
+		throw exception("No docking station found in house.");
 	}
 	return dockingStation;
 	
@@ -74,13 +77,13 @@ void House::validateWalls() const {
 
 	for (int i = 0; i < numCols; i++) {
 		if (matrix[0][i] == DOCK || matrix[numRows - 1][i] == DOCK) {
-			// throw exception - docking station overriden
+			throw exception("Docking station was located where wall was expected.");
 		}
 		matrix[0][i] = matrix[numRows - 1][i] = WALL;
 	}
 	for (int i = 1; i < numRows - 1; i++) {
 		if (matrix[i][0] == DOCK || matrix[i][numCols - 1] == DOCK) {
-			// throw exception - docking station overriden
+			throw exception("Docking station was located where wall was expected.");
 		}
 		matrix[i][0] = matrix[i][numCols - 1] = WALL;
 	}
