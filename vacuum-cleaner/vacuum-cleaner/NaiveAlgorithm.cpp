@@ -1,6 +1,5 @@
 #include "NaiveAlgorithm.h"
 
-
 void NaiveAlgorithm::setConfiguration(map<string, int> config){
 
 	maxSteps = config.find(MAX_STEPS)->second;
@@ -12,7 +11,7 @@ void NaiveAlgorithm::setConfiguration(map<string, int> config){
 
 Direction NaiveAlgorithm::step() {
 
-	SensorInformation sensorInformation = this->sensor->sense();
+	SensorInformation sensorInformation = sensor.sense();
 
 	// construct a vector of valid directions
 	vector<Direction> directions;

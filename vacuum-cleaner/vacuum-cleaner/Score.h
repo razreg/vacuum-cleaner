@@ -1,4 +1,6 @@
-#pragma once
+#ifndef __SCORE__H_
+#define __SCORE__H_
+
 #include <algorithm>
 
 using namespace std;
@@ -62,3 +64,5 @@ public:
 	};
 
 };
+
+#endif // __SCORE__H_

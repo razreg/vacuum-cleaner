@@ -1,14 +1,13 @@
-#pragma once
+#ifndef __ABSTRACT_SENSOR__H_
+#define __ABSTRACT_SENSOR__H_
 
-enum class Direction { East, West, South, North, Stay };
+#include "SensorInformation.h"
 
-struct SensorInformation {
-	int dirtLevel;
-	bool isWall[4];
-};
-
-class AbstractSensor {
+class AbstractSensor
+{
 public:
-	// returns the sensor's information of the current location of the robot
-	virtual struct SensorInformation sense() const = 0;
+	// returns the sensor's information of the current location of the robot 
+	virtual SensorInformation sense() const = 0;
 };
+
+#endif //__ABSTRACT_SENSOR__H_

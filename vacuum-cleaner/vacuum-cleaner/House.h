@@ -1,4 +1,6 @@
-#pragma once
+#ifndef __HOUSE__H_
+#define __HOUSE__H_
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -127,3 +129,5 @@ public:
 
 	static House& deseriallize(const string& filePath);
 };
+
+#endif // __HOUSE__H_

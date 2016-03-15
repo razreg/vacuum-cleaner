@@ -1,4 +1,6 @@
-#pragma once
+#ifndef __ROBOT__H_
+#define __ROBOT__H_
+
 #include "AbstractSensor.h"
 #include "House.h"
 #include "AbstractAlgorithm.h"
@@ -50,3 +52,5 @@ public:
 	};
 
 };
+
+#endif // __ROBOT__H_

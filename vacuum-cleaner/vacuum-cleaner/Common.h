@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __COMMON__H_
+#define __COMMON__H_
 
 const LogLevel LOG_LEVEL = DEBUG;
 
@@ -71,3 +72,5 @@ public:
 		log(msg, DEBUG);
 	};
 };
+
+#endif // __COMMON__H_

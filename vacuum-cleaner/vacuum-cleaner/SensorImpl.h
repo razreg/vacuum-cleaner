@@ -1,4 +1,6 @@
-#pragma once
+#ifndef __SENSORIMPL__H_
+#define __SENSORIMPL__H_
+
 #include "AbstractSensor.h"
 #include "House.h"
 
@@ -23,3 +25,5 @@ public:
 		return house->getDockingStation() == *currentPosition;
 	};
 };
+
+#endif // __SENSORIMPL__H_

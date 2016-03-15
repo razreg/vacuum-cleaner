@@ -1,4 +1,6 @@
-#pragma once
+#ifndef __NAIVE_ALGORITHM__H_
+#define __NAIVE_ALGORITHM__H_
+
 #include "AbstractAlgorithm.h"
 #include "Battery.h"
 #include "Common.h"
@@ -10,7 +12,7 @@ using namespace std;
 
 class NaiveAlgorithm : public AbstractAlgorithm {
 
-	AbstractSensor *sensor;
+	AbstractSensor& sensor;
 	Battery *battery;
 	int maxSteps;
 	int maxStepsAfterWinner;
@@ -25,8 +27,8 @@ public:
 		delete battery;
 	};
 
-	void setSensor(AbstractSensor& sensor) override {
-		this->sensor = &sensor;
+	void setSensor(const AbstractSensor& sensor) override {
+		this->sensor = sensor;
 	};
 
 	void setConfiguration(map<string, int> config) override;
@@ -35,3 +37,5 @@ public:
 
 	void aboutToFinish(int stepsTillFinishing) override {};
 };
+
+#endif // __NAIVE_ALGORITHM__H_
