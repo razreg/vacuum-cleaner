@@ -24,6 +24,8 @@ struct Position {
 	};
 };
 
+Logger logger("House");
+
 class House {
 
 	string shortName;

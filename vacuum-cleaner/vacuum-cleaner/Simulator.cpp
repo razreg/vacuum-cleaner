@@ -1,7 +1,6 @@
 #include "Simulator.h"
 
 using namespace std;
-namespace fs = boost::filesystem;
 
 // TODO add debug printing (mark as "DEBUG: ". It would be good to add simple logging in common.h with timestamps
 int main(int argc, char** argv) {
@@ -9,15 +8,20 @@ int main(int argc, char** argv) {
 	Logger logger("Simulator");
 	string usage = "Usage: simulator [-config <config_file_location>] [-house_path <houses_path_location>]";
 
-	string housesPath;
-	string configPath;
 	list<House> houseList;
 	map<string, int> configMap;
 	
 	// set paths to config file and houses
-	string workingDir(fs::current_path()); //getting full path to working directoy
-	configPath = workingDir;
-	housesPath = workingDir;
+	string workingDir;
+	try {
+		workingDir = getCurrentWorkingDirectory(); //getting full path to working directoy
+	}
+	catch (exception& e) {
+		logger.fatal(e.what());
+		return INTERNAL_FAILURE;
+	}
+	string configPath = workingDir;
+	string housesPath = workingDir;
 	logger.debug("Parsing command line arguments");
 	for (int i = 1; i < argc; ++i) {
 		if (argv[i] == "-config") {
@@ -37,10 +41,6 @@ int main(int argc, char** argv) {
 	try {
 		logger.info("Loading houses from directory");
 		getHouseList(housesPath, houseList);
-	}
-	catch (fs::filesystem_error& e) {
-		logger.fatal("houses directory path [" + housesPath + "] is invalid");
-		return INVALID_ARGUMENTS;
 	}
 	catch (exception& e) {
 		logger.fatal(e.what());
@@ -120,11 +120,14 @@ int main(int argc, char** argv) {
 
 void getConfiguration(const string& configFileDir, map<string, int>& configMap) {
 	
-	fs::path path = configFileDir; // TODO check if safe or might throw exception
-	path /= "config.ini"; // adds appropriate file separator if needed
+	string path = configFileDir;
+	if (configFileDir.back() != '/') {
+		path += '/';
+	}
+	path += "config.ini";
 
 	// create a map of key-value pairs from config file (expected format of each line: key=value)
-	ifstream configFileStream(path.native());
+	ifstream configFileStream(path);
 	string currLine;
 	bool failedToParseConfig = true; // assume we are going to fail
 	if (configFileStream) {
@@ -179,21 +182,28 @@ void getConfiguration(const string& configFileDir, map<string, int>& configMap) 
 	logger.info("Configuration parameter: " + BATTERY_RECHARGE_RATE + "=" + configMap.find(BATTERY_RECHARGE_RATE));
 }
 
-// TODO add log messages (debug and info) - including inside deseriallize (logger.debug() lines read from file)
 void getHouseList(string housesPath, list<House>& houses) {
-
-	int i = 0;
-	const boost::regex pattern("(.*)\.house");
-	fs::directory_iterator endIterator;
-	boost::smatch what;
-	for (fs::directory_iterator iter(housesPath); iter != endItr; ++iter) {
-		if (fs::is_regular_file(iter->status()) &&
-			boost::regex_match(iter->path().filename(), what, pattern)) {
+	experimental::filesystem::directory_iterator endIterator;
+	for (experimental::filesystem::directory_iterator iter(housesPath); iter != endIterator; ++iter) {
+		if (experimental::filesystem::is_regular_file(iter->status()) && iter->path->extension() == ".house") {
+			logger.info("Found house file in path: " + iter->path().string());
 			House& house = House::deseriallize(iter->path().string());
+			logger.info("Validating house");
+			logger.debug("Validating the existence of a docking station");
 			house.getDockingStation();
+			logger.debug("Validating house walls");
 			house.validateWalls();
+			logger.info("House is valid");
 			houses.push_back(house);
 		}
 	}
 }
 
+string getCurrentWorkingDirectory() {
+	char currentPath[FILENAME_MAX];
+	if (!getCurrentWorkingDir(currentPath, sizeof(currentPath))) {
+		throw exception("Failed to find current working directory.");
+	}
+	currentPath[sizeof(currentPath) - 1] = '\0';
+	return currentPath;
+}

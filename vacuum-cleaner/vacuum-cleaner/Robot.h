@@ -1,5 +1,5 @@
 #pragma once
-#include "SensorImpl.h"
+#include "AbstractSensor.h"
 #include "House.h"
 #include "AbstractAlgorithm.h"
 #include "Battery.h"
@@ -7,10 +7,12 @@
 Logger logger("Robot");
 static const string directions[] = { "East", "West", "South", "North", "Stay" };
 
+// please note that this robot is part of the simulator - it only encapsulates some simulator logic. 
+// Therefore, this robot is aware of the sensor implementation just like the simulator is
 class Robot {
 
 	AbstractAlgorithm& algorithm;
-	SensorImpl& sensor; // TODO need to use abstract sensor? Waiting for Amir's response
+	SensorImpl& sensor;
 	Battery battery;
 	Position position;
 

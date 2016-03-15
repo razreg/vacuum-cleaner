@@ -8,8 +8,6 @@ House& House::deseriallize(const string& filePath) {
 	int numRows, numCols;
 	char** matrix;
 
-	string houseFileError = "house file [" + filePath + "] is invalid";
-
 	ifstream houseFileStream(filePath);
 	bool failedToParsefile = true; // assume we are going to fail
 	if (houseFileStream) {
@@ -37,6 +35,7 @@ House& House::deseriallize(const string& filePath) {
 					}
 					i++;
 				}
+				// TODO log debug house (add method to House to cast to string)
 			}
 		}
 		catch (exception e) {
@@ -46,7 +45,8 @@ House& House::deseriallize(const string& filePath) {
 	}
 
 	if (failedToParsefile) {
-		cout << "ERROR: " << houseFileError << endl; 
+		string houseFileError = "house file [" + filePath + "] is invalid";
+		logger.error(houseFileError);
 		throw exception(houseFileError.c_str());
 	}
 
