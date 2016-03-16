@@ -1,227 +1,209 @@
 #include "Simulator.h"
 
 using namespace std;
-namespace fs = boost::filesystem;
 
-// Usage: simulator -config <config_file_location> -house_path <houses_path_location>
-//    or: simulator -house_path <houses_path_location> -config <config_file_location>
-//    if either one of them is missing- look for it in the working directory
+// TODO add debug printing (mark as "DEBUG: ". It would be good to add simple logging in common.h with timestamps
 int main(int argc, char** argv) {
-	
-	string usageError = "Error: Invalid arguments. "
-		"Usage: simulator -config <config_file_location> -house_path <houses_path_location>, or: simulator -house_path <houses_path_location> -config <config_file_location> ";
-	string houses_path;
-	string config_path;
-	list<string> housePathList;
-	map<string, int> configMap;
 
-	if (argc != 1 && argc != 3 && argc != 5){
-		cout << usageError << endl;
+	Logger logger("Simulator");
+	string usage = "Usage: simulator [-config <config_file_location>] [-house_path <houses_path_location>]";
+
+	list<House> houseList;
+	map<string, int> configMap;
+	
+	// set paths to config file and houses
+	string workingDir;
+	try {
+		workingDir = getCurrentWorkingDirectory(); //getting full path to working directoy
+	}
+	catch (exception& e) {
+		logger.fatal(e.what());
+		return INTERNAL_FAILURE;
+	}
+	string configPath = workingDir;
+	string housesPath = workingDir;
+	logger.debug("Parsing command line arguments");
+	for (int i = 1; i < argc; ++i) {
+		if (argv[i] == "-config") {
+			configPath = argv[i + 1];
+		}
+		else if (argv[i] == "-house_path") {
+			housesPath = argv[i + 1];
+		}
+		else if (i == 2 || i == 4) {
+			// this argument is the first or third argument and not "-config" or "-house_path"
+			logger.fatal("Invalid arguments. " + usage);
+			return INVALID_ARGUMENTS;
+		}
+	}
+	logger.info("Using config file directory path as [" + configPath + "]");
+	logger.info("Using house files directory path as [" + housesPath + "]");
+	try {
+		logger.info("Loading houses from directory");
+		getHouseList(housesPath, houseList);
+	}
+	catch (exception& e) {
+		logger.fatal(e.what());
 		return INVALID_ARGUMENTS;
 	}
-	
-	//getting full path to working directoy
-	fs::path full_path_working_directory(fs::current_path());
-
-	// both argument are missing
-	if (argc == 1){ 
-		config_path = full_path_working_directory.string();
-		houses_path = full_path_working_directory.string();		
+	try {
+		logger.info("Loading configuration from directory");
+		getConfiguration(configPath, configMap);
 	}
-	else if (argc == 3){
-		if (argv[1] == "-config"){
-			config_path = argv[2];
-			configMap = getConfiguration(config_path); // TODO catch exception and exit gracefully?
-			houses_path = full_path_working_directory.string();
-		}
-		else if (argv[1] == "-house_path"){
-			houses_path = argv[2];
-			housePathList = getHouseList(houses_path);
-			config_path = full_path_working_directory.string();
-		}
-		else{
-			cout << usageError << endl;
-			return INVALID_ARGUMENTS;
-		}
-	}
-	else{
-		if (argv[1] == "-config" && argv[3] == "-house_path"){
-			config_path = argv[2];
-			houses_path = argv[4];
-			configMap = getConfiguration(config_path); // TODO catch exception and exit gracefully?
-			housePathList = getHouseList(houses_path);
-		}
-		else if (argv[1] == "-house_path" && argv[3] == "-config")
-		{
-			config_path = argv[4];
-			houses_path = argv[2];
-			configMap = getConfiguration(config_path); // TODO catch exception and exit gracefully?
-			housePathList = getHouseList(houses_path);
-		}
-		else{
-			cout << usageError << endl;
-			return INVALID_ARGUMENTS;
-		}
+	catch (exception& e) {
+		logger.fatal(e.what());
+		return INVALID_CONFIGURATION;
 	}
 
-	// TODO -make sure that if we get here than the paths are valid
-	// TODO load houses into an array of House objects
-	House* houses = new House[housePathList.size()];
-	int i = 0;
-	string slash("/");
-	for (list<string>::const_iterator item = housePathList.begin(); item != housePathList.end(); ++item){
-		if (EndsWith(houses_path, "/")){
-			houses[i] = House::deseriallize(houses_path + *item);
-		}
-		else{
-			houses[i] = House::deseriallize(houses_path + slash + *item);
-		}
-		check_house_surroundings(houses[i]); //for each house- make sure boundaries are walls
-		i++;
-	}
+	int maxSteps = configMap.find(MAX_STEPS)->second;
+	int maxStepsAfterWinner = configMap.find(MAX_STEPS_AFTER_WINNER)->second;
+	logger.info("MaxSteps=" + to_string(maxSteps) + ", MaxStepsAfterWinner=" + to_string(maxStepsAfterWinner));
 
-	// TODO init NaiveAlgorithm (including setSensor ***and setConfiguration***)
-	// TODO loop until finish (maxSteps, house clean, etc.) and execute the algorithm steps on the house - 
-	//      each algorithm must have a house of its own so we need to clone the house before passing it 
-	//      to the algorithm!
-	//      in the loop - when we init a house, init a Score as well
-	
-	delete [] houses;
+	NaiveAlgorithm algorithm;
+
+	// TODO catch exceptions that might come from algorithm or something else and exit gracefully (but be more specific)
+	logger.info("Starting simulation of algorithm: NaiveAlgorithm");
+	for (list<House>::const_iterator it = houseList.begin(), end = houseList.end(), int i = 1; it != end; ++it, ++i) {
+
+		House currHouse(*it); // copy constructor called
+		logger.info("Simulation started for house number [" + to_string(i) + "] - Name: " + currHouse.getShortName());
+		// TODO implement a method to print the house for debug purposes (place in House)
+		SensorImpl sensor;
+		sensor.setHouse(currHouse);
+		Score currScore;
+
+		logger.info("Initializing robot");
+		Robot robot(configMap, algorithm, sensor, currHouse.getDockingStation());
+		int steps = 0;
+		int stepsAfterWinner = 0;
+
+		while (steps < maxSteps && stepsAfterWinner < maxStepsAfterWinner) {
+			if (robot.getBatteryValue() == 0) {
+				// dead battery - we fast forward now to the point when time is up
+				logger.info("Robot has dead battery");
+				steps = maxSteps;
+				break;
+			}
+			robot.step(); // this also updates the sensor and the battery but not the house
+			if (!currHouse.isInside(robot.getPosition()) || currHouse.isWall(robot.getPosition())) {
+				logger.warn("The algorithm has performed an illegal step.");
+				currScore.reportBadBehavior();
+				break;
+			}
+			// perform one cleaning step and update score
+			if (currHouse.clean(robot.getPosition())) {
+				currScore.incrementDirtCollected();
+			}
+			steps++; // TODO increment stepsAfterWinner if winner were found (and update score)
+			if (currHouse.getTotalDust() == 0) {
+				logger.info("House is clean of dust");
+				break; // clean house
+			}
+			// TODO notify aboutToFinish to algorithm if necessary
+		}
+		currScore.setWinnerNumSteps(steps); // TODO change to support more than one algorithm in ex2
+		currScore.setIsBackInDocking(robot.inDocking());
+		currScore.setThisNumSteps(steps);
+		currScore.setSumDirtInHouse(currHouse.getTotalDust());
+		if (currHouse.getTotalDust() > 0) {
+			currScore.setPositionInCopmetition(DIDNT_FINISH_POSITION_IN_COMPETETION);
+		}
+		else {
+			currScore.setPositionInCopmetition(1); // TODO change to support more than one algorithms in ex2
+		}
+		logger.info("Score for house " + currHouse.getShortName() + " is " + to_string(currScore.getScore()));
+	}
+	// TODO print score
+
 	return SUCCESS;
 }
 
-map<string, int> getConfiguration(string configFilePath) {
+void getConfiguration(const string& configFileDir, map<string, int>& configMap) {
 	
-	string configError = "Error: configuration file [" + configFilePath + "] is invalid";
-	if (EndsWith(configFilePath, "/")){
-		configFilePath = configFilePath + "config.ini";
+	string path = configFileDir;
+	if (configFileDir.back() != '/') {
+		path += '/';
 	}
-	else{
-		configFilePath = configFilePath + "/config.ini";
-	}
+	path += "config.ini";
 
 	// create a map of key-value pairs from config file (expected format of each line: key=value)
-	map<string, int> configMap;
-	ifstream configFileStream(configFilePath);
+	ifstream configFileStream(path);
 	string currLine;
 	bool failedToParseConfig = true; // assume we are going to fail
 	if (configFileStream) {
 		failedToParseConfig = false; // seems like we're lucky
 		try {
 			while (getline(configFileStream, currLine)) {
+				logger.debug("Read line from config file: " + currLine);
 				int positionOfEquals = currLine.find("=");
 				string key = currLine.substr(0, positionOfEquals);
 				if (positionOfEquals != string::npos) {
 					int value = stoi(currLine.substr(positionOfEquals + 1)); // possibly: invalid_argument or out_of_range
-					configMap.insert(key, value);
+					configMap.insert(pair<string, int>(key, value));
 				}
 			}
 			configFileStream.close();
 		}
-		catch (exception e) {
+		catch (exception& e) {
 			failedToParseConfig = true; // not so lucky after all
 		}
 	}
 	if (failedToParseConfig) {
-		cout << configError << endl; // TODO throw custom exception (create our own class - perhaps even in the simulator header)
+		string configError = "configuration file directoy [" + configFileDir + "] is invalid";
+		throw exception(configError.c_str());
 	}
 
-	return configMap;
-
-	// raz- I just copied what you did here to NaiveAlgorithm.cpp.. hope I am not wrong!
-	/*
-	// build configuration from map
-	Configuration config;
+	// fix map with defaults if missing configuration item
 	map<string, int>::iterator mapIterator;
-	mapIterator = configMap.find("MaxSteps");
-	config.maxSteps = 
-		(mapIterator != configMap.end()) ? mapIterator->second : DEFAULT_MAX_STEPS;
-	mapIterator = configMap.find("MaxStepsAfterWinner");
-	config.maxStepsAfterWinner = 
-		(mapIterator != configMap.end()) ? mapIterator->second : DEFAULT_MAX_STEPS_AFTER_WINNER;
-	mapIterator = configMap.find("BatteryCapacity");
-	config.batteryCapacity = 
-		(mapIterator != configMap.end()) ? mapIterator->second : DEFAULT_BATTERY_CAPACITY;
-	mapIterator = configMap.find("BatteryConsumptionRate");
-	config.batteryConsumptionRate =
-		(mapIterator != configMap.end()) ? mapIterator->second : DEFAULT_BATTERY_CONSUMPTION_RATE;
-	mapIterator = configMap.find("BatteryRachargeRate");
-	config.batteryRachargeRate =
-		(mapIterator != configMap.end()) ? mapIterator->second : DEFAULT_BATTERY_RECHARGE_RATE;
-	return config;
-
-	*/
+	mapIterator = configMap.find(MAX_STEPS);
+	if (mapIterator == configMap.end()) {
+		configMap.insert(pair<string, int>(MAX_STEPS, DEFAULT_MAX_STEPS));
+	}
+	logger.info("Configuration parameter: " + MAX_STEPS + "=" + configMap.find(MAX_STEPS));
+	mapIterator = configMap.find(MAX_STEPS_AFTER_WINNER);
+	if (mapIterator == configMap.end()) {
+		configMap.insert(pair<string, int>(MAX_STEPS_AFTER_WINNER, DEFAULT_MAX_STEPS_AFTER_WINNER));
+	}
+	logger.info("Configuration parameter: " + MAX_STEPS_AFTER_WINNER + "=" + configMap.find(MAX_STEPS_AFTER_WINNER));
+	mapIterator = configMap.find(BATTERY_CAPACITY);
+	if (mapIterator == configMap.end()) {
+		configMap.insert(pair<string, int>(BATTERY_CAPACITY, DEFAULT_BATTERY_CAPACITY));
+	}
+	logger.info("Configuration parameter: " + BATTERY_CAPACITY + "=" + configMap.find(BATTERY_CAPACITY));
+	mapIterator = configMap.find(BATTERY_CONSUMPTION_RATE);
+	if (mapIterator == configMap.end()) {
+		configMap.insert(pair<string, int>(BATTERY_CONSUMPTION_RATE, DEFAULT_BATTERY_CONSUMPTION_RATE));
+	}
+	logger.info("Configuration parameter: " + BATTERY_CONSUMPTION_RATE + "=" + configMap.find(BATTERY_CONSUMPTION_RATE));
+	mapIterator = configMap.find(BATTERY_RECHARGE_RATE);
+	if (mapIterator == configMap.end()) {
+		configMap.insert(pair<string, int>(BATTERY_RECHARGE_RATE, DEFAULT_BATTERY_RECHARGE_RATE));
+	}
+	logger.info("Configuration parameter: " + BATTERY_RECHARGE_RATE + "=" + configMap.find(BATTERY_RECHARGE_RATE));
 }
 
-//the method returns a list of houses files within the given path
-list<string> getHouseList(string housePath){
-	DIR *dir;
-	struct dirent *fileInPath;
-	list<string> houses;
-
-	string houseError = "Error: house file's path [" + housePath + "] is invalid";
-	
-	const char *path = housePath.c_str(); // converts string to char*
-	if ((dir = opendir(path)) != NULL){
-		while ((fileInPath = readdir(dir)) != NULL){
-			if (EndsWith(fileInPath->d_name, ".house"))
-				houses.push_back(fileInPath->d_name);
+void getHouseList(string housesPath, list<House>& houses) {
+	experimental::filesystem::directory_iterator endIterator;
+	for (experimental::filesystem::directory_iterator iter(housesPath); iter != endIterator; ++iter) {
+		if (experimental::filesystem::is_regular_file(iter->status()) && iter->path->extension() == ".house") {
+			logger.info("Found house file in path: " + iter->path().string());
+			House& house = House::deseriallize(iter->path().string());
+			logger.info("Validating house");
+			logger.debug("Validating the existence of a docking station");
+			house.getDockingStation();
+			logger.debug("Validating house walls");
+			house.validateWalls();
+			logger.info("House is valid");
+			houses.push_back(house);
 		}
 	}
-
-	else{
-		cout << houseError << endl; // TODO throw custom exception (create our own class - perhaps even in the simulator header)
-	}
-	
-	return houses;
 }
 
-//returns true if filename ends with suffix
-bool EndsWith(const string& filename, const string& suffix) {
-	if (suffix.size() > filename.size()) 
-		return false;
-	return equal(filename.begin() + filename.size() - suffix.size(), filename.end(), suffix.begin());
-}
-
-//makes sure that the surrounding of the house is a wall
-void check_house_surroundings(House& house){
-	int i, j;
-	int lastRow = house.getNumRows - 1;
-	int lastCol = house.getnumCols - 1;
-
-	for (i = 0; i < house.getNumRows(); i++){
-		if (i == 0)
-			for (j = 0; j < house.getnumCols(); j++){
-				if (house.getMatrix[0][j] != WALL)
-					house.getMatrix[0][j] = WALL;
-			}
-
-		else if (i == lastRow)
-			for (j = 0; j < house.getnumCols(); j++){
-				if (house.getMatrix[lastRow][j] != WALL)
-					house.getMatrix[lastRow][j] = WALL;
-			}
-		else{
-			if (house.getMatrix[i][0] != WALL)
-				house.getMatrix[i][0] = WALL;
-			if (house.getMatrix[i][lastCol] != WALL)
-				house.getMatrix[i][lastCol] = WALL;
-		}
-
+string getCurrentWorkingDirectory() {
+	char currentPath[FILENAME_MAX];
+	if (!getCurrentWorkingDir(currentPath, sizeof(currentPath))) {
+		throw exception("Failed to find current working directory.");
 	}
-}
-
-//returns the sum of dust in the house, for the simulator to know when the robot is done cleaning.
-//should be called before the robot starts working.
-int totalDust(House& house){
-	int i, j, sum = 0;
-	Position pos = { 0, 0 };
-	for (i = 0; i < house.getNumRows(); i++){
-		for (j = 0; j < house.getnumCols(); j++){
-			pos = { i, j };
-			sum += house.getDirtLevel(pos);
-		}
-	}
-
-	return sum;
+	currentPath[sizeof(currentPath) - 1] = '\0';
+	return currentPath;
 }

@@ -3,13 +3,13 @@
 SensorInformation SensorImpl::sense() const {
 	SensorInformation sensorInformation;
 	sensorInformation.dirtLevel = house->getDirtLevel(*currentPosition);
-	sensorInformation.isWall[EAST] = house->isWall(
+	sensorInformation.isWall[(int) Direction::East] = house->isWall(
 		Position(currentPosition->X + 1, currentPosition->Y));
-	sensorInformation.isWall[WEST] = house->isWall(
+	sensorInformation.isWall[(int) Direction::West] = house->isWall(
 		Position(currentPosition->X - 1, currentPosition->Y));
-	sensorInformation.isWall[SOUTH] = house->isWall(
+	sensorInformation.isWall[(int)Direction::South] = house->isWall(
 		Position(currentPosition->X, currentPosition->Y + 1));
-	sensorInformation.isWall[NORTH] = house->isWall(
+	sensorInformation.isWall[(int)Direction::North] = house->isWall(
 		Position(currentPosition->X, currentPosition->Y - 1));
 	return sensorInformation;
 }

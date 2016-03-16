@@ -1,29 +1,17 @@
 #include "NaiveAlgorithm.h"
 
-
 void NaiveAlgorithm::setConfiguration(map<string, int> config){
-	Configuration con;
-	map<string, int>::iterator mapIterator;
-	mapIterator = config.find("MaxSteps");
-	con.maxSteps =
-		(mapIterator != config.end()) ? mapIterator->second : DEFAULT_MAX_STEPS;
-	mapIterator = config.find("MaxStepsAfterWinner");
-	con.maxStepsAfterWinner =
-		(mapIterator != config.end()) ? mapIterator->second : DEFAULT_MAX_STEPS_AFTER_WINNER;
-	mapIterator = config.find("BatteryCapacity");
-	con.batteryCapacity =
-		(mapIterator != config.end()) ? mapIterator->second : DEFAULT_BATTERY_CAPACITY;
-	mapIterator = config.find("BatteryConsumptionRate");
-	con.batteryConsumptionRate =
-		(mapIterator != config.end()) ? mapIterator->second : DEFAULT_BATTERY_CONSUMPTION_RATE;
-	mapIterator = config.find("BatteryRachargeRate");
-	con.batteryRachargeRate =
-		(mapIterator != config.end()) ? mapIterator->second : DEFAULT_BATTERY_RECHARGE_RATE;
+
+	maxSteps = config.find(MAX_STEPS)->second;
+	maxStepsAfterWinner = config.find(MAX_STEPS_AFTER_WINNER)->second;
+
+	battery = new Battery(config.find(BATTERY_CAPACITY)->second, 
+		config.find(BATTERY_CONSUMPTION_RATE)->second, config.find(BATTERY_RECHARGE_RATE)->second);
 }
 
 Direction NaiveAlgorithm::step() {
 
-	SensorInformation sensorInformation = this->sensor->sense();
+	SensorInformation sensorInformation = sensor.sense();
 
 	// construct a vector of valid directions
 	vector<Direction> directions;
@@ -33,6 +21,7 @@ Direction NaiveAlgorithm::step() {
 			directions.push_back(static_cast<Direction>(i));
 		}
 	}
+	directions[rand() % directions.size()];
 
 	return directions[rand() % directions.size()];
 }

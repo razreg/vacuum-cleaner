@@ -1,9 +1,8 @@
-#pragma once
+#ifndef __SENSORIMPL__H_
+#define __SENSORIMPL__H_
+
 #include "AbstractSensor.h"
 #include "House.h"
-#include "Position.h"
-
-extern const int EAST, WEST, SOUTH, NORTH;
 
 class SensorImpl : public AbstractSensor {
 
@@ -21,4 +20,10 @@ public:
 	}
 
 	SensorInformation sense() const override;
+
+	bool inDocking() {
+		return house->getDockingStation() == *currentPosition;
+	};
 };
+
+#endif // __SENSORIMPL__H_
