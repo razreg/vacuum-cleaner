@@ -10,6 +10,9 @@ using namespace std;
 class AbstractAlgorithm
 {
 public:
+
+	virtual ~AbstractAlgorithm() {} //DOTO found this in the one they published!
+
 	// setSensor is called once when the Algorithm is initialized 
 	virtual void setSensor(const AbstractSensor& sensor) = 0;
 

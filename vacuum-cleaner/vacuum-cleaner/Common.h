@@ -3,6 +3,8 @@
 
 const LogLevel LOG_LEVEL = DEBUG;
 
+#include <time.h>
+
 // configuration strings
 const string MAX_STEPS = "MaxSteps";
 const string MAX_STEPS_AFTER_WINNER = "MaxStepsAfterWinner";

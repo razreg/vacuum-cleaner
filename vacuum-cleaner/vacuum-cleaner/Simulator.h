@@ -7,6 +7,7 @@
 #include <list>
 
 // file handling
+#include <experimental/filesystem>
 #include <fstream>
 #include <stdio.h>
 #include <filesystem> // TODO remove - do not use lib from experimental
@@ -20,7 +21,6 @@
 	#define getCurrentWorkingDir getcwd
 #endif
 
-#include "NaiveAlgorithm.h"
 #include "Score.h"
 #include "Robot.h"
 
@@ -29,5 +29,30 @@ const int SUCCESS = 0;
 const int INTERNAL_FAILURE = 1;
 const int INVALID_ARGUMENTS = 2;
 const int INVALID_CONFIGURATION = 3;
+
+class Simulator{
+
+	list<House> houseList;
+	map<string, int> configMap;
+
+public:
+	
+	//TODO constructor-destructor
+	Simulator();
+
+	void setConfiguration(const string& configFileDir);
+
+	void setHouseList(string housesPath);
+
+	list<House> getHouseList() {
+		return this->houseList;
+	}
+
+	map<string, int> getConfigMap() {
+		return this->configMap;
+	}
+
+
+};
 
 #endif // __SIMULATOR__H_

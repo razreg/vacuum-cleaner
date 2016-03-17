@@ -2,16 +2,15 @@
 
 using namespace std;
 
-/*
 // TODO add debug printing (mark as "DEBUG: ". It would be good to add simple logging in common.h with timestamps
 int main(int argc, char** argv) {
 
 	Logger logger("Simulator");
 	string usage = "Usage: simulator [-config <config_file_location>] [-house_path <houses_path_location>]";
 
-	list<House> houseList;
-	map<string, int> configMap;
-	
+	//creating a simulator object
+	Simulator simulator;
+
 	// set paths to config file and houses
 	string workingDir;
 	try {
@@ -41,7 +40,7 @@ int main(int argc, char** argv) {
 	logger.info("Using house files directory path as [" + housesPath + "]");
 	try {
 		logger.info("Loading houses from directory");
-		getHouseList(housesPath, houseList);
+		simulator.setHouseList(housesPath);
 	}
 	catch (exception& e) {
 		logger.fatal(e.what());
@@ -49,12 +48,15 @@ int main(int argc, char** argv) {
 	}
 	try {
 		logger.info("Loading configuration from directory");
-		getConfiguration(configPath, configMap);
+		simulator.setConfiguration(configPath);
 	}
 	catch (exception& e) {
 		logger.fatal(e.what());
 		return INVALID_CONFIGURATION;
 	}
+
+	list<House> houseList = simulator.getHouseList();
+	map<string, int> configMap = simulator.getConfigMap();
 
 	int maxSteps = configMap.find(MAX_STEPS)->second;
 	int maxStepsAfterWinner = configMap.find(MAX_STEPS_AFTER_WINNER)->second;
@@ -119,91 +121,6 @@ int main(int argc, char** argv) {
 	return SUCCESS;
 }
 
-*/
-
-void Simulator::setConfiguration(const string& configFileDir) {
-	
-	string path = configFileDir;
-	if (configFileDir.back() != '/') {
-		path += '/';
-	}
-	path += "config.ini";
-
-	// create a map of key-value pairs from config file (expected format of each line: key=value)
-	ifstream configFileStream(path);
-	string currLine;
-	bool failedToParseConfig = true; // assume we are going to fail
-	if (configFileStream) {
-		failedToParseConfig = false; // seems like we're lucky
-		try {
-			while (getline(configFileStream, currLine)) {
-				logger.debug("Read line from config file: " + currLine);
-				int positionOfEquals = currLine.find("=");
-				string key = currLine.substr(0, positionOfEquals);
-				if (positionOfEquals != string::npos) {
-					int value = stoi(currLine.substr(positionOfEquals + 1)); // possibly: invalid_argument or out_of_range
-					configMap.insert(pair<string, int>(key, value));
-				}
-			}
-			configFileStream.close();
-		}
-		catch (exception& e) {
-			failedToParseConfig = true; // not so lucky after all
-		}
-	}
-	if (failedToParseConfig) {
-		string configError = "configuration file directoy [" + configFileDir + "] is invalid";
-		throw exception(configError.c_str());
-	}
-
-	// fix map with defaults if missing configuration item
-	map<string, int>::iterator mapIterator;
-	mapIterator = configMap.find(MAX_STEPS);
-	if (mapIterator == configMap.end()) {
-		configMap.insert(pair<string, int>(MAX_STEPS, DEFAULT_MAX_STEPS));
-	}
-	logger.info("Configuration parameter: " + MAX_STEPS + "=" + configMap.find(MAX_STEPS));
-	mapIterator = configMap.find(MAX_STEPS_AFTER_WINNER);
-	if (mapIterator == configMap.end()) {
-		configMap.insert(pair<string, int>(MAX_STEPS_AFTER_WINNER, DEFAULT_MAX_STEPS_AFTER_WINNER));
-	}
-	logger.info("Configuration parameter: " + MAX_STEPS_AFTER_WINNER + "=" + configMap.find(MAX_STEPS_AFTER_WINNER));
-	mapIterator = configMap.find(BATTERY_CAPACITY);
-	if (mapIterator == configMap.end()) {
-		configMap.insert(pair<string, int>(BATTERY_CAPACITY, DEFAULT_BATTERY_CAPACITY));
-	}
-	logger.info("Configuration parameter: " + BATTERY_CAPACITY + "=" + configMap.find(BATTERY_CAPACITY));
-	mapIterator = configMap.find(BATTERY_CONSUMPTION_RATE);
-	if (mapIterator == configMap.end()) {
-		configMap.insert(pair<string, int>(BATTERY_CONSUMPTION_RATE, DEFAULT_BATTERY_CONSUMPTION_RATE));
-	}
-	logger.info("Configuration parameter: " + BATTERY_CONSUMPTION_RATE + "=" + configMap.find(BATTERY_CONSUMPTION_RATE));
-	mapIterator = configMap.find(BATTERY_RECHARGE_RATE);
-	if (mapIterator == configMap.end()) {
-		configMap.insert(pair<string, int>(BATTERY_RECHARGE_RATE, DEFAULT_BATTERY_RECHARGE_RATE));
-	}
-	logger.info("Configuration parameter: " + BATTERY_RECHARGE_RATE + "=" + configMap.find(BATTERY_RECHARGE_RATE));
-}
-
-void Simulator::setHouseList(string housesPath) {
-	/*experimental::*/filesystem::directory_iterator endIterator;
-	for (experimental::filesystem::directory_iterator iter(housesPath); iter != endIterator; ++iter) {
-		if (experimental::filesystem::is_regular_file(iter->status()) && iter->path->extension() == ".house") {
-			logger.info("Found house file in path: " + iter->path().string());
-			House& house = House::deseriallize(iter->path().string());
-			logger.info("Validating house");
-			logger.debug("Validating the existence of a docking station");
-			house.getDockingStation();
-			logger.debug("Validating house walls");
-			house.validateWalls();
-			logger.info("House is valid");
-			houseList.push_back(house);
-		}
-	}
-}
-
-
-/*
 string getCurrentWorkingDirectory() {
 	char currentPath[FILENAME_MAX];
 	if (!getCurrentWorkingDir(currentPath, sizeof(currentPath))) {
@@ -212,4 +129,3 @@ string getCurrentWorkingDirectory() {
 	currentPath[sizeof(currentPath) - 1] = '\0';
 	return currentPath;
 }
-*/

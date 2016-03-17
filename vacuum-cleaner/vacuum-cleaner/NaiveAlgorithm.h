@@ -2,8 +2,9 @@
 #define __NAIVE_ALGORITHM__H_
 
 #include "AbstractAlgorithm.h"
-#include "Battery.h"
-#include "Common.h"
+#include "Battery.h" 
+#include "House.h"
+
 #include <stdlib.h>
 #include <ctime>
 #include <vector>

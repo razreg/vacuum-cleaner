@@ -6,6 +6,8 @@
 class AbstractSensor
 {
 public:
+	virtual ~AbstractSensor() {} //DOTO found this in the one they published!
+
 	// returns the sensor's information of the current location of the robot 
 	virtual SensorInformation sense() const = 0;
 };

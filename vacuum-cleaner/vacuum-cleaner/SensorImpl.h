@@ -2,7 +2,7 @@
 #define __SENSORIMPL__H_
 
 #include "House.h"
-#include "AbstractAlgorithm.h"
+#include "NaiveAlgorithm.h"
 
 
 class SensorImpl : public AbstractSensor {
