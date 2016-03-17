@@ -20,12 +20,9 @@
 	#define getCurrentWorkingDir getcwd
 #endif
 
-#include "House.h"
 #include "NaiveAlgorithm.h"
-#include "SensorImpl.h"
 #include "Score.h"
 #include "Robot.h"
-#include "Common.h"
 
 // exit codes
 const int SUCCESS = 0;

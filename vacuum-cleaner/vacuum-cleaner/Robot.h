@@ -1,10 +1,7 @@
 #ifndef __ROBOT__H_
 #define __ROBOT__H_
 
-#include "AbstractSensor.h"
-#include "House.h"
-#include "AbstractAlgorithm.h"
-#include "Battery.h"
+#include "SensorImpl.h"
 
 Logger logger("Robot");
 static const string directions[] = { "East", "West", "South", "North", "Stay" };
