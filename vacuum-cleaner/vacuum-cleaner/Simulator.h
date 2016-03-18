@@ -7,10 +7,10 @@
 #include <list>
 
 // file handling
-#include <experimental/filesystem>
+#include <boost/filesystem/operations.hpp>
 #include <fstream>
 #include <stdio.h>
-#include <filesystem> // TODO remove - do not use lib from experimental
+//#include <filesystem> // TODO remove - do not use lib from experimental
 #include <regex>
 #ifdef _WIN32
 	#include <direct.h>
