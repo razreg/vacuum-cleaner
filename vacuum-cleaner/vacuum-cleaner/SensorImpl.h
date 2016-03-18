@@ -1,7 +1,6 @@
 #ifndef __SENSORIMPL__H_
 #define __SENSORIMPL__H_
 
-#include "House.h"
 #include "NaiveAlgorithm.h"
 
 
