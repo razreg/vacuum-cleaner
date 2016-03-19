@@ -2,7 +2,7 @@
 #define __NAIVE_ALGORITHM__H_
 
 #include "AbstractAlgorithm.h"
-#include "Battery.h" 
+#include "Battery.h"
 //#include "Common.h"
 #include "House.h"
 

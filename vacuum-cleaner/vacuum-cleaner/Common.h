@@ -2,7 +2,8 @@
 #define __COMMON__H_
 
 #include <time.h>
-//#include <iostream>
+#include <iostream>
+#include <string>
 
 using namespace std;
 

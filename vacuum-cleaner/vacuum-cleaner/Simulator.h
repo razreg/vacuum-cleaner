@@ -1,9 +1,7 @@
 #ifndef __SIMULATOR__H_
 #define __SIMULATOR__H_
 
-#include <string>
 #include <map>
-#include <iostream>
 #include <list>
 
 // file handling
