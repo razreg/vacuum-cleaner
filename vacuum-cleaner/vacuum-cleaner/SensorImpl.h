@@ -1,8 +1,10 @@
 #ifndef __SENSORIMPL__H_
 #define __SENSORIMPL__H_
 
-#include "AbstractSensor.h"
-#include "House.h"
+#include "NaiveAlgorithm.h"
+//#include "AbstractSensor.h"
+//#include "House.h"
+
 
 class SensorImpl : public AbstractSensor {
 

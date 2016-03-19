@@ -1,7 +1,9 @@
 #include "Simulator.h"
 
 using namespace std;
+namespace fs = boost::filesystem;
 
+/*
 // TODO add debug printing (mark as "DEBUG: ". It would be good to add simple logging in common.h with timestamps
 int main(int argc, char** argv) {
 
@@ -118,7 +120,9 @@ int main(int argc, char** argv) {
 	return SUCCESS;
 }
 
-void getConfiguration(const string& configFileDir, map<string, int>& configMap) {
+*/
+
+void Simulator::setConfiguration(const string& configFileDir) {
 	
 	string path = configFileDir;
 	if (configFileDir.back() != '/') {
@@ -159,33 +163,33 @@ void getConfiguration(const string& configFileDir, map<string, int>& configMap) 
 	if (mapIterator == configMap.end()) {
 		configMap.insert(pair<string, int>(MAX_STEPS, DEFAULT_MAX_STEPS));
 	}
-	logger.info("Configuration parameter: " + MAX_STEPS + "=" + configMap.find(MAX_STEPS));
+	logger.info("Configuration parameter: " + MAX_STEPS + "=" + to_string(configMap.find(MAX_STEPS)->second));
 	mapIterator = configMap.find(MAX_STEPS_AFTER_WINNER);
 	if (mapIterator == configMap.end()) {
 		configMap.insert(pair<string, int>(MAX_STEPS_AFTER_WINNER, DEFAULT_MAX_STEPS_AFTER_WINNER));
 	}
-	logger.info("Configuration parameter: " + MAX_STEPS_AFTER_WINNER + "=" + configMap.find(MAX_STEPS_AFTER_WINNER));
+	logger.info("Configuration parameter: " + MAX_STEPS_AFTER_WINNER + "=" + to_string(configMap.find(MAX_STEPS_AFTER_WINNER)->second));
 	mapIterator = configMap.find(BATTERY_CAPACITY);
 	if (mapIterator == configMap.end()) {
 		configMap.insert(pair<string, int>(BATTERY_CAPACITY, DEFAULT_BATTERY_CAPACITY));
 	}
-	logger.info("Configuration parameter: " + BATTERY_CAPACITY + "=" + configMap.find(BATTERY_CAPACITY));
+	logger.info("Configuration parameter: " + BATTERY_CAPACITY + "=" + to_string(configMap.find(BATTERY_CAPACITY)->second));
 	mapIterator = configMap.find(BATTERY_CONSUMPTION_RATE);
 	if (mapIterator == configMap.end()) {
 		configMap.insert(pair<string, int>(BATTERY_CONSUMPTION_RATE, DEFAULT_BATTERY_CONSUMPTION_RATE));
 	}
-	logger.info("Configuration parameter: " + BATTERY_CONSUMPTION_RATE + "=" + configMap.find(BATTERY_CONSUMPTION_RATE));
+	logger.info("Configuration parameter: " + BATTERY_CONSUMPTION_RATE + "=" + to_string(configMap.find(BATTERY_CONSUMPTION_RATE)->second));
 	mapIterator = configMap.find(BATTERY_RECHARGE_RATE);
 	if (mapIterator == configMap.end()) {
 		configMap.insert(pair<string, int>(BATTERY_RECHARGE_RATE, DEFAULT_BATTERY_RECHARGE_RATE));
 	}
-	logger.info("Configuration parameter: " + BATTERY_RECHARGE_RATE + "=" + configMap.find(BATTERY_RECHARGE_RATE));
+	logger.info("Configuration parameter: " + BATTERY_RECHARGE_RATE + "=" + to_string(configMap.find(BATTERY_RECHARGE_RATE)->second));
 }
 
-void getHouseList(string housesPath, list<House>& houses) {
-	experimental::filesystem::directory_iterator endIterator;
-	for (experimental::filesystem::directory_iterator iter(housesPath); iter != endIterator; ++iter) {
-		if (experimental::filesystem::is_regular_file(iter->status()) && iter->path->extension() == ".house") {
+void Simulator::setHouseList(string housesPath) {
+	fs::directory_iterator endIterator;
+	for (fs::directory_iterator iter(housesPath); iter != endIterator; ++iter) {
+		if (fs::is_regular_file(iter->status()) && EndsWith(housesPath, ".house")) {
 			logger.info("Found house file in path: " + iter->path().string());
 			House& house = House::deseriallize(iter->path().string());
 			logger.info("Validating house");
@@ -194,10 +198,21 @@ void getHouseList(string housesPath, list<House>& houses) {
 			logger.debug("Validating house walls");
 			house.validateWalls();
 			logger.info("House is valid");
-			houses.push_back(house);
+			houseList.push_back(house);
 		}
 	}
 }
+
+bool EndsWith(const string& housesPath, const string& suffix) {
+	if (suffix.size() > housesPath.size())
+		return false;
+	return equal(housesPath.begin() + housesPath.size() - suffix.size(), housesPath.end(), suffix.begin());
+}
+
+/*
+
+if (fs::is_regular_file(iter->status()) &&  iter->path->extension() == ".house") {
+
 
 string getCurrentWorkingDirectory() {
 	char currentPath[FILENAME_MAX];
@@ -207,3 +222,4 @@ string getCurrentWorkingDirectory() {
 	currentPath[sizeof(currentPath) - 1] = '\0';
 	return currentPath;
 }
+*/

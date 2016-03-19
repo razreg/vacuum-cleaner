@@ -1,7 +1,10 @@
 #ifndef __COMMON__H_
 #define __COMMON__H_
 
-const LogLevel LOG_LEVEL = DEBUG;
+#include <time.h>
+//#include <iostream>
+
+using namespace std;
 
 // configuration strings
 const string MAX_STEPS = "MaxSteps";
@@ -19,6 +22,8 @@ const int DEFAULT_BATTERY_RECHARGE_RATE = 20;
 
 enum LogLevel { DEBUG, INFO, WARN, ERROR, FATAL };
 static const string loggerLevels[] = { "DEBUG", "INFO", "WARN", "ERROR", "FATAL" };
+
+const LogLevel LOG_LEVEL = DEBUG;
 
 // simple logger which simply writes to cout but with nice format
 class Logger {

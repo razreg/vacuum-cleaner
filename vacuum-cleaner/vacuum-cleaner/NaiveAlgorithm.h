@@ -2,8 +2,10 @@
 #define __NAIVE_ALGORITHM__H_
 
 #include "AbstractAlgorithm.h"
-#include "Battery.h"
-#include "Common.h"
+#include "Battery.h" 
+//#include "Common.h"
+#include "House.h"
+
 #include <stdlib.h>
 #include <ctime>
 #include <vector>
@@ -19,15 +21,20 @@ class NaiveAlgorithm : public AbstractAlgorithm {
 
 public:
 
+	NaiveAlgorithm();
+
+	/*
 	NaiveAlgorithm() {
 		srand(time(NULL));
 	};
+	*/
 
 	~NaiveAlgorithm() {
 		delete battery;
 	};
 
 	void setSensor(const AbstractSensor& sensor) override {
+		srand(time(NULL));
 		this->sensor = sensor;
 	};
 

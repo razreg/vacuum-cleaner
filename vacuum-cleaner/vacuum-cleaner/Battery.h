@@ -1,6 +1,7 @@
 #ifndef __BATTERY__H_
 #define __BATTERY__H_
 
+#include <algorithm>
 #include "Common.h"
 
 class Battery {
