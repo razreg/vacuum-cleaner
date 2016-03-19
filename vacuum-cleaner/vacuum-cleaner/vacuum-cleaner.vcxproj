@@ -93,6 +93,7 @@
     <ClInclude Include="Common.h" />
     <ClInclude Include="Direction.h" />
     <ClInclude Include="House.h" />
+    <ClInclude Include="Main.h" />
     <ClInclude Include="NaiveAlgorithm.h" />
     <ClInclude Include="Robot.h" />
     <ClInclude Include="Score.h" />

@@ -189,7 +189,7 @@ void Simulator::setConfiguration(const string& configFileDir) {
 void Simulator::setHouseList(string housesPath) {
 	fs::directory_iterator endIterator;
 	for (fs::directory_iterator iter(housesPath); iter != endIterator; ++iter) {
-		if (fs::is_regular_file(iter->status()) && iter->path->extension() == ".house") {
+		if (fs::is_regular_file(iter->status()) && EndsWith(housesPath, ".house")) {
 			logger.info("Found house file in path: " + iter->path().string());
 			House& house = House::deseriallize(iter->path().string());
 			logger.info("Validating house");
@@ -203,8 +203,17 @@ void Simulator::setHouseList(string housesPath) {
 	}
 }
 
+bool EndsWith(const string& housesPath, const string& suffix) {
+	if (suffix.size() > housesPath.size())
+		return false;
+	return equal(housesPath.begin() + housesPath.size() - suffix.size(), housesPath.end(), suffix.begin());
+}
 
 /*
+
+if (fs::is_regular_file(iter->status()) &&  iter->path->extension() == ".house") {
+
+
 string getCurrentWorkingDirectory() {
 	char currentPath[FILENAME_MAX];
 	if (!getCurrentWorkingDir(currentPath, sizeof(currentPath))) {

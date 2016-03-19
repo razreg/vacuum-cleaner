@@ -1,6 +1,16 @@
-#include "Simulator.h"
+#include "Main.h"
 
 using namespace std;
+
+string getCurrentWorkingDirectory() {
+	char currentPath[FILENAME_MAX];
+	if (!getCurrentWorkingDir(currentPath, sizeof(currentPath))) {
+		throw exception("Failed to find current working directory.");
+	}
+	currentPath[sizeof(currentPath) - 1] = '\0';
+	return currentPath;
+}
+
 
 // TODO add debug printing (mark as "DEBUG: ". It would be good to add simple logging in common.h with timestamps
 int main(int argc, char** argv) {
@@ -66,10 +76,11 @@ int main(int argc, char** argv) {
 
 	// TODO catch exceptions that might come from algorithm or something else and exit gracefully (but be more specific)
 	logger.info("Starting simulation of algorithm: NaiveAlgorithm");
-	for (list<House>::const_iterator it = houseList.begin(), end = houseList.end(), int i = 1; it != end; ++it, ++i) {
+	int houseNum=1;
+	for (list<House>::const_iterator it = houseList.begin(); it != houseList.end(); ++it) {
 
 		House currHouse(*it); // copy constructor called
-		logger.info("Simulation started for house number [" + to_string(i) + "] - Name: " + currHouse.getShortName());
+		logger.info("Simulation started for house number [" + to_string(houseNum) + "] - Name: " + currHouse.getShortName());
 		// TODO implement a method to print the house for debug purposes (place in House)
 		SensorImpl sensor;
 		sensor.setHouse(currHouse);
@@ -115,17 +126,11 @@ int main(int argc, char** argv) {
 			currScore.setPositionInCopmetition(1); // TODO change to support more than one algorithms in ex2
 		}
 		logger.info("Score for house " + currHouse.getShortName() + " is " + to_string(currScore.getScore()));
+
+		houseNum++;
 	}
 	// TODO print score
 
 	return SUCCESS;
 }
 
-string getCurrentWorkingDirectory() {
-	char currentPath[FILENAME_MAX];
-	if (!getCurrentWorkingDir(currentPath, sizeof(currentPath))) {
-		throw exception("Failed to find current working directory.");
-	}
-	currentPath[sizeof(currentPath) - 1] = '\0';
-	return currentPath;
-}

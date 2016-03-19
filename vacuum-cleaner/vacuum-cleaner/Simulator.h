@@ -12,23 +12,15 @@
 #include <stdio.h>
 //#include <filesystem> // TODO remove - do not use lib from experimental
 #include <regex>
-#ifdef _WIN32
-	#include <direct.h>
-	#define getCurrentWorkingDir _getcwd
-#endif
-#ifdef linux
-	#include <unistd.h>
-	#define getCurrentWorkingDir getcwd
-#endif
+	
 
 #include "Score.h"
 #include "Robot.h"
+//#include "Common.h"
+//#include "SensorImpl.h"
+//#include "NaiveAlgorithm.h"
+//#include "House.h"
 
-// exit codes
-const int SUCCESS = 0;
-const int INTERNAL_FAILURE = 1;
-const int INVALID_ARGUMENTS = 2;
-const int INVALID_CONFIGURATION = 3;
 
 class Simulator{
 
@@ -52,6 +44,7 @@ public:
 		return this->configMap;
 	}
 
+	bool EndsWith(const string& filename, const string& suffix);
 
 };
 
