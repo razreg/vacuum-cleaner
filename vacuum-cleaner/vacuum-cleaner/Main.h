@@ -2,14 +2,15 @@
 #define __MAIN__H_
 
 #include "Simulator.h"
+#include <stdexcept>
 
 #ifdef _WIN32
 	#include <direct.h>
 	#define getCurrentWorkingDir _getcwd
 #endif
-#ifdef linux
+#ifdef __linux__
 	#include <unistd.h>
-	 getCurrentWorkingDir getcwd
+	#define getCurrentWorkingDir getcwd
 #endif
 
 
@@ -20,5 +21,8 @@ const int INVALID_ARGUMENTS = 2;
 const int INVALID_CONFIGURATION = 3;
 
 string getCurrentWorkingDirectory();
+
+void printScoreTable(map<string, int> scoreTable);
+
 
 #endif //__MAIN__H_

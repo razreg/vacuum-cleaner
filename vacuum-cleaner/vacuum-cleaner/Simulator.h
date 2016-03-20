@@ -3,12 +3,13 @@
 
 #include <map>
 #include <list>
+#include <stdexcept>
 
 // file handling
 #include <boost/filesystem/operations.hpp>
 #include <fstream>
 #include <stdio.h>
-//#include <filesystem> // TODO remove - do not use lib from experimental
+#include <filesystem> // TODO remove - do not use lib from experimental
 #include <regex>
 	
 

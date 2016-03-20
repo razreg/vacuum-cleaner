@@ -154,7 +154,7 @@ void Simulator::setConfiguration(const string& configFileDir) {
 	}
 	if (failedToParseConfig) {
 		string configError = "configuration file directoy [" + configFileDir + "] is invalid";
-		throw exception(configError.c_str());
+		throw invalid_argument(configError.c_str());
 	}
 
 	// fix map with defaults if missing configuration item

@@ -25,7 +25,7 @@ public:
 
 	/*
 	NaiveAlgorithm() {
-		srand(time(NULL));
+		srand(time(NULL));  // moved to setSensor (line 36);
 	};
 	*/
 
