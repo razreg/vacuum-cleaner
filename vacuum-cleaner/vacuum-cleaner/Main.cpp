@@ -6,7 +6,7 @@ using namespace std;
 // TODO add debug printing (mark as "DEBUG: ". It would be good to add simple logging in common.h with timestamps
 int main(int argc, char** argv) {
 
-	Logger logger("Simulator");
+	//Logger logger("Simulator");
 	string usage = "Usage: simulator [-config <config_file_location>] [-house_path <houses_path_location>]";
 
 	//creating a simulator object
@@ -18,37 +18,37 @@ int main(int argc, char** argv) {
 		workingDir = getCurrentWorkingDirectory(); //getting full path to working directoy
 	}
 	catch (exception& e) {
-		logger.fatal(e.what());
+		//logger.fatal(e.what());
 		return INTERNAL_FAILURE;
 	}
 	string configPath = workingDir;
 	string housesPath = workingDir;
-	logger.debug("Parsing command line arguments");
+	//logger.debug("Parsing command line arguments");
 	for (int i = 1; i < argc; ++i) {
-		if (argv[i] == "-config") {
+		if ((string(argv[i])).compare("-config") == 0) {
 			configPath = argv[i + 1];
 		}
-		else if (argv[i] == "-house_path") {
+		else if ((string(argv[i])).compare("-house_path") == 0) {
 			housesPath = argv[i + 1];
 		}
 		else if (i == 2 || i == 4) {
 			// this argument is the first or third argument and not "-config" or "-house_path"
-			logger.fatal("Invalid arguments. " + usage);
+			//logger.fatal("Invalid arguments. " + usage);
 			return INVALID_ARGUMENTS;
 		}
 	}
-	logger.info("Using config file directory path as [" + configPath + "]");
+	//logger.info("Using config file directory path as [" + configPath + "]");
 
 
 
 	
-	logger.info("Using house files directory path as [" + housesPath + "]");
+	//logger.info("Using house files directory path as [" + housesPath + "]");
 	try {
-		logger.info("Loading houses from directory");
+		//logger.info("Loading houses from directory");
 		simulator.setHouseList(housesPath);
 	}
 	catch (exception& e) {
-		logger.fatal(e.what());
+		//logger.fatal(e.what());
 		return INVALID_ARGUMENTS;
 	}
 	
@@ -56,11 +56,11 @@ int main(int argc, char** argv) {
 
 
 	try {
-		logger.info("Loading configuration from directory");
+		//logger.info("Loading configuration from directory");
 		simulator.setConfiguration(configPath);
 	}
 	catch (exception& e) {
-		logger.fatal(e.what());
+		//logger.fatal(e.what());
 		return INVALID_CONFIGURATION;
 	}
 
@@ -81,23 +81,23 @@ int main(int argc, char** argv) {
 
 	int maxSteps = configMap.find(MAX_STEPS)->second;
 	int maxStepsAfterWinner = configMap.find(MAX_STEPS_AFTER_WINNER)->second;
-	logger.info("MaxSteps=" + to_string(maxSteps) + ", MaxStepsAfterWinner=" + to_string(maxStepsAfterWinner));
+	//logger.info("MaxSteps=" + to_string(maxSteps) + ", MaxStepsAfterWinner=" + to_string(maxStepsAfterWinner));
 
 	NaiveAlgorithm algorithm;
 
 	// TODO catch exceptions that might come from algorithm or something else and exit gracefully (but be more specific)
-	logger.info("Starting simulation of algorithm: NaiveAlgorithm");
+	//logger.info("Starting simulation of algorithm: NaiveAlgorithm");
 	int houseNum=1;
 	for (list<House>::const_iterator it = houseList.begin(); it != houseList.end(); ++it) {
 
 		House currHouse(*it); // copy constructor called
-		logger.info("Simulation started for house number [" + to_string(houseNum) + "] - Name: " + currHouse.getShortName());
+		//logger.info("Simulation started for house number [" + to_string(houseNum) + "] - Name: " + currHouse.getShortName());
 		// TODO implement a method to print the house for debug purposes (place in House)
 		SensorImpl sensor;
 		sensor.setHouse(currHouse);
 		Score currScore;
 
-		logger.info("Initializing robot");
+		//logger.info("Initializing robot");
 		Robot robot(configMap, algorithm, sensor, currHouse.getDockingStation());
 		int steps = 0;
 		int stepsAfterWinner = 0;
@@ -105,13 +105,13 @@ int main(int argc, char** argv) {
 		while (steps < maxSteps && stepsAfterWinner < maxStepsAfterWinner) {
 			if (robot.getBatteryValue() == 0) {
 				// dead battery - we fast forward now to the point when time is up
-				logger.info("Robot has dead battery");
+				//logger.info("Robot has dead battery");
 				steps = maxSteps;
 				break;
 			}
 			robot.step(); // this also updates the sensor and the battery but not the house
 			if (!currHouse.isInside(robot.getPosition()) || currHouse.isWall(robot.getPosition())) {
-				logger.warn("The algorithm has performed an illegal step.");
+				//logger.warn("The algorithm has performed an illegal step.");
 				currScore.reportBadBehavior();
 				break;
 			}
@@ -121,7 +121,7 @@ int main(int argc, char** argv) {
 			}
 			steps++; // TODO increment stepsAfterWinner if winner were found (and update score)
 			if (currHouse.getTotalDust() == 0) {
-				logger.info("House is clean of dust");
+				//logger.info("House is clean of dust");
 				break; // clean house
 			}
 			// TODO notify aboutToFinish to algorithm if necessary
@@ -136,7 +136,7 @@ int main(int argc, char** argv) {
 		else {
 			currScore.setPositionInCopmetition(1); // TODO change to support more than one algorithms in ex2
 		}
-		logger.info("Score for house " + currHouse.getShortName() + " is " + to_string(currScore.getScore()));
+		//logger.info("Score for house " + currHouse.getShortName() + " is " + to_string(currScore.getScore()));
 		scoreTable.insert(pair<string, int>(currHouse.getShortName(), currScore.getScore()));
 
 		houseNum++;

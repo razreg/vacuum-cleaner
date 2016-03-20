@@ -9,7 +9,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <fstream>
 #include <stdio.h>
-#include <filesystem> // TODO remove - do not use lib from experimental
+//#include <filesystem> // TODO remove - do not use lib from experimental
 #include <regex>
 	
 
@@ -30,6 +30,8 @@ public:
 	
 	//TODO constructor-destructor
 	Simulator();
+
+	~Simulator();
 
 	void setConfiguration(const string& configFileDir);
 

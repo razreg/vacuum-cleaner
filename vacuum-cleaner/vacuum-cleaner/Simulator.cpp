@@ -138,11 +138,11 @@ void Simulator::setConfiguration(const string& configFileDir) {
 		failedToParseConfig = false; // seems like we're lucky
 		try {
 			while (getline(configFileStream, currLine)) {
-				logger.debug("Read line from config file: " + currLine);
-				int positionOfEquals = currLine.find("=");
-				string key = currLine.substr(0, positionOfEquals);
+				//logger.debug("Read line from config file: " + currLine);
+				size_t positionOfEquals = currLine.find("=");
+				string key = currLine.substr(0, (int)positionOfEquals);
 				if (positionOfEquals != string::npos) {
-					int value = stoi(currLine.substr(positionOfEquals + 1)); // possibly: invalid_argument or out_of_range
+					int value = stoi(currLine.substr((int)positionOfEquals + 1)); // possibly: invalid_argument or out_of_range
 					configMap.insert(pair<string, int>(key, value));
 				}
 			}
@@ -163,41 +163,41 @@ void Simulator::setConfiguration(const string& configFileDir) {
 	if (mapIterator == configMap.end()) {
 		configMap.insert(pair<string, int>(MAX_STEPS, DEFAULT_MAX_STEPS));
 	}
-	logger.info("Configuration parameter: " + MAX_STEPS + "=" + to_string(configMap.find(MAX_STEPS)->second));
+	//logger.info("Configuration parameter: " + MAX_STEPS + "=" + to_string(configMap.find(MAX_STEPS)->second));
 	mapIterator = configMap.find(MAX_STEPS_AFTER_WINNER);
 	if (mapIterator == configMap.end()) {
 		configMap.insert(pair<string, int>(MAX_STEPS_AFTER_WINNER, DEFAULT_MAX_STEPS_AFTER_WINNER));
 	}
-	logger.info("Configuration parameter: " + MAX_STEPS_AFTER_WINNER + "=" + to_string(configMap.find(MAX_STEPS_AFTER_WINNER)->second));
+	//logger.info("Configuration parameter: " + MAX_STEPS_AFTER_WINNER + "=" + to_string(configMap.find(MAX_STEPS_AFTER_WINNER)->second));
 	mapIterator = configMap.find(BATTERY_CAPACITY);
 	if (mapIterator == configMap.end()) {
 		configMap.insert(pair<string, int>(BATTERY_CAPACITY, DEFAULT_BATTERY_CAPACITY));
 	}
-	logger.info("Configuration parameter: " + BATTERY_CAPACITY + "=" + to_string(configMap.find(BATTERY_CAPACITY)->second));
+	//logger.info("Configuration parameter: " + BATTERY_CAPACITY + "=" + to_string(configMap.find(BATTERY_CAPACITY)->second));
 	mapIterator = configMap.find(BATTERY_CONSUMPTION_RATE);
 	if (mapIterator == configMap.end()) {
 		configMap.insert(pair<string, int>(BATTERY_CONSUMPTION_RATE, DEFAULT_BATTERY_CONSUMPTION_RATE));
 	}
-	logger.info("Configuration parameter: " + BATTERY_CONSUMPTION_RATE + "=" + to_string(configMap.find(BATTERY_CONSUMPTION_RATE)->second));
+	//logger.info("Configuration parameter: " + BATTERY_CONSUMPTION_RATE + "=" + to_string(configMap.find(BATTERY_CONSUMPTION_RATE)->second));
 	mapIterator = configMap.find(BATTERY_RECHARGE_RATE);
 	if (mapIterator == configMap.end()) {
 		configMap.insert(pair<string, int>(BATTERY_RECHARGE_RATE, DEFAULT_BATTERY_RECHARGE_RATE));
 	}
-	logger.info("Configuration parameter: " + BATTERY_RECHARGE_RATE + "=" + to_string(configMap.find(BATTERY_RECHARGE_RATE)->second));
+	//logger.info("Configuration parameter: " + BATTERY_RECHARGE_RATE + "=" + to_string(configMap.find(BATTERY_RECHARGE_RATE)->second));
 }
 
 void Simulator::setHouseList(string housesPath) {
 	fs::directory_iterator endIterator;
 	for (fs::directory_iterator iter(housesPath); iter != endIterator; ++iter) {
 		if (fs::is_regular_file(iter->status()) && EndsWith(housesPath, ".house")) {
-			logger.info("Found house file in path: " + iter->path().string());
+			//logger.info("Found house file in path: " + iter->path().string());
 			House& house = House::deseriallize(iter->path().string());
-			logger.info("Validating house");
-			logger.debug("Validating the existence of a docking station");
+			//logger.info("Validating house");
+			//logger.debug("Validating the existence of a docking station");
 			house.getDockingStation();
-			logger.debug("Validating house walls");
+			//logger.debug("Validating house walls");
 			house.validateWalls();
-			logger.info("House is valid");
+			//logger.info("House is valid");
 			houseList.push_back(house);
 		}
 	}

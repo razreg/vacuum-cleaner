@@ -25,7 +25,7 @@ struct Position {
 	};
 };
 
-Logger logger("House");
+//Logger logger("House");
 
 class House {
 
@@ -178,7 +178,7 @@ public:
 
 	int getTotalDust();
 
-	static House deseriallize(const string& filePath);
+	static House& deseriallize(const string& filePath);
 };
 
 #endif // __HOUSE__H_

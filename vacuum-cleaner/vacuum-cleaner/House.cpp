@@ -2,7 +2,7 @@
 
 using namespace std;
 
-House House::deseriallize(const string& filePath) {
+House& House::deseriallize(const string& filePath) {
 
 	string currLine, shortName, description;
 	int numRows, numCols;
@@ -46,13 +46,13 @@ House House::deseriallize(const string& filePath) {
 
 	if (failedToParsefile) {
 		string houseFileError = "house file [" + filePath + "] is invalid";
-		logger.error(houseFileError);
+		//logger.error(houseFileError);
 		throw invalid_argument(houseFileError.c_str());
 	}
 
 	//creating the house based on the previously calculated fields
-	House house = { shortName, description, numRows, numCols, matrix };
-	return house;
+	House *house = new House(shortName, description, numRows, numCols, matrix ); //TODO - need to free it somewhere.
+	return *house;
 
 }
 
