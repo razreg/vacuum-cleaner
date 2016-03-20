@@ -46,7 +46,7 @@ House& House::deseriallize(const string& filePath) {
 
 	if (failedToParsefile) {
 		string houseFileError = "house file [" + filePath + "] is invalid";
-		//logger.error(houseFileError);
+		logger.error(houseFileError);
 		throw invalid_argument(houseFileError.c_str());
 	}
 

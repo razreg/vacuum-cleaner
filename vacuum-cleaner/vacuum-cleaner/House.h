@@ -25,7 +25,7 @@ struct Position {
 	};
 };
 
-//Logger logger("House");
+Logger logger("House");
 
 class House {
 
@@ -71,29 +71,13 @@ class House {
 
 public:
 
-	/*for hard-coded*
-
-	House(string houseShortName, string houseDescription) : shortName(houseShortName), description(houseDescription) {}
-
-	House(const House& copyFromMe) : shortName(copyFromMe.shortName), description(copyFromMe.description),
-		numRows(copyFromMe.numRows), numCols(copyFromMe.numCols) {
-		char matrix[19][81];
-		for (int i = 0; i < numRows; ++i) {
-			for (int j = 0; j < numCols; ++j) {
-				matrix[i][j] = copyFromMe.matrix[i][j];
-			}
-		}
-	}
-	**********/
-
-	
 	House() : matrix(nullptr) {}
 
 	House(string houseShortName, string houseDescription, int numRows_, int numCols_, 
 		char** houseMatrix) : shortName(houseShortName), description(houseDescription), 
 		numRows(numRows_), numCols(numCols_), matrix(houseMatrix) {}
 
-
+		
 	House(const House& copyFromMe) : shortName(copyFromMe.shortName), description(copyFromMe.description),
 		numRows(copyFromMe.numRows), numCols(copyFromMe.numCols) {
 		matrix = new char*[numRows];
