@@ -2,6 +2,7 @@
 #define __SCORE__H_
 
 #include <algorithm>
+#include "Common.h"
 
 using namespace std;
 
@@ -9,7 +10,9 @@ const int DIDNT_FINISH_POSITION_IN_COMPETETION = 10;
 
 class Score {
 
-	int positionInCopmetition = 0;
+	static Logger logger;
+
+	int positionInCompetition = 0;
 	int winnerNumSteps = 0;
 	int thisNumSteps = 0;
 	int dirtCollected = 0;
@@ -19,8 +22,8 @@ class Score {
 
 public:
 
-	void setPositionInCopmetition(int positionInCopmetition) {
-		this->positionInCopmetition = positionInCopmetition;
+	void setPositionInCompetition(int positionInCompetition) {
+		this->positionInCompetition = positionInCompetition;
 	};
 
 	void setWinnerNumSteps(int winnerNumSteps) {
@@ -56,11 +59,20 @@ public:
 	};
 
 	int getScore() {
-		return (badBehavior) ? 0 : max(0, 2000 
-			- (positionInCopmetition - 1) * 50 
+		int score = (badBehavior) ? 0 : max(0, 2000 
+			- (positionInCompetition - 1) * 50 
 			- (winnerNumSteps - thisNumSteps) * 10 
 			- (sumDirtInHouse - dirtCollected) * 3 
 			+ (isBackInDocking ? 50 : -200));
+		logger.debug(to_string(score) + " = ("
+			+ to_string(badBehavior) + ") ? 0 : max(0, 2000 - ("
+			+ to_string(positionInCompetition) + " - 1) * 50 - ("
+			+ to_string(winnerNumSteps) + " - "
+			+ to_string(thisNumSteps) + ") * 10 - ("
+			+ to_string(sumDirtInHouse) + " - "
+			+ to_string(dirtCollected) + ") * 3 + ("
+			+ to_string(isBackInDocking) + " ? 50 : -200))");
+		return score;
 	};
 
 };

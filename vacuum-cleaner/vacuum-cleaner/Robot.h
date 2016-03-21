@@ -16,19 +16,51 @@ class Robot {
 	static Logger logger;
 
 	AbstractAlgorithm& algorithm;
-	SensorImpl& sensor;
+	House* house;
+	SensorImpl sensor;
 	Battery battery;
 	Position position;
+	bool illegalStepPerformed = false;
+	bool batteryDead = false;
 
-public:
-
-	Robot(const map<string, int>& configMap, AbstractAlgorithm& algorithm, SensorImpl& sensor, const Position position) : 
-		algorithm(algorithm), sensor(sensor), position(position) {
+	void configBattery(const map<string, int>& configMap) {
 		battery.setCapacity(configMap.find(BATTERY_CAPACITY)->second);
 		battery.setConsumptionRate(configMap.find(BATTERY_CONSUMPTION_RATE)->second);
 		battery.setRechargeRate(configMap.find(BATTERY_RECHARGE_RATE)->second);
-		algorithm.setConfiguration(configMap);
-		algorithm.setSensor(sensor);
+		battery.setCurrValue(battery.getCapacity());
+	};
+
+public:
+
+	Robot(const map<string, int>& configMap, AbstractAlgorithm& algorithm, House* house) :
+		algorithm(algorithm), house(house) {
+		configBattery(configMap);
+		setHouse(house);
+		this->algorithm.setConfiguration(configMap);
+		this->algorithm.setSensor(this->sensor);
+	};
+
+	Robot(const map<string, int>& configMap, AbstractAlgorithm& algorithm) : algorithm(algorithm) {
+		configBattery(configMap);
+		this->algorithm.setConfiguration(configMap);
+		this->algorithm.setSensor(this->sensor);
+	};
+
+	void setHouse(House* house) {
+		this->house = house;
+		sensor.setHouse(*this->house); 
+		position = this->house->getDockingStation(); // copy constructor
+		sensor.setPosition(position);
+	}
+
+	void restart() {
+		battery.setCurrValue(battery.getCapacity());
+		illegalStepPerformed = false;
+		batteryDead = false;
+	};
+
+	House& getHouse() {
+		return *house;
 	};
 
 	Position getPosition() const {
@@ -51,6 +83,31 @@ public:
 
 	bool inDocking() const {
 		return sensor.inDocking();
+	};
+
+	void aboutToFinish(int stepsTillFinishing) {
+		algorithm.aboutToFinish(stepsTillFinishing);
+	};
+
+	void reportBadBehavior() {
+		illegalStepPerformed = true;
+	};
+
+	bool performedIllegalStep() {
+		return illegalStepPerformed;
+	};
+
+	string getAlgorithmName() {
+		string algoName = typeid(algorithm).name();
+		return algoName.substr(algoName.find_last_of(' ') + 1);
+	};
+
+	void setBatteryDeadNotified() {
+		batteryDead = true;
+	};
+
+	bool isBatteryDeadNotified() {
+		return batteryDead;
 	};
 
 };

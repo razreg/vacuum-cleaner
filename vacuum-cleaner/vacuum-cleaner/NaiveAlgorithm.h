@@ -14,6 +14,8 @@ using namespace std;
 
 class NaiveAlgorithm : public AbstractAlgorithm {
 
+	static Logger logger;
+
 	const AbstractSensor* sensor;
 	Battery* battery;
 	int maxSteps;

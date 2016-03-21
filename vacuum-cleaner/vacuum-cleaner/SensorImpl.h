@@ -23,7 +23,7 @@ public:
 
 	SensorInformation sense() const override;
 
-	bool inDocking() {
+	bool inDocking() const {
 		return house->getDockingStation() == *currentPosition;
 	};
 };

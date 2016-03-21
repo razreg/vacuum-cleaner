@@ -11,6 +11,7 @@ int main(int argc, char** argv) {
 
 	list<House> houseList;
 	map<string, int> configMap;
+	list<AbstractAlgorithm*> algorithms;
 
 	// set paths to config file and houses
 	string workingDir;
@@ -42,7 +43,6 @@ int main(int argc, char** argv) {
 	try {
 		logger.info("Loading houses from directory");
 		loadHouseList(housesPath, houseList);
-		//simulator.setHouseList(housesPath); // TODO update or move to constructor
 	}
 	catch (exception& e) {
 		logger.fatal(e.what());
@@ -52,20 +52,25 @@ int main(int argc, char** argv) {
 	try {
 		logger.info("Loading configuration from directory");
 		loadConfiguration(configPath, configMap);
-		//simulator.setConfiguration(configPath); // TODO update or move to constructor
 	}
 	catch (exception& e) {
 		logger.fatal(e.what());
 		return INVALID_CONFIGURATION;
 	}
 
-	Simulator simulator(configMap, houseList);
-	simulator.start(); // TODO return scores and print here
+	NaiveAlgorithm naiveAlgorithm;
+	algorithms.push_back(&naiveAlgorithm);
+	Simulator simulator(configMap, houseList, algorithms);
+	try {
+		simulator.execute();
+	}
+	catch (exception& e) {
+		logger.fatal(e.what());
+		return INTERNAL_FAILURE;
+	}
 	
-	//printScoreTable(scoreTable);
 	return SUCCESS;
 }
-
 
 string getCurrentWorkingDirectory() {
 	char currentPath[FILENAME_MAX];
@@ -76,7 +81,7 @@ string getCurrentWorkingDirectory() {
 	return currentPath;
 }
 
-void loadHouseList(string housesPath, list<House>& houseList) {
+void loadHouseList(const string& housesPath, list<House>& houseList) {
 	/* TODO ex2
 	fs::directory_iterator endIterator;
 	for (fs::directory_iterator iter(housesPath); iter != endIterator; ++iter) {
@@ -95,8 +100,8 @@ void loadHouseList(string housesPath, list<House>& houseList) {
 	*/
 
 	string path = housesPath;
-	if (housesPath.back() != '/') {
-		path += '/';
+	if (housesPath.back() != DIR_SEPARATOR) {
+		path += DIR_SEPARATOR;
 	}
 	path += "default.house";
 
@@ -111,10 +116,11 @@ void loadHouseList(string housesPath, list<House>& houseList) {
 }
 
 void loadConfiguration(const string& configFileDir, map<string, int>& configMap) {
-
+	 
+	// TODO improve to be OS safe
 	string path = configFileDir;
-	if (configFileDir.back() != '/') {
-		path += '/';
+	if (configFileDir.back() != DIR_SEPARATOR) {
+		path += DIR_SEPARATOR;
 	}
 	path += "config.ini";
 
@@ -179,10 +185,4 @@ bool endsWith(const string& housesPath, const string& suffix) {
 		return false;
 	return equal(housesPath.begin() + housesPath.size() - suffix.size(), housesPath.end(), suffix.begin());
 }
-//if (fs::is_regular_file(iter->status()) &&  iter->path->extension() == ".house") {
 
-// TODO why map if called table? isn't it supposed to be an ectual table?
-void printScoreTable(map<string, int> scoreTable){
-	for (map<string, int>::const_iterator it = scoreTable.begin(); it != scoreTable.end(); ++it)
-		cout << "[" << it->first << "]" << "\t" << to_string(it->second) << "\n" << endl;
-}

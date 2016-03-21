@@ -4,6 +4,7 @@
 #include <time.h>
 #include <iostream>
 #include <string>
+#include <typeinfo>
 
 using namespace std;
 
@@ -34,16 +35,16 @@ class Logger {
 
 	string getCurrentDateTime() {
 		struct tm *timeInfo;
-		char buffer[19];
 		time(&rawTime);
 		timeInfo = localtime(&rawTime);
-		strftime(buffer, 19, "%Y-%m-%d  %H:%M:%S", timeInfo);
+		char buffer[21];
+		strftime(buffer, 21, "%Y-%m-%d  %H:%M:%S", timeInfo);
 		return buffer;
 	};
 
 	void log(const string& msg, LogLevel level) {
 		try {
-			if (level > LOG_LEVEL) {
+			if (level >= LOG_LEVEL) {
 				cout << getCurrentDateTime() << "\t"
 					<< loggerLevels[level] << "\t"
 					<< caller << "\t"

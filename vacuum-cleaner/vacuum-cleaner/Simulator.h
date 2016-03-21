@@ -13,19 +13,20 @@
 //#include "House.h"
 
 
-class Simulator{
+class Simulator {
 
 	static Logger logger;
 
 	list<House>& houseList;
 	map<string, int>& configMap;
+	list<AbstractAlgorithm*>& algorithms;
 
 public:
 	
-	Simulator(map<string, int>& configMap, list<House>& houseList) : 
-		configMap(configMap), houseList(houseList) {};
+	Simulator(map<string, int>& configMap, list<House>& houseList, list<AbstractAlgorithm*>& algorithms) :
+		configMap(configMap), houseList(houseList), algorithms(algorithms) {};
 
-	void start();
+	void execute();
 
 };
 

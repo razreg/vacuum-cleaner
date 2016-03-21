@@ -12,10 +12,12 @@
 #ifdef _WIN32
 	#include <direct.h>
 	#define getCurrentWorkingDir _getcwd
+	#define DIR_SEPARATOR '\\' 
 #endif
 #ifdef __linux__
 	#include <unistd.h>
 	#define getCurrentWorkingDir getcwd
+	#define DIR_SEPARATOR '/'
 #endif
 
 // exit codes
@@ -26,7 +28,6 @@ const int INVALID_CONFIGURATION = 3;
 
 string getCurrentWorkingDirectory();
 void loadConfiguration(const string& configFileDir, map<string, int>& configMap);
-void loadHouseList(string housesPath, list<House>& houseList);
-void printScoreTable(map<string, int> scoreTable);
+void loadHouseList(const string& housesPath, list<House>& houseList);
 
 #endif //__MAIN__H_
