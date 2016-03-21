@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
 
 	string usage = "Usage: simulator [-config <config_file_location>] [-house_path <houses_path_location>]";
 
-	list<House> houseList;
+	list<House*> houseList;
 	map<string, int> configMap;
 	list<AbstractAlgorithm*> algorithms;
 
@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
 		logger.fatal(e.what());
 		return INVALID_ARGUMENTS;
 	}
-	
+
 	try {
 		logger.info("Loading configuration from directory");
 		loadConfiguration(configPath, configMap);
@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
 		logger.fatal(e.what());
 		return INTERNAL_FAILURE;
 	}
-	
+
 	return SUCCESS;
 }
 
@@ -81,8 +81,8 @@ string getCurrentWorkingDirectory() {
 	return currentPath;
 }
 
-void loadHouseList(const string& housesPath, list<House>& houseList) {
-	/* TODO ex2
+void loadHouseList(const string& housesPath, list<House*>& houseList) {
+	/* TODO ex2 unless we succeed in using boost in ex1
 	fs::directory_iterator endIterator;
 	for (fs::directory_iterator iter(housesPath); iter != endIterator; ++iter) {
 		if (fs::is_regular_file(iter->status()) && endsWith(housesPath, ".house")) {
@@ -100,7 +100,7 @@ void loadHouseList(const string& housesPath, list<House>& houseList) {
 	*/
 
 	string path = housesPath;
-	if (housesPath.back() != DIR_SEPARATOR) {
+	if (housesPath.back() != '/' && housesPath.back() != '\\') {
 		path += DIR_SEPARATOR;
 	}
 	path += "default.house";
@@ -112,14 +112,13 @@ void loadHouseList(const string& housesPath, list<House>& houseList) {
 	logger.debug("Validating house walls");
 	house.validateWalls();
 	logger.info("House is valid");
-	houseList.push_back(house);
+	houseList.push_back(&house);
 }
 
 void loadConfiguration(const string& configFileDir, map<string, int>& configMap) {
 	 
-	// TODO improve to be OS safe
 	string path = configFileDir;
-	if (configFileDir.back() != DIR_SEPARATOR) {
+	if (configFileDir.back() != '/' && configFileDir.back() != '\\') {
 		path += DIR_SEPARATOR;
 	}
 	path += "config.ini";

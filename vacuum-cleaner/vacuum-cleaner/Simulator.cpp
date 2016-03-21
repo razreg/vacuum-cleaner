@@ -4,7 +4,6 @@ using namespace std;
 
 Logger Simulator::logger = Logger("Simulator");
 
-// TODO extract methods
 void Simulator::execute() {
 
 	// basic score matrix - will be improved according to ex2 instructions
@@ -27,14 +26,14 @@ void Simulator::execute() {
 	}
 
 	int houseCount = 0;
-	for (House& house : houseList) {
+	for (House* house : houseList) {
 
-		logger.info("Simulation started for house number [" + to_string(houseCount) + "] - Name: " + house.getShortName());
+		logger.info("Simulation started for house number [" + to_string(houseCount) + "] - Name: " + house->getShortName());
 
 		// update robot list
 		logger.info("Defining house [" + to_string(houseCount) + "] for robot list");
 		for (Robot* robot : robots) {
-			House* currHouse = new House(house); // copy constructor called
+			House* currHouse = new House(*house); // copy constructor called
 			robot->restart();
 			robot->setHouse(currHouse);
 		}
@@ -45,6 +44,7 @@ void Simulator::execute() {
 		int stepsAfterWinner = -1; // so when we increment for first time, when winner is found, it will be set to zero
 		int algorithmCount;
 		int positionInCompetition = 1;
+		bool someoneFinishedInRound = false;
 		while (steps < maxSteps && stepsAfterWinner < maxStepsAfterWinner) {
 			algorithmCount = 0;
 			for (Robot* robot : robots) {
@@ -86,9 +86,7 @@ void Simulator::execute() {
 							// update position in competition
 							scoreMatrix[algorithmCount][houseCount]
 								.setPositionInCompetition(positionInCompetition);
-							if (positionInCompetition < 4) {
-								positionInCompetition++;
-							}
+							someoneFinishedInRound = true;
 						}
 						scoreMatrix[algorithmCount][houseCount].setThisNumSteps(steps + 1);
 					}
@@ -98,6 +96,10 @@ void Simulator::execute() {
 			steps++;
 			if (winnerNumSteps > 0) {
 				stepsAfterWinner++;
+			}
+			if (someoneFinishedInRound && positionInCompetition < 4) {
+				positionInCompetition++;
+				someoneFinishedInRound = false;
 			}
 		}
 		// fallback if there is no winner
@@ -118,8 +120,13 @@ void Simulator::execute() {
 				+ (string)robot->getHouse());
 			algorithmCount++;
 		}
-		logger.info("Simulation completed for house number [" + to_string(houseCount) + "] - Name: " + house.getShortName());
+		logger.info("Simulation completed for house number [" + to_string(houseCount) + "] - Name: " + house->getShortName());
 		houseCount++;
+
+		// TODO cleaning up is correct?
+		for (Robot* robot : robots) {
+			delete &robot->getHouse();
+		}
 	}
 
 	// printing scoreMatrix

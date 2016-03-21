@@ -17,14 +17,21 @@ class Simulator {
 
 	static Logger logger;
 
-	list<House>& houseList;
+	list<House*>& houseList;
 	map<string, int>& configMap;
 	list<AbstractAlgorithm*>& algorithms;
 
 public:
 	
-	Simulator(map<string, int>& configMap, list<House>& houseList, list<AbstractAlgorithm*>& algorithms) :
+	Simulator(map<string, int>& configMap, list<House*>& houseList, list<AbstractAlgorithm*>& algorithms) :
 		configMap(configMap), houseList(houseList), algorithms(algorithms) {};
+
+	~Simulator() {
+		for (House* house : houseList) {
+			delete house;
+		}
+		houseList.clear();
+	};
 
 	void execute();
 

@@ -17,7 +17,7 @@ class NaiveAlgorithm : public AbstractAlgorithm {
 	static Logger logger;
 
 	const AbstractSensor* sensor;
-	Battery* battery;
+	Battery* battery = nullptr;
 	int maxSteps;
 	int maxStepsAfterWinner;
 
@@ -28,7 +28,9 @@ public:
 	};
 
 	~NaiveAlgorithm() {
-		delete battery;
+		if (battery != nullptr) {
+			delete battery;
+		}
 	};
 
 	void setSensor(const AbstractSensor& sensor) override {

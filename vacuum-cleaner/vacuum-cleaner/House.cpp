@@ -57,7 +57,7 @@ House& House::deseriallize(const string& filePath) {
 	}
 
 	//creating the house based on the previously calculated fields
-	House *house = new House(shortName, description, numRows, numCols, matrix );
+	House *house = new House(shortName, description, numRows, numCols, matrix);
 	return *house;
 }
 
@@ -117,8 +117,10 @@ House::operator string() const {
 			arr[j] = matrix[i][j];
 		}
 		house += arr;
-		house += '\n'; // TODO make portable
+		if (i < numRows - 1) {
+			house += '\n';
+		}
 	}
-	delete arr;
+	delete [] arr;
 	return house;
 }

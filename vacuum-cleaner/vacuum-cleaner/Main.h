@@ -28,6 +28,6 @@ const int INVALID_CONFIGURATION = 3;
 
 string getCurrentWorkingDirectory();
 void loadConfiguration(const string& configFileDir, map<string, int>& configMap);
-void loadHouseList(const string& housesPath, list<House>& houseList);
+void loadHouseList(const string& housesPath, list<House*>& houseList);
 
 #endif //__MAIN__H_

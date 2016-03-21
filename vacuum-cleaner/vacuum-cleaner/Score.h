@@ -61,12 +61,12 @@ public:
 	int getScore() {
 		int score = (badBehavior) ? 0 : max(0, 2000 
 			- (positionInCompetition - 1) * 50 
-			- (winnerNumSteps - thisNumSteps) * 10 
+			+ (winnerNumSteps - thisNumSteps) * 10 
 			- (sumDirtInHouse - dirtCollected) * 3 
 			+ (isBackInDocking ? 50 : -200));
 		logger.debug(to_string(score) + " = ("
 			+ to_string(badBehavior) + ") ? 0 : max(0, 2000 - ("
-			+ to_string(positionInCompetition) + " - 1) * 50 - ("
+			+ to_string(positionInCompetition) + " - 1) * 50 + ("
 			+ to_string(winnerNumSteps) + " - "
 			+ to_string(thisNumSteps) + ") * 10 - ("
 			+ to_string(sumDirtInHouse) + " - "

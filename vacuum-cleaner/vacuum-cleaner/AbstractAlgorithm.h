@@ -11,7 +11,7 @@ class AbstractAlgorithm
 {
 public:
 
-	virtual ~AbstractAlgorithm() {} //TODO found this in the one they published!
+	virtual ~AbstractAlgorithm() {};
 
 	// setSensor is called once when the Algorithm is initialized 
 	virtual void setSensor(const AbstractSensor& sensor) = 0;
