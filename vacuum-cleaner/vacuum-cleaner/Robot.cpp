@@ -1,5 +1,7 @@
 #include "Robot.h"
 
+Logger Robot::logger = Logger("Robot");
+
 void Robot::step() {
 
 	Direction direction = algorithm.step();

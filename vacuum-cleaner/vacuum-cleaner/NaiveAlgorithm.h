@@ -3,7 +3,7 @@
 
 #include "AbstractAlgorithm.h"
 #include "Battery.h"
-//#include "Common.h"
+#include "Common.h"
 #include "House.h"
 
 #include <stdlib.h>
@@ -14,28 +14,23 @@ using namespace std;
 
 class NaiveAlgorithm : public AbstractAlgorithm {
 
-	AbstractSensor& sensor;
-	Battery *battery;
+	const AbstractSensor* sensor;
+	Battery* battery;
 	int maxSteps;
 	int maxStepsAfterWinner;
 
 public:
 
-	NaiveAlgorithm();
-
-	/*
 	NaiveAlgorithm() {
-		srand(time(NULL));  // moved to setSensor (line 36);
+		srand(time(NULL));
 	};
-	*/
 
 	~NaiveAlgorithm() {
 		delete battery;
 	};
 
 	void setSensor(const AbstractSensor& sensor) override {
-		srand(time(NULL));
-		this->sensor = sensor;
+		this->sensor = &sensor;
 	};
 
 	void setConfiguration(map<string, int> config) override;

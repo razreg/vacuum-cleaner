@@ -2,6 +2,8 @@
 
 using namespace std;
 
+Logger House::logger = Logger("House");
+
 House& House::deseriallize(const string& filePath) {
 
 	string currLine, shortName, description;
@@ -53,7 +55,6 @@ House& House::deseriallize(const string& filePath) {
 	//creating the house based on the previously calculated fields
 	House *house = new House(shortName, description, numRows, numCols, matrix ); //TODO - need to free it somewhere.
 	return *house;
-
 }
 
 Position House::getDockingStation() {

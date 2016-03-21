@@ -11,7 +11,7 @@ void NaiveAlgorithm::setConfiguration(map<string, int> config){
 
 Direction NaiveAlgorithm::step() {
 
-	SensorInformation sensorInformation = sensor.sense();
+	SensorInformation sensorInformation = sensor->sense();
 
 	// construct a vector of valid directions
 	vector<Direction> directions;

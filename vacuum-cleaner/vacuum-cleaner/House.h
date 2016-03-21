@@ -25,11 +25,10 @@ struct Position {
 	};
 };
 
-Logger logger("House");
-
 class House {
 
-	
+	static Logger logger;
+
 	string shortName;
 	string description;
 	int numRows;
@@ -38,7 +37,7 @@ class House {
 	Position dockingStation = {0, 0};
 	int totalDust = -1;
 
-	/*for hard-coded*
+	/*TODO for hard-coded*
 	string shortName;
 	string description;
 	const int numRows = 19;

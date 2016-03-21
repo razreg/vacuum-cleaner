@@ -1,16 +1,16 @@
 #include "Main.h"
 
 using namespace std;
+//namespace fs = boost::filesystem;
 
+Logger logger = Logger("Main");
 
-// TODO add debug printing (mark as "DEBUG: ". It would be good to add simple logging in common.h with timestamps
 int main(int argc, char** argv) {
 
-	Logger logger("Simulator");
 	string usage = "Usage: simulator [-config <config_file_location>] [-house_path <houses_path_location>]";
 
-	//creating a simulator object
-	Simulator simulator;
+	list<House> houseList;
+	map<string, int> configMap;
 
 	// set paths to config file and houses
 	string workingDir;
@@ -38,13 +38,11 @@ int main(int argc, char** argv) {
 		}
 	}
 	logger.info("Using config file directory path as [" + configPath + "]");
-
-
-	
 	logger.info("Using house files directory path as [" + housesPath + "]");
 	try {
 		logger.info("Loading houses from directory");
-		simulator.setHouseList(housesPath);
+		loadHouseList(housesPath, houseList);
+		//simulator.setHouseList(housesPath); // TODO update or move to constructor
 	}
 	catch (exception& e) {
 		logger.fatal(e.what());
@@ -53,90 +51,18 @@ int main(int argc, char** argv) {
 	
 	try {
 		logger.info("Loading configuration from directory");
-		simulator.setConfiguration(configPath);
+		loadConfiguration(configPath, configMap);
+		//simulator.setConfiguration(configPath); // TODO update or move to constructor
 	}
 	catch (exception& e) {
 		logger.fatal(e.what());
 		return INVALID_CONFIGURATION;
 	}
 
-
-	/*for hard-coded*
-	House h1 = House("hard-coded", "huge house");
-	list<House> houseList;
-	houseList.push_back(h1);
-	**********/
-
-
-	list<House> houseList = simulator.getHouseList();
-	map<string, int> configMap = simulator.getConfigMap();
-	map<string, int> scoreTable;
-
-	int maxSteps = configMap.find(MAX_STEPS)->second;
-	int maxStepsAfterWinner = configMap.find(MAX_STEPS_AFTER_WINNER)->second;
-	logger.info("MaxSteps=" + to_string(maxSteps) + ", MaxStepsAfterWinner=" + to_string(maxStepsAfterWinner));
-
-	NaiveAlgorithm algorithm;
-
-	// TODO catch exceptions that might come from algorithm or something else and exit gracefully (but be more specific)
-	logger.info("Starting simulation of algorithm: NaiveAlgorithm");
-	int houseNum=1;
-	for (list<House>::const_iterator it = houseList.begin(); it != houseList.end(); ++it) {
-
-		House currHouse(*it); // copy constructor called
-		logger.info("Simulation started for house number [" + to_string(houseNum) + "] - Name: " + currHouse.getShortName());
-		// TODO implement a method to print the house for debug purposes (place in House)
-		SensorImpl sensor;
-		sensor.setHouse(currHouse);
-		Score currScore;
-
-		logger.info("Initializing robot");
-		Robot robot(configMap, algorithm, sensor, currHouse.getDockingStation());
-		int steps = 0;
-		int stepsAfterWinner = 0;
-
-		while (steps < maxSteps && stepsAfterWinner < maxStepsAfterWinner) {
-			if (robot.getBatteryValue() == 0) {
-				// dead battery - we fast forward now to the point when time is up
-				logger.info("Robot has dead battery");
-				steps = maxSteps;
-				break;
-			}
-			robot.step(); // this also updates the sensor and the battery but not the house
-			if (!currHouse.isInside(robot.getPosition()) || currHouse.isWall(robot.getPosition())) {
-				logger.warn("The algorithm has performed an illegal step.");
-				currScore.reportBadBehavior();
-				break;
-			}
-			// perform one cleaning step and update score
-			if (currHouse.clean(robot.getPosition())) {
-				currScore.incrementDirtCollected();
-			}
-			steps++; // TODO increment stepsAfterWinner if winner were found (and update score)
-			if (currHouse.getTotalDust() == 0) {
-				logger.info("House is clean of dust");
-				break; // clean house
-			}
-			// TODO notify aboutToFinish to algorithm if necessary
-		}
-		currScore.setWinnerNumSteps(steps); // TODO change to support more than one algorithm in ex2
-		currScore.setIsBackInDocking(robot.inDocking());
-		currScore.setThisNumSteps(steps);
-		currScore.setSumDirtInHouse(currHouse.getTotalDust());
-		if (currHouse.getTotalDust() > 0) {
-			currScore.setPositionInCopmetition(DIDNT_FINISH_POSITION_IN_COMPETETION);
-		}
-		else {
-			currScore.setPositionInCopmetition(1); // TODO change to support more than one algorithms in ex2
-		}
-		logger.info("Score for house " + currHouse.getShortName() + " is " + to_string(currScore.getScore()));
-		scoreTable.insert(pair<string, int>(currHouse.getShortName(), currScore.getScore()));
-
-		houseNum++;
-	}
+	Simulator simulator(configMap, houseList);
+	simulator.start(); // TODO return scores and print here
 	
-	printScoreTable(scoreTable);
-
+	//printScoreTable(scoreTable);
 	return SUCCESS;
 }
 
@@ -150,8 +76,113 @@ string getCurrentWorkingDirectory() {
 	return currentPath;
 }
 
+void loadHouseList(string housesPath, list<House>& houseList) {
+	/* TODO ex2
+	fs::directory_iterator endIterator;
+	for (fs::directory_iterator iter(housesPath); iter != endIterator; ++iter) {
+		if (fs::is_regular_file(iter->status()) && endsWith(housesPath, ".house")) {
+			logger.info("Found house file in path: " + iter->path().string());
+			House& house = House::deseriallize(iter->path().string());
+			logger.info("Validating house");
+			logger.debug("Validating the existence of a docking station");
+			house.getDockingStation();
+			logger.debug("Validating house walls");
+			house.validateWalls();
+			logger.info("House is valid");
+			houseList.push_back(house);
+		}
+	}
+	*/
+
+	string path = housesPath;
+	if (housesPath.back() != '/') {
+		path += '/';
+	}
+	path += "default.house";
+
+	House& house = House::deseriallize(path);
+	logger.info("Validating house");
+	logger.debug("Validating the existence of a docking station");
+	house.getDockingStation();
+	logger.debug("Validating house walls");
+	house.validateWalls();
+	logger.info("House is valid");
+	houseList.push_back(house);
+}
+
+void loadConfiguration(const string& configFileDir, map<string, int>& configMap) {
+
+	string path = configFileDir;
+	if (configFileDir.back() != '/') {
+		path += '/';
+	}
+	path += "config.ini";
+
+	// create a map of key-value pairs from config file (expected format of each line: key=value)
+	ifstream configFileStream(path);
+	string currLine;
+	bool failedToParseConfig = true; // assume we are going to fail
+	if (configFileStream) {
+		failedToParseConfig = false; // seems like we're lucky
+		try {
+			while (getline(configFileStream, currLine)) {
+				logger.debug("Read line from config file: " + currLine);
+				size_t positionOfEquals = currLine.find("=");
+				string key = currLine.substr(0, (int)positionOfEquals);
+				if (positionOfEquals != string::npos) {
+					int value = stoi(currLine.substr((int)positionOfEquals + 1)); // possibly: invalid_argument or out_of_range
+					configMap.insert(pair<string, int>(key, value));
+				}
+			}
+			configFileStream.close();
+		}
+		catch (exception& e) {
+			failedToParseConfig = true; // not so lucky after all
+		}
+	}
+	if (failedToParseConfig) {
+		string configError = "configuration file directoy [" + configFileDir + "] is invalid";
+		throw invalid_argument(configError.c_str());
+	}
+
+	// fix map with defaults if missing configuration item
+	map<string, int>::iterator mapIterator;
+	mapIterator = configMap.find(MAX_STEPS);
+	if (mapIterator == configMap.end()) {
+		configMap.insert(pair<string, int>(MAX_STEPS, DEFAULT_MAX_STEPS));
+	}
+	logger.info("Configuration parameter: " + MAX_STEPS + "=" + to_string(configMap.find(MAX_STEPS)->second));
+	mapIterator = configMap.find(MAX_STEPS_AFTER_WINNER);
+	if (mapIterator == configMap.end()) {
+		configMap.insert(pair<string, int>(MAX_STEPS_AFTER_WINNER, DEFAULT_MAX_STEPS_AFTER_WINNER));
+	}
+	logger.info("Configuration parameter: " + MAX_STEPS_AFTER_WINNER + "=" + to_string(configMap.find(MAX_STEPS_AFTER_WINNER)->second));
+	mapIterator = configMap.find(BATTERY_CAPACITY);
+	if (mapIterator == configMap.end()) {
+		configMap.insert(pair<string, int>(BATTERY_CAPACITY, DEFAULT_BATTERY_CAPACITY));
+	}
+	logger.info("Configuration parameter: " + BATTERY_CAPACITY + "=" + to_string(configMap.find(BATTERY_CAPACITY)->second));
+	mapIterator = configMap.find(BATTERY_CONSUMPTION_RATE);
+	if (mapIterator == configMap.end()) {
+		configMap.insert(pair<string, int>(BATTERY_CONSUMPTION_RATE, DEFAULT_BATTERY_CONSUMPTION_RATE));
+	}
+	logger.info("Configuration parameter: " + BATTERY_CONSUMPTION_RATE + "=" + to_string(configMap.find(BATTERY_CONSUMPTION_RATE)->second));
+	mapIterator = configMap.find(BATTERY_RECHARGE_RATE);
+	if (mapIterator == configMap.end()) {
+		configMap.insert(pair<string, int>(BATTERY_RECHARGE_RATE, DEFAULT_BATTERY_RECHARGE_RATE));
+	}
+	logger.info("Configuration parameter: " + BATTERY_RECHARGE_RATE + "=" + to_string(configMap.find(BATTERY_RECHARGE_RATE)->second));
+}
+
+bool endsWith(const string& housesPath, const string& suffix) {
+	if (suffix.size() > housesPath.size())
+		return false;
+	return equal(housesPath.begin() + housesPath.size() - suffix.size(), housesPath.end(), suffix.begin());
+}
+//if (fs::is_regular_file(iter->status()) &&  iter->path->extension() == ".house") {
+
+// TODO why map if called table? isn't it supposed to be an ectual table?
 void printScoreTable(map<string, int> scoreTable){
 	for (map<string, int>::const_iterator it = scoreTable.begin(); it != scoreTable.end(); ++it)
 		cout << "[" << it->first << "]" << "\t" << to_string(it->second) << "\n" << endl;
 }
-

@@ -22,9 +22,9 @@ const int DEFAULT_BATTERY_CONSUMPTION_RATE = 1;
 const int DEFAULT_BATTERY_RECHARGE_RATE = 20;
 
 enum LogLevel { DEBUG, INFO, WARN, ERROR, FATAL };
-static const string loggerLevels[] = { "DEBUG", "INFO", "WARN", "ERROR", "FATAL" };
+const string loggerLevels[] = { "DEBUG", "INFO", "WARN", "ERROR", "FATAL" };
 
-const LogLevel LOG_LEVEL = DEBUG;
+const LogLevel LOG_LEVEL = DEBUG; // TODO make class member
 
 // simple logger which simply writes to cout but with nice format
 class Logger {
