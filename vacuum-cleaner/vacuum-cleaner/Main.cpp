@@ -2,15 +2,6 @@
 
 using namespace std;
 
-string getCurrentWorkingDirectory() {
-	char currentPath[FILENAME_MAX];
-	if (!getCurrentWorkingDir(currentPath, sizeof(currentPath))) {
-		throw exception("Failed to find current working directory.");
-	}
-	currentPath[sizeof(currentPath) - 1] = '\0';
-	return currentPath;
-}
-
 
 // TODO add debug printing (mark as "DEBUG: ". It would be good to add simple logging in common.h with timestamps
 int main(int argc, char** argv) {
@@ -34,10 +25,10 @@ int main(int argc, char** argv) {
 	string housesPath = workingDir;
 	logger.debug("Parsing command line arguments");
 	for (int i = 1; i < argc; ++i) {
-		if (argv[i] == "-config") {
+		if ((string(argv[i])).compare("-config") == 0) {
 			configPath = argv[i + 1];
 		}
-		else if (argv[i] == "-house_path") {
+		else if ((string(argv[i])).compare("-house_path") == 0) {
 			housesPath = argv[i + 1];
 		}
 		else if (i == 2 || i == 4) {
@@ -47,6 +38,9 @@ int main(int argc, char** argv) {
 		}
 	}
 	logger.info("Using config file directory path as [" + configPath + "]");
+
+
+	
 	logger.info("Using house files directory path as [" + housesPath + "]");
 	try {
 		logger.info("Loading houses from directory");
@@ -56,6 +50,7 @@ int main(int argc, char** argv) {
 		logger.fatal(e.what());
 		return INVALID_ARGUMENTS;
 	}
+	
 	try {
 		logger.info("Loading configuration from directory");
 		simulator.setConfiguration(configPath);
@@ -65,8 +60,17 @@ int main(int argc, char** argv) {
 		return INVALID_CONFIGURATION;
 	}
 
+
+	/*for hard-coded*
+	House h1 = House("hard-coded", "huge house");
+	list<House> houseList;
+	houseList.push_back(h1);
+	**********/
+
+
 	list<House> houseList = simulator.getHouseList();
 	map<string, int> configMap = simulator.getConfigMap();
+	map<string, int> scoreTable;
 
 	int maxSteps = configMap.find(MAX_STEPS)->second;
 	int maxStepsAfterWinner = configMap.find(MAX_STEPS_AFTER_WINNER)->second;
@@ -126,11 +130,28 @@ int main(int argc, char** argv) {
 			currScore.setPositionInCopmetition(1); // TODO change to support more than one algorithms in ex2
 		}
 		logger.info("Score for house " + currHouse.getShortName() + " is " + to_string(currScore.getScore()));
+		scoreTable.insert(pair<string, int>(currHouse.getShortName(), currScore.getScore()));
 
 		houseNum++;
 	}
-	// TODO print score
+	
+	printScoreTable(scoreTable);
 
 	return SUCCESS;
+}
+
+
+string getCurrentWorkingDirectory() {
+	char currentPath[FILENAME_MAX];
+	if (!getCurrentWorkingDir(currentPath, sizeof(currentPath))) {
+		throw invalid_argument("Failed to find current working directory.");
+	}
+	currentPath[sizeof(currentPath) - 1] = '\0';
+	return currentPath;
+}
+
+void printScoreTable(map<string, int> scoreTable){
+	for (map<string, int>::const_iterator it = scoreTable.begin(); it != scoreTable.end(); ++it)
+		cout << "[" << it->first << "]" << "\t" << to_string(it->second) << "\n" << endl;
 }
 

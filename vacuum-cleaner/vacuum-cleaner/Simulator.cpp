@@ -139,10 +139,10 @@ void Simulator::setConfiguration(const string& configFileDir) {
 		try {
 			while (getline(configFileStream, currLine)) {
 				logger.debug("Read line from config file: " + currLine);
-				int positionOfEquals = currLine.find("=");
-				string key = currLine.substr(0, positionOfEquals);
+				size_t positionOfEquals = currLine.find("=");
+				string key = currLine.substr(0, (int)positionOfEquals);
 				if (positionOfEquals != string::npos) {
-					int value = stoi(currLine.substr(positionOfEquals + 1)); // possibly: invalid_argument or out_of_range
+					int value = stoi(currLine.substr((int)positionOfEquals + 1)); // possibly: invalid_argument or out_of_range
 					configMap.insert(pair<string, int>(key, value));
 				}
 			}
@@ -154,7 +154,7 @@ void Simulator::setConfiguration(const string& configFileDir) {
 	}
 	if (failedToParseConfig) {
 		string configError = "configuration file directoy [" + configFileDir + "] is invalid";
-		throw exception(configError.c_str());
+		throw invalid_argument(configError.c_str());
 	}
 
 	// fix map with defaults if missing configuration item

@@ -3,6 +3,7 @@
 
 #include <map>
 #include <list>
+#include <stdexcept>
 
 // file handling
 #include <boost/filesystem/operations.hpp>
@@ -29,6 +30,8 @@ public:
 	
 	//TODO constructor-destructor
 	Simulator();
+
+	~Simulator();
 
 	void setConfiguration(const string& configFileDir);
 

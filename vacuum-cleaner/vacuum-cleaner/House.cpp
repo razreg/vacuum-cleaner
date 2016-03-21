@@ -47,12 +47,12 @@ House& House::deseriallize(const string& filePath) {
 	if (failedToParsefile) {
 		string houseFileError = "house file [" + filePath + "] is invalid";
 		logger.error(houseFileError);
-		throw exception(houseFileError.c_str());
+		throw invalid_argument(houseFileError.c_str());
 	}
 
 	//creating the house based on the previously calculated fields
-	House house = { shortName, description, numRows, numCols, matrix };
-	return house;
+	House *house = new House(shortName, description, numRows, numCols, matrix ); //TODO - need to free it somewhere.
+	return *house;
 
 }
 
@@ -67,23 +67,23 @@ Position House::getDockingStation() {
 				}
 			}
 		}
-		throw exception("No docking station found in house.");
+		throw invalid_argument("No docking station found in house.");
 	}
 	return dockingStation;
 	
 }
 
-void House::validateWalls() const {
+void House::validateWalls() {
 
 	for (int i = 0; i < numCols; i++) {
 		if (matrix[0][i] == DOCK || matrix[numRows - 1][i] == DOCK) {
-			throw exception("Docking station was located where wall was expected.");
+			throw invalid_argument("Docking station was located where wall was expected.");
 		}
 		matrix[0][i] = matrix[numRows - 1][i] = WALL;
 	}
 	for (int i = 1; i < numRows - 1; i++) {
 		if (matrix[i][0] == DOCK || matrix[i][numCols - 1] == DOCK) {
-			throw exception("Docking station was located where wall was expected.");
+			throw invalid_argument("Docking station was located where wall was expected.");
 		}
 		matrix[i][0] = matrix[i][numCols - 1] = WALL;
 	}
