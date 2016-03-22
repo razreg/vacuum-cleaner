@@ -5,47 +5,35 @@
 #include <list>
 #include <stdexcept>
 
-// file handling
-#include <boost/filesystem/operations.hpp>
-#include <fstream>
-#include <stdio.h>
-//#include <filesystem> // TODO remove - do not use lib from experimental
-#include <regex>
-	
-
 #include "Score.h"
 #include "Robot.h"
-//#include "Common.h"
+#include "Common.h"
 //#include "SensorImpl.h"
 //#include "NaiveAlgorithm.h"
 //#include "House.h"
 
 
-class Simulator{
+class Simulator {
 
-	list<House> houseList;
-	map<string, int> configMap;
+	static Logger logger;
+
+	list<House*>& houseList;
+	map<string, int>& configMap;
+	list<AbstractAlgorithm*>& algorithms;
 
 public:
 	
-	//TODO constructor-destructor
-	Simulator();
+	Simulator(map<string, int>& configMap, list<House*>& houseList, list<AbstractAlgorithm*>& algorithms) :
+		configMap(configMap), houseList(houseList), algorithms(algorithms) {};
 
-	~Simulator();
+	~Simulator() {
+		for (House* house : houseList) {
+			delete house;
+		}
+		houseList.clear();
+	};
 
-	void setConfiguration(const string& configFileDir);
-
-	void setHouseList(string housesPath);
-
-	list<House> getHouseList() {
-		return this->houseList;
-	}
-
-	map<string, int> getConfigMap() {
-		return this->configMap;
-	}
-
-	bool EndsWith(const string& filename, const string& suffix);
+	void execute();
 
 };
 

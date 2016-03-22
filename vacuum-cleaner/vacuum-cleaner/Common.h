@@ -4,6 +4,7 @@
 #include <time.h>
 #include <iostream>
 #include <string>
+#include <typeinfo>
 
 using namespace std;
 
@@ -21,32 +22,32 @@ const int DEFAULT_BATTERY_CAPACITY = 400;
 const int DEFAULT_BATTERY_CONSUMPTION_RATE = 1;
 const int DEFAULT_BATTERY_RECHARGE_RATE = 20;
 
-enum LogLevel { DEBUG, INFO, WARN, ERROR, FATAL };
-static const string loggerLevels[] = { "DEBUG", "INFO", "WARN", "ERROR", "FATAL" };
+enum LogLevel { DEBUG, INFO, WARN, ERROR, FATAL, OFF };
+const string loggerLevels[] = { "DEBUG", "INFO", "WARN", "ERROR", "FATAL" };
 
-const LogLevel LOG_LEVEL = DEBUG;
+const LogLevel LOG_LEVEL = OFF;
 
 // simple logger which simply writes to cout but with nice format
 class Logger {
 
-	string caller;
+	char caller[13];
 	time_t rawTime;
 
 	string getCurrentDateTime() {
 		struct tm *timeInfo;
-		char buffer[19];
 		time(&rawTime);
 		timeInfo = localtime(&rawTime);
-		strftime(buffer, 19, "%Y-%m-%d  %H:%M:%S", timeInfo);
+		char buffer[21];
+		strftime(buffer, 21, "%Y-%m-%d  %H:%M:%S", timeInfo);
 		return buffer;
 	};
 
 	void log(const string& msg, LogLevel level) {
 		try {
-			if (level > LOG_LEVEL) {
+			if (level >= LOG_LEVEL) {
 				cout << getCurrentDateTime() << "\t"
 					<< loggerLevels[level] << "\t"
-					<< caller << "\t"
+					<< caller << " "
 					<< msg << endl;
 			}
 		}
@@ -56,7 +57,14 @@ class Logger {
 	}
 
 public:
-	Logger(string caller) : caller(caller) {};
+	Logger(string caller) {
+		size_t len = sizeof(this->caller);
+		strncpy(this->caller, caller.c_str(), len);
+		for (int i = caller.length(); i < len-1; ++i) {
+			this->caller[i] = ' ';
+		}
+		this->caller[len - 1] = '\0';
+	};
 
 	void fatal(const string& msg) {
 		log(msg, FATAL);

@@ -4,15 +4,21 @@
 #include "Simulator.h"
 #include <stdexcept>
 
+// file handling
+//#include <boost/filesystem/operations.hpp>
+#include <fstream>
+#include <stdio.h>
+#include <regex>
 #ifdef _WIN32
 	#include <direct.h>
 	#define getCurrentWorkingDir _getcwd
+	#define DIR_SEPARATOR '\\' 
 #endif
 #ifdef __linux__
 	#include <unistd.h>
 	#define getCurrentWorkingDir getcwd
+	#define DIR_SEPARATOR '/'
 #endif
-
 
 // exit codes
 const int SUCCESS = 0;
@@ -21,8 +27,7 @@ const int INVALID_ARGUMENTS = 2;
 const int INVALID_CONFIGURATION = 3;
 
 string getCurrentWorkingDirectory();
-
-void printScoreTable(map<string, int> scoreTable);
-
+void loadConfiguration(const string& configFileDir, map<string, int>& configMap);
+void loadHouseList(const string& housesPath, list<House*>& houseList);
 
 #endif //__MAIN__H_
