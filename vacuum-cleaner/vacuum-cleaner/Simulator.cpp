@@ -119,14 +119,10 @@ void Simulator::execute() {
 			logger.debug("House final state for algorithm [" + robot->getAlgorithmName() + "]:\n"
 				+ (string)robot->getHouse());
 			algorithmCount++;
+			delete &robot->getHouse();
 		}
 		logger.info("Simulation completed for house number [" + to_string(houseCount) + "] - Name: " + house->getShortName());
 		houseCount++;
-
-		// TODO cleaning up is correct?
-		for (Robot* robot : robots) {
-			delete &robot->getHouse();
-		}
 	}
 
 	// printing scoreMatrix
