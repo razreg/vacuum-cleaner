@@ -3,15 +3,12 @@
 
 #include <map>
 #include <list>
-#include <stdexcept>
 
 #include "Score.h"
 #include "Robot.h"
+#include "AbstractAlgorithm.h"
+#include "House.h"
 #include "Common.h"
-//#include "SensorImpl.h"
-//#include "NaiveAlgorithm.h"
-//#include "House.h"
-
 
 class Simulator {
 

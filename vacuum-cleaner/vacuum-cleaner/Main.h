@@ -2,11 +2,9 @@
 #define __MAIN__H_
 
 #include "Simulator.h"
-#include <stdexcept>
+#include "NaiveAlgorithm.h"
 
 // file handling
-//#include <boost/filesystem/operations.hpp>
-#include <fstream>
 #include <stdio.h>
 #include <regex>
 #ifdef _WIN32

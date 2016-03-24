@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 	}
 	string configPath = workingDir;
 	string housesPath = workingDir;
-	logger.debug("Parsing command line arguments");
+	logger.info("Parsing command line arguments");
 	for (int i = 1; i < argc; ++i) {
 		if ((string(argv[i])).compare("-config") == 0) {
 			configPath = argv[i + 1];
@@ -103,14 +103,14 @@ void loadHouseList(const string& housesPath, list<House*>& houseList) {
 	if (housesPath.back() != '/' && housesPath.back() != '\\') {
 		path += DIR_SEPARATOR;
 	}
-	path += "default.house";
+	path += "simple1.house";
 
 	House& house = House::deseriallize(path);
 	logger.info("Validating house");
-	logger.debug("Validating the existence of a docking station");
-	house.getDockingStation();
 	logger.debug("Validating house walls");
 	house.validateWalls();
+	logger.debug("Validating the existence of exactly one docking station");
+	house.validateDocking();
 	logger.info("House is valid");
 	houseList.push_back(&house);
 }

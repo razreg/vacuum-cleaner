@@ -38,9 +38,18 @@ House& House::deseriallize(const string& filePath) {
 					logger.debug("Current line read [" + currLine + "]");
 					matrix[i] = new char[numCols];
 					for (int j = 0; j < numCols; ++j) {
-						matrix[i][j] = currLine.at(j);
+						matrix[i][j] = currLine.at(j); // TODO if there is no char j then print space!
+						if (matrix[i][j] != DOCK && matrix[i][j] != WALL && (matrix[i][j] < '1' || matrix[i][j] > '9')) {
+							matrix[i][j] = ' '; // every unrecognized character (or '0') turns to whitespace
+						}
 					}
 					i++;
+				}
+				// add space rows if too few rows were read from file
+				for (; i < numRows; ++i) {
+					for (int j = 0; j < numCols; ++j) {
+						matrix[i][j] = ' ';
+					}
 				}
 			}
 		}
@@ -62,34 +71,43 @@ House& House::deseriallize(const string& filePath) {
 }
 
 Position House::getDockingStation() {
-
 	if (matrix[dockingStation.Y][dockingStation.X] != DOCK) {
-		for (int i = 0; i < numRows; i++) {
-			for (int j = 0; j < numCols; j++) {
-				if (matrix[i][j] == DOCK) {
-					dockingStation = { j, i };
-					logger.debug("Docking station found in position=" + (string) dockingStation);
-					return dockingStation;
-				}
-			}
-		}
-		throw invalid_argument("No docking station found in house.");
+		validateDocking();
 	}
 	return dockingStation;
 	
 }
 
+void House::validateDocking() {
+	bool alreadyFound = false;
+	for (int i = 1; i < numRows-1; ++i) {
+		for (int j = 1; j < numCols-1; ++j) {
+			if (matrix[i][j] == DOCK) {
+				logger.debug("Docking station found in position=" + (string)dockingStation);
+				if (alreadyFound) {
+					throw invalid_argument("House contains more than one docking station");
+				}
+				alreadyFound = true;
+				dockingStation = { j, i };
+			}
+		}
+	}
+	if (!alreadyFound) {
+		throw invalid_argument("No docking station found in house");
+	}
+}
+
 void House::validateWalls() {
 
-	for (int i = 0; i < numCols; i++) {
+	for (int i = 0; i < numCols; ++i) {
 		if (matrix[0][i] == DOCK || matrix[numRows - 1][i] == DOCK) {
-			throw invalid_argument("Docking station was located where wall was expected.");
+			logger.warn("Docking station was located where wall was expected");
 		}
 		matrix[0][i] = matrix[numRows - 1][i] = WALL;
 	}
-	for (int i = 1; i < numRows - 1; i++) {
+	for (int i = 1; i < numRows - 1; ++i) {
 		if (matrix[i][0] == DOCK || matrix[i][numCols - 1] == DOCK) {
-			throw invalid_argument("Docking station was located where wall was expected.");
+			logger.warn("Docking station was located where wall was expected");
 		}
 		matrix[i][0] = matrix[i][numCols - 1] = WALL;
 	}

@@ -1,7 +1,6 @@
 #ifndef __SCORE__H_
 #define __SCORE__H_
 
-#include <algorithm>
 #include "Common.h"
 
 using namespace std;
@@ -17,7 +16,7 @@ class Score {
 	int thisNumSteps = 0;
 	int dirtCollected = 0;
 	int sumDirtInHouse = 0;
-	bool isBackInDocking = true;  // the robot starts at the docking station
+	bool isBackInDocking = false;
 	bool badBehavior = false;
 
 public:

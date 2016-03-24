@@ -3,12 +3,8 @@
 Logger NaiveAlgorithm::logger = Logger("NaiveAlogorithm");
 
 void NaiveAlgorithm::setConfiguration(map<string, int> config){
-
 	maxSteps = config.find(MAX_STEPS)->second;
 	maxStepsAfterWinner = config.find(MAX_STEPS_AFTER_WINNER)->second;
-
-	battery = new Battery(config.find(BATTERY_CAPACITY)->second, 
-		config.find(BATTERY_CONSUMPTION_RATE)->second, config.find(BATTERY_RECHARGE_RATE)->second);
 }
 
 Direction NaiveAlgorithm::step() {

@@ -1,9 +1,6 @@
 #ifndef __HOUSE__H_
 #define __HOUSE__H_
 
-#include <vector>
-#include <fstream>
-#include <stdexcept>
 #include "Common.h"
 
 using namespace std;
@@ -119,6 +116,8 @@ public:
 	Position getDockingStation();
 	
 	void validateWalls();
+
+	void validateDocking();
 
 	// true iff dust was vacuumed
 	bool clean(const Position& position) {

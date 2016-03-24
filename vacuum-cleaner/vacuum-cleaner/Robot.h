@@ -2,10 +2,10 @@
 #define __ROBOT__H_
 
 #include "SensorImpl.h"
-//#include "AbstractSensor.h"
-//#include "House.h"
-//#include "AbstractAlgorithm.h"
-//#include "Battery.h"
+#include "AbstractAlgorithm.h"
+#include "House.h"
+#include "Battery.h"
+#include "Common.h"
 
 static const string directions[] = { "East", "West", "South", "North", "Stay" };
 
@@ -22,6 +22,7 @@ class Robot {
 	Position position;
 	bool illegalStepPerformed = false;
 	bool batteryDead = false;
+	bool finished = false;
 
 	void configBattery(const map<string, int>& configMap) {
 		battery.setCapacity(configMap.find(BATTERY_CAPACITY)->second);
@@ -108,6 +109,14 @@ public:
 
 	bool isBatteryDeadNotified() {
 		return batteryDead;
+	};
+
+	bool isFinished() {
+		return finished;
+	};
+
+	void setFinished() {
+		finished = true;
 	};
 
 };

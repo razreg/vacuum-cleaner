@@ -44,11 +44,12 @@ void Simulator::execute() {
 		int stepsAfterWinner = -1; // so when we increment for first time, when winner is found, it will be set to zero
 		int algorithmCount;
 		int positionInCompetition = 1;
-		bool someoneFinishedInRound = false;
+		int robotsFinishedInRound;
 		while (steps < maxSteps && stepsAfterWinner < maxStepsAfterWinner) {
 			algorithmCount = 0;
+			robotsFinishedInRound = 0;
 			for (Robot* robot : robots) {
-				if (!robot->performedIllegalStep()) {
+				if (!robot->performedIllegalStep() && !robot->isFinished()) {
 					if (robot->getBatteryValue() == 0) {
 						// if we didn't alreay notify that the battery died
 						if (!robot->isBatteryDeadNotified()) {
@@ -76,19 +77,21 @@ void Simulator::execute() {
 						if (robot->getHouse().clean(robot->getPosition())) {
 							scoreMatrix[algorithmCount][houseCount].incrementDirtCollected();
 						}
-						// robot finished cleaning
-						if (robot->getHouse().getTotalDust() == 0) {
-							logger.info("House is clean of dust for algorithm [" + robot->getAlgorithmName() + "]");
-							// update the number of steps the winner has performed if no winner was found before
-							if (winnerNumSteps == 0) {
-								winnerNumSteps = steps + 1;
-							}
-							// update position in competition
-							scoreMatrix[algorithmCount][houseCount]
-								.setPositionInCompetition(positionInCompetition);
-							someoneFinishedInRound = true;
-						}
 						scoreMatrix[algorithmCount][houseCount].setThisNumSteps(steps + 1);
+					}
+					
+					// robot finished cleaning?
+					if (robot->getHouse().getTotalDust() == 0 && robot->inDocking()) {
+						logger.info("Algorithm [" + robot->getAlgorithmName() + "] has successfully cleaned the house and returned to docking station");
+						// update the number of steps the winner has performed if no winner was found before
+						if (winnerNumSteps == 0) {
+							winnerNumSteps = steps + 1;
+						}
+						// update position in competition
+						scoreMatrix[algorithmCount][houseCount]
+							.setPositionInCompetition(positionInCompetition);
+						robotsFinishedInRound++;
+						robot->setFinished();
 					}
 				}
 				algorithmCount++;
@@ -97,10 +100,7 @@ void Simulator::execute() {
 			if (winnerNumSteps > 0) {
 				stepsAfterWinner++;
 			}
-			if (someoneFinishedInRound && positionInCompetition < 4) {
-				positionInCompetition++;
-				someoneFinishedInRound = false;
-			}
+			positionInCompetition = min(4, positionInCompetition + robotsFinishedInRound);
 		}
 		// fallback if there is no winner
 		if (winnerNumSteps == 0) {
@@ -113,7 +113,7 @@ void Simulator::execute() {
 			scoreMatrix[algorithmCount][houseCount].setIsBackInDocking(robot->inDocking());
 			scoreMatrix[algorithmCount][houseCount].setWinnerNumSteps(winnerNumSteps);
 			scoreMatrix[algorithmCount][houseCount].setSumDirtInHouse(robot->getHouse().getTotalDust());
-			if (robot->getHouse().getTotalDust() > 0) {
+			if (robot->getHouse().getTotalDust() > 0 || !robot->inDocking()) {
 				scoreMatrix[algorithmCount][houseCount].setPositionInCompetition(DIDNT_FINISH_POSITION_IN_COMPETETION);
 			}
 			logger.debug("House final state for algorithm [" + robot->getAlgorithmName() + "]:\n"
