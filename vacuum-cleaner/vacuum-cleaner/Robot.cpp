@@ -8,15 +8,15 @@ void Robot::step() {
 	//logger.debug("Algorithm chose step: " + directions[static_cast<int>(direction)]);
 
 	if (direction == Direction::East) {
-		position.X++;
+		position.moveEast();
 	}
 	else if (direction == Direction::West) {
-		--position.X;
+		position.moveWest();
 	} else if (direction == Direction::South) {
-		position.Y++;
+		position.moveSouth();
 	}
 	else if (direction == Direction::North) {
-		--position.Y;
+		position.moveNorth();
 	}
 	sensor.setPosition(position);
 	if (sensor.inDocking()) {

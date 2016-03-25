@@ -8,14 +8,15 @@
 #include "Robot.h"
 #include "AbstractAlgorithm.h"
 #include "House.h"
+#include "Position.h"
 #include "Common.h"
 
 class Simulator {
 
 	static Logger logger;
 
-	list<House*>& houseList;
 	map<string, int>& configMap;
+	list<House*>& houseList;
 	list<AbstractAlgorithm*>& algorithms;
 
 public:

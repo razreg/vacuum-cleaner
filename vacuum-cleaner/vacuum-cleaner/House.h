@@ -1,6 +1,7 @@
 #ifndef __HOUSE__H_
 #define __HOUSE__H_
 
+#include "Position.h"
 #include "Common.h"
 
 using namespace std;
@@ -8,33 +9,14 @@ using namespace std;
 const char WALL = 'W';
 const char DOCK = 'D';
 
-struct Position {
-	int X;
-	int Y;
-
-	Position(int xPos = 0, int yPos = 0) : X(xPos), Y(yPos) {};
-
-	bool operator==(const Position &other) const {
-		return this->X == other.X && this->Y == other.Y;
-	};
-
-	bool operator!=(const Position &other) const {
-		return !(*this == other);
-	};
-
-	operator string() const {
-		return "(" + to_string(X) + ", " + to_string(Y) + ")";
-	};
-};
-
 class House {
 
 	static Logger logger;
 
 	string shortName;
 	string description;
-	int numRows;
-	int numCols;
+	size_t numRows;
+	size_t numCols;
 	char** matrix;
 	Position dockingStation;
 	int totalDust = -1;
@@ -43,16 +25,16 @@ public:
 
 	House() : matrix(nullptr) {};
 
-	House(string houseShortName, string houseDescription, int numRows_, int numCols_,
+	House(string houseShortName, string houseDescription, size_t numRows_, size_t numCols_,
 		char** houseMatrix) : shortName(houseShortName), description(houseDescription),
 		numRows(numRows_), numCols(numCols_), matrix(houseMatrix) {};
 
 	House(const House& copyFromMe) : shortName(copyFromMe.shortName), description(copyFromMe.description),
 		numRows(copyFromMe.numRows), numCols(copyFromMe.numCols), dockingStation(copyFromMe.dockingStation) {
 		matrix = new char*[numRows];
-		for (int i = 0; i < numRows; ++i) {
+		for (size_t i = 0; i < numRows; ++i) {
 			matrix[i] = new char[numCols];
-			for (int j = 0; j < numCols; ++j) {
+			for (size_t j = 0; j < numCols; ++j) {
 				matrix[i][j] = copyFromMe.matrix[i][j];
 			}
 		}
@@ -60,7 +42,7 @@ public:
 
 	~House() {
 		if (matrix != nullptr) {
-			for (int i = 0; i < numRows; ++i) {
+			for (size_t i = 0; i < numRows; ++i) {
 				delete [] matrix[i];
 			}
 			delete [] matrix;
@@ -89,12 +71,12 @@ public:
 		return this->matrix;
 	};
 
-	// dust level at given position - 0 if dust level is undefined (wall, docking station, etc.)
+	// dust level at given position. 0 if dust level is undefined (wall, docking station, etc.)
 	int getDirtLevel(const Position& position) const {
-		return getDirtLevel(position.X, position.Y);
+		return getDirtLevel(position.getX(), position.getY());
 	};
 
-	int getDirtLevel(int x, int y) const {
+	int getDirtLevel(size_t x, size_t y) const {
 		if (matrix[y][x] < '0' || matrix[y][x] > '9') {
 			return 0;
 		}
@@ -103,14 +85,15 @@ public:
 
 	bool isWall(const Position& position) const {
 		if (isInside(position)) {
-			return toupper(matrix[position.Y][position.X]) == WALL;
+			return toupper(matrix[position.getY()][position.getX()]) == WALL;
 		}
 		return false;
 	};
 
 	// true iff position inside house boundaries
 	bool isInside(const Position& position) const {
-		return position.X >= 0 && position.X < numCols && position.Y >= 0 && position.Y < numRows;
+		return position.getX() >= 0 && position.getX() < numCols && 
+			position.getY() >= 0 && position.getY() < numRows;
 	};
 
 	Position getDockingStation();
@@ -121,7 +104,7 @@ public:
 
 	// true iff dust was vacuumed
 	bool clean(const Position& position) {
-		char* cell = &matrix[position.Y][position.X];
+		char* cell = &matrix[position.getY()][position.getX()];
 		if (*cell > '0' && *cell <= '9') {
 			(*cell)--;
 			totalDust--;

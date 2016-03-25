@@ -5,6 +5,7 @@
 #include <fstream> // files
 #include <iostream>
 #include <string>
+#include <cstring> // strncpy
 #include <typeinfo> // logging algorithm class names
 #include <algorithm> // min, max
 
@@ -62,7 +63,7 @@ public:
 	Logger(string caller) {
 		size_t len = sizeof(this->caller);
 		strncpy(this->caller, caller.c_str(), len);
-		for (int i = caller.length(); i < len-1; ++i) {
+		for (size_t i = caller.length(); i < len-1; ++i) {
 			this->caller[i] = ' ';
 		}
 		this->caller[len - 1] = '\0';

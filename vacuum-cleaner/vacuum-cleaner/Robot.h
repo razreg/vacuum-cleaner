@@ -5,12 +5,13 @@
 #include "AbstractAlgorithm.h"
 #include "House.h"
 #include "Battery.h"
+#include "Position.h"
 #include "Common.h"
 
 static const string directions[] = { "East", "West", "South", "North", "Stay" };
 
 // please note that this robot is part of the simulator - it only encapsulates some simulator logic. 
-// Therefore, this robot is aware of the sensor implementation just like the simulator is
+// Therefore, this robot is aware of the sensor implementation just like the simulator should be.
 class Robot {
 
 	static Logger logger;

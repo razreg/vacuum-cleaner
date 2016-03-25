@@ -4,6 +4,7 @@
 #include "AbstractSensor.h"
 #include "House.h"
 #include "Direction.h"
+#include "Position.h"
 #include "SensorInformation.h"
 
 class SensorImpl : public AbstractSensor {

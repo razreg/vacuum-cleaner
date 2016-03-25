@@ -8,7 +8,7 @@ void Simulator::execute() {
 
 	// basic score matrix - will be improved according to ex2 instructions
 	Score** scoreMatrix = new Score*[algorithms.size()];
-	for (int i = 0; i < algorithms.size(); ++i) {
+	for (size_t i = 0; i < algorithms.size(); ++i) {
 		scoreMatrix[i] = new Score[houseList.size()];
 	}
 
@@ -126,8 +126,8 @@ void Simulator::execute() {
 	}
 
 	// printing scoreMatrix
-	for (int i = 0; i < algorithms.size(); ++i) {
-		for (int j = 0; j < houseList.size(); ++j) {
+	for (size_t i = 0; i < algorithms.size(); ++i) {
+		for (size_t j = 0; j < houseList.size(); ++j) {
 			cout << scoreMatrix[i][j].getScore();
 			if (j < houseList.size() - 1) {
 				cout << '\t';

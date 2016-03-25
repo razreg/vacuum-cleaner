@@ -3,6 +3,7 @@
 
 #include "Simulator.h"
 #include "NaiveAlgorithm.h"
+#include "House.h"
 
 // file handling
 #include <stdio.h>

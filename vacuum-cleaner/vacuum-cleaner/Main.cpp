@@ -1,7 +1,6 @@
 #include "Main.h"
 
 using namespace std;
-//namespace fs = boost::filesystem;
 
 Logger logger = Logger("Main");
 
@@ -82,23 +81,7 @@ string getCurrentWorkingDirectory() {
 }
 
 void loadHouseList(const string& housesPath, list<House*>& houseList) {
-	/* TODO ex2 unless we succeed in using boost in ex1
-	fs::directory_iterator endIterator;
-	for (fs::directory_iterator iter(housesPath); iter != endIterator; ++iter) {
-		if (fs::is_regular_file(iter->status()) && endsWith(housesPath, ".house")) {
-			logger.info("Found house file in path: " + iter->path().string());
-			House& house = House::deseriallize(iter->path().string());
-			logger.info("Validating house");
-			logger.debug("Validating the existence of a docking station");
-			house.getDockingStation();
-			logger.debug("Validating house walls");
-			house.validateWalls();
-			logger.info("House is valid");
-			houseList.push_back(house);
-		}
-	}
-	*/
-
+	
 	string path = housesPath;
 	if (housesPath.back() != '/' && housesPath.back() != '\\') {
 		path += DIR_SEPARATOR;

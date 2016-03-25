@@ -9,8 +9,8 @@ House& House::deseriallize(const string& filePath) {
 	logger.debug("Deseriallizing house...");
 
 	string currLine, shortName, description;
-	int numRows, numCols;
-	char** matrix;
+	size_t nRows = 0, nCols = 0;
+	char** matrix = nullptr;
 
 	ifstream houseFileStream(filePath);
 	bool failedToParsefile = true; // assume we are going to fail
@@ -25,20 +25,20 @@ House& House::deseriallize(const string& filePath) {
 			logger.debug("House short name=[" + shortName + "], description=[" + description + "]");
 			// read next two lines
 			if (!failedToParsefile) {
-				numRows = stoi(currLine);
+				nRows = stoi(currLine);
 				failedToParsefile = !getline(houseFileStream, currLine).good();
-				numCols = stoi(currLine);
+				nCols = stoi(currLine);
 			}
-			logger.debug("House number of rows=[" + to_string(numRows) + "], num cols=[" + to_string(numCols) + "]");
+			logger.debug("House number of rows=[" + to_string(nRows) + "], num cols=[" + to_string(nCols) + "]");
 			// read matrix
-			matrix = new char*[numRows];
+			matrix = new char*[nRows];
 			if (!failedToParsefile) {
-				int i = 0;
-				while (i < numRows && getline(houseFileStream, currLine)) {
+				size_t i = 0;
+				while (i < nRows && getline(houseFileStream, currLine)) {
 					logger.debug("Current line read [" + currLine + "]");
-					matrix[i] = new char[numCols];
-					for (int j = 0; j < numCols; ++j) {
-						matrix[i][j] = currLine.at(j); // TODO if there is no char j then print space!
+					matrix[i] = new char[nCols];
+					for (size_t j = 0; j < nCols; ++j) {
+						matrix[i][j] = (j < currLine.length()) ? currLine.at(j) : ' '; // if there is no char j then store space
 						if (matrix[i][j] != DOCK && matrix[i][j] != WALL && (matrix[i][j] < '1' || matrix[i][j] > '9')) {
 							matrix[i][j] = ' '; // every unrecognized character (or '0') turns to whitespace
 						}
@@ -46,8 +46,8 @@ House& House::deseriallize(const string& filePath) {
 					i++;
 				}
 				// add space rows if too few rows were read from file
-				for (; i < numRows; ++i) {
-					for (int j = 0; j < numCols; ++j) {
+				for (; i < nRows; ++i) {
+					for (size_t j = 0; j < nCols; ++j) {
 						matrix[i][j] = ' ';
 					}
 				}
@@ -66,12 +66,12 @@ House& House::deseriallize(const string& filePath) {
 	}
 
 	//creating the house based on the previously calculated fields
-	House *house = new House(shortName, description, numRows, numCols, matrix);
+	House *house = new House(shortName, description, nRows, nCols, matrix);
 	return *house;
 }
 
 Position House::getDockingStation() {
-	if (matrix[dockingStation.Y][dockingStation.X] != DOCK) {
+	if (matrix[dockingStation.getY()][dockingStation.getX()] != DOCK) {
 		validateDocking();
 	}
 	return dockingStation;
@@ -80,8 +80,8 @@ Position House::getDockingStation() {
 
 void House::validateDocking() {
 	bool alreadyFound = false;
-	for (int i = 1; i < numRows-1; ++i) {
-		for (int j = 1; j < numCols-1; ++j) {
+	for (size_t i = 1; i < numRows-1; ++i) {
+		for (size_t j = 1; j < numCols-1; ++j) {
 			if (matrix[i][j] == DOCK) {
 				logger.debug("Docking station found in position=" + (string)dockingStation);
 				if (alreadyFound) {
@@ -99,13 +99,13 @@ void House::validateDocking() {
 
 void House::validateWalls() {
 
-	for (int i = 0; i < numCols; ++i) {
+	for (size_t i = 0; i < numCols; ++i) {
 		if (matrix[0][i] == DOCK || matrix[numRows - 1][i] == DOCK) {
 			logger.warn("Docking station was located where wall was expected");
 		}
 		matrix[0][i] = matrix[numRows - 1][i] = WALL;
 	}
-	for (int i = 1; i < numRows - 1; ++i) {
+	for (size_t i = 1; i < numRows - 1; ++i) {
 		if (matrix[i][0] == DOCK || matrix[i][numCols - 1] == DOCK) {
 			logger.warn("Docking station was located where wall was expected");
 		}
@@ -117,8 +117,8 @@ void House::validateWalls() {
 int House::getTotalDust() {
 	if (totalDust < 0) {
 		totalDust = 0;
-		for (int i = 0; i < numRows; ++i) {
-			for (int j = 0; j < numCols; ++j) {
+		for (size_t i = 0; i < numRows; ++i) {
+			for (size_t j = 0; j < numCols; ++j) {
 				totalDust += getDirtLevel(j, i);
 			}
 		}
@@ -130,8 +130,8 @@ House::operator string() const {
 	string house = "";
 	char *arr = new char[numCols + 1];
 	arr[numCols] = '\0';
-	for (int i = 0; i < numRows; ++i) {
-		for (int j = 0; j < numCols; ++j) {
+	for (size_t i = 0; i < numRows; ++i) {
+		for (size_t j = 0; j < numCols; ++j) {
 			arr[j] = matrix[i][j];
 		}
 		house += arr;
