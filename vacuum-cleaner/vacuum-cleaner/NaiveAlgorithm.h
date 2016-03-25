@@ -1,14 +1,12 @@
 #ifndef __NAIVE_ALGORITHM__H_
 #define __NAIVE_ALGORITHM__H_
 
-#include "AbstractAlgorithm.h"
-#include "Battery.h"
-#include "Common.h"
-#include "House.h"
-
 #include <stdlib.h>
 #include <ctime>
 #include <vector>
+
+#include "AbstractAlgorithm.h"
+#include "Common.h"
 
 using namespace std;
 
@@ -17,7 +15,6 @@ class NaiveAlgorithm : public AbstractAlgorithm {
 	static Logger logger;
 
 	const AbstractSensor* sensor;
-	Battery* battery = nullptr;
 	int maxSteps;
 	int maxStepsAfterWinner;
 
@@ -25,12 +22,6 @@ public:
 
 	NaiveAlgorithm() {
 		srand(time(NULL));
-	};
-
-	~NaiveAlgorithm() {
-		if (battery != nullptr) {
-			delete battery;
-		}
 	};
 
 	void setSensor(const AbstractSensor& sensor) override {

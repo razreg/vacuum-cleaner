@@ -1,19 +1,20 @@
-CXX = g++
-LOADLIBES = -lm
-CXXFLAGS = -Wall -pedantic -o2
-OLIST = Direction.o SensorInformation.o AbstractSensor.o AbstractAlgorithm.o Common.o House.o \
-		Battery.o Score.o NaiveAlgorithm.o SensorImpl.o Robot.o 
+CC = g++
+CFLAGS = -std=c++11 -O2 -Wall -pedantic -pthread
+CPPOLIST = House.o Score.o NaiveAlgorithm.o SensorImpl.o Robot.o Simulator.o
+HLIST = Direction.h SensorInformation.h AbstractSensor.h AbstractAlgorithm.h Common.h Battery.h Position.h $(CPPOLIST:.o=.h)
+OCLEAN = -rm -f *.o *.gch
 
-all: simulator
+all: clean simulator
+	$(OCLEAN)
 
-clean: 
-	rm *.o simulator
+clean:
+	$(OCLEAN) simulator
 
-simulator: $(OLIST) Simulator.o
-	($CXX) -o simulator $(OLIST) Simulator.o $(CFLAGS)
+simulator: Main.o $(CPPOLIST)
+	$(CC) $^ $(CFLAGS) -o $@
 
-%.o: %.cpp %.h
-	$(CXX) -c $(CXXFLAGS) $<
-	
-Simulator.o: $(OLIST:.o=.h) $(OLIST:.o=.cpp) Simulator.h Simulator.cpp
-	$(CXX) $(CXXFLAGS) Simulator.cpp
+Main.o: Main.cpp Main.h $(HLIST)
+	$(CC) -c $(CFLAGS) $<
+
+$(CPPOLIST): %.o: %.cpp %.h
+	$(CC) -c $(CFLAGS) $<

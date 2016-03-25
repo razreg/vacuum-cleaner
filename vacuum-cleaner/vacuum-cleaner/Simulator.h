@@ -3,22 +3,20 @@
 
 #include <map>
 #include <list>
-#include <stdexcept>
 
 #include "Score.h"
 #include "Robot.h"
+#include "AbstractAlgorithm.h"
+#include "House.h"
+#include "Position.h"
 #include "Common.h"
-//#include "SensorImpl.h"
-//#include "NaiveAlgorithm.h"
-//#include "House.h"
-
 
 class Simulator {
 
 	static Logger logger;
 
-	list<House*>& houseList;
 	map<string, int>& configMap;
+	list<House*>& houseList;
 	list<AbstractAlgorithm*>& algorithms;
 
 public:

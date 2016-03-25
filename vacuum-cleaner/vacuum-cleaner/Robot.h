@@ -2,15 +2,16 @@
 #define __ROBOT__H_
 
 #include "SensorImpl.h"
-//#include "AbstractSensor.h"
-//#include "House.h"
-//#include "AbstractAlgorithm.h"
-//#include "Battery.h"
+#include "AbstractAlgorithm.h"
+#include "House.h"
+#include "Battery.h"
+#include "Position.h"
+#include "Common.h"
 
 static const string directions[] = { "East", "West", "South", "North", "Stay" };
 
 // please note that this robot is part of the simulator - it only encapsulates some simulator logic. 
-// Therefore, this robot is aware of the sensor implementation just like the simulator is
+// Therefore, this robot is aware of the sensor implementation just like the simulator should be.
 class Robot {
 
 	static Logger logger;
@@ -22,6 +23,7 @@ class Robot {
 	Position position;
 	bool illegalStepPerformed = false;
 	bool batteryDead = false;
+	bool finished = false;
 
 	void configBattery(const map<string, int>& configMap) {
 		battery.setCapacity(configMap.find(BATTERY_CAPACITY)->second);
@@ -108,6 +110,14 @@ public:
 
 	bool isBatteryDeadNotified() {
 		return batteryDead;
+	};
+
+	bool isFinished() {
+		return finished;
+	};
+
+	void setFinished() {
+		finished = true;
 	};
 
 };

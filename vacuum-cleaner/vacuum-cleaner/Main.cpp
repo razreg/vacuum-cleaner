@@ -1,7 +1,6 @@
 #include "Main.h"
 
 using namespace std;
-//namespace fs = boost::filesystem;
 
 Logger logger = Logger("Main");
 
@@ -24,7 +23,7 @@ int main(int argc, char** argv) {
 	}
 	string configPath = workingDir;
 	string housesPath = workingDir;
-	logger.debug("Parsing command line arguments");
+	logger.info("Parsing command line arguments");
 	for (int i = 1; i < argc; ++i) {
 		if ((string(argv[i])).compare("-config") == 0) {
 			configPath = argv[i + 1];
@@ -32,7 +31,7 @@ int main(int argc, char** argv) {
 		else if ((string(argv[i])).compare("-house_path") == 0) {
 			housesPath = argv[i + 1];
 		}
-		else if (i == 2 || i == 4) {
+		else if (i == 1 || i == 3) {
 			// this argument is the first or third argument and not "-config" or "-house_path"
 			logger.fatal("Invalid arguments. " + usage);
 			return INVALID_ARGUMENTS;
@@ -82,35 +81,19 @@ string getCurrentWorkingDirectory() {
 }
 
 void loadHouseList(const string& housesPath, list<House*>& houseList) {
-	/* TODO ex2 unless we succeed in using boost in ex1
-	fs::directory_iterator endIterator;
-	for (fs::directory_iterator iter(housesPath); iter != endIterator; ++iter) {
-		if (fs::is_regular_file(iter->status()) && endsWith(housesPath, ".house")) {
-			logger.info("Found house file in path: " + iter->path().string());
-			House& house = House::deseriallize(iter->path().string());
-			logger.info("Validating house");
-			logger.debug("Validating the existence of a docking station");
-			house.getDockingStation();
-			logger.debug("Validating house walls");
-			house.validateWalls();
-			logger.info("House is valid");
-			houseList.push_back(house);
-		}
-	}
-	*/
-
+	
 	string path = housesPath;
 	if (housesPath.back() != '/' && housesPath.back() != '\\') {
 		path += DIR_SEPARATOR;
 	}
-	path += "default.house";
+	path += "simple1.house";
 
 	House& house = House::deseriallize(path);
 	logger.info("Validating house");
-	logger.debug("Validating the existence of a docking station");
-	house.getDockingStation();
 	logger.debug("Validating house walls");
 	house.validateWalls();
+	logger.debug("Validating the existence of exactly one docking station");
+	house.validateDocking();
 	logger.info("House is valid");
 	houseList.push_back(&house);
 }

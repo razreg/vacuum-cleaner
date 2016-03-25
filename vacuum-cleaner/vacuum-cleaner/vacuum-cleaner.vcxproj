@@ -114,6 +114,7 @@
     <ClInclude Include="House.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="NaiveAlgorithm.h" />
+    <ClInclude Include="Position.h" />
     <ClInclude Include="Robot.h" />
     <ClInclude Include="Score.h" />
     <ClInclude Include="SensorImpl.h" />

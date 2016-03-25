@@ -1,10 +1,13 @@
 #ifndef __COMMON__H_
 #define __COMMON__H_
 
-#include <time.h>
+#include <time.h> // srand
+#include <fstream> // files
 #include <iostream>
 #include <string>
-#include <typeinfo>
+#include <cstring> // strncpy
+#include <typeinfo> // logging algorithm class names
+#include <algorithm> // min, max
 
 using namespace std;
 
@@ -25,7 +28,7 @@ const int DEFAULT_BATTERY_RECHARGE_RATE = 20;
 enum LogLevel { DEBUG, INFO, WARN, ERROR, FATAL, OFF };
 const string loggerLevels[] = { "DEBUG", "INFO", "WARN", "ERROR", "FATAL" };
 
-const LogLevel LOG_LEVEL = OFF;
+const LogLevel LOG_LEVEL = DEBUG;
 
 // simple logger which simply writes to cout but with nice format
 class Logger {
@@ -60,7 +63,7 @@ public:
 	Logger(string caller) {
 		size_t len = sizeof(this->caller);
 		strncpy(this->caller, caller.c_str(), len);
-		for (int i = caller.length(); i < len-1; ++i) {
+		for (size_t i = caller.length(); i < len-1; ++i) {
 			this->caller[i] = ' ';
 		}
 		this->caller[len - 1] = '\0';
