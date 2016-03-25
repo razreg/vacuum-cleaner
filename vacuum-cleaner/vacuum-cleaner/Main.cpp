@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
 		else if ((string(argv[i])).compare("-house_path") == 0) {
 			housesPath = argv[i + 1];
 		}
-		else if (i == 2 || i == 4) {
+		else if (i == 1 || i == 3) {
 			// this argument is the first or third argument and not "-config" or "-house_path"
 			logger.fatal("Invalid arguments. " + usage);
 			return INVALID_ARGUMENTS;
