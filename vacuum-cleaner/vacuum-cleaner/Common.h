@@ -1,7 +1,7 @@
 #ifndef __COMMON__H_
 #define __COMMON__H_
 
-#include <time.h> // srand
+#include <ctime> // srand
 #include <fstream> // files
 #include <iostream>
 #include <string>

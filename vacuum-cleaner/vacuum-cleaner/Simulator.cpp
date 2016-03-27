@@ -73,10 +73,7 @@ void Simulator::execute() {
 							scoreMatrix[algorithmCount][houseCount].reportBadBehavior();
 							robot->reportBadBehavior();
 						}
-						// perform one cleaning step and update score
-						if (robot->getHouse().clean(robot->getPosition())) {
-							scoreMatrix[algorithmCount][houseCount].incrementDirtCollected();
-						}
+						robot->getHouse().clean(robot->getPosition()); // perform one cleaning step
 						scoreMatrix[algorithmCount][houseCount].setThisNumSteps(steps + 1);
 					}
 					
@@ -112,7 +109,7 @@ void Simulator::execute() {
 		for (Robot* robot : robots) {
 			scoreMatrix[algorithmCount][houseCount].setIsBackInDocking(robot->inDocking());
 			scoreMatrix[algorithmCount][houseCount].setWinnerNumSteps(winnerNumSteps);
-			scoreMatrix[algorithmCount][houseCount].setSumDirtInHouse(robot->getHouse().getTotalDust());
+			scoreMatrix[algorithmCount][houseCount].setFinalSumDirtInHouse(robot->getHouse().getTotalDust());
 			if (robot->getHouse().getTotalDust() > 0 || !robot->inDocking()) {
 				scoreMatrix[algorithmCount][houseCount].setPositionInCompetition(DIDNT_FINISH_POSITION_IN_COMPETETION);
 			}

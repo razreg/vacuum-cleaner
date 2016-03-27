@@ -47,6 +47,7 @@ House& House::deseriallize(const string& filePath) {
 				}
 				// add space rows if too few rows were read from file
 				for (; i < nRows; ++i) {
+					matrix[i] = new char[nCols];
 					for (size_t j = 0; j < nCols; ++j) {
 						matrix[i][j] = ' ';
 					}
@@ -60,8 +61,7 @@ House& House::deseriallize(const string& filePath) {
 	}
 
 	if (failedToParsefile) {
-		string houseFileError = "house file [" + filePath + "] is invalid";
-		logger.error(houseFileError);
+		string houseFileError = "house file [" + filePath + "] is invalid or does not exist";
 		throw invalid_argument(houseFileError.c_str());
 	}
 
