@@ -50,7 +50,7 @@ void Simulator::execute() {
 			robotsFinishedInRound = 0;
 			for (Robot* robot : robots) {
 				if (!robot->performedIllegalStep() && !robot->isFinished()) {
-					if (robot->getBatteryValue() == 0) {
+					if (robot->getBatteryValue() <= 0) {
 						// if we didn't alreay notify that the battery died
 						if (!robot->isBatteryDeadNotified()) {
 							robot->setBatteryDeadNotified();
