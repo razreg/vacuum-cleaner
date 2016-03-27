@@ -4,6 +4,14 @@ Logger Robot::logger = Logger("Robot");
 
 void Robot::step() {
 
+	if (sensor.inDocking()) {
+		//logger.debug("Robot in docking station (charging...)");
+		battery.charge();
+	}
+	else {
+		battery.consume();
+	}
+
 	Direction direction = algorithm.step();
 	//logger.debug("Algorithm chose step: " + directions[static_cast<int>(direction)]);
 
@@ -19,11 +27,4 @@ void Robot::step() {
 		position.moveNorth();
 	}
 	sensor.setPosition(position);
-	if (sensor.inDocking()) {
-		//logger.debug("Robot in docking station (charging...)");
-		battery.charge();
-	}
-	else {
-		battery.consume();
-	}
 }
