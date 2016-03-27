@@ -1,8 +1,7 @@
 #ifndef __NAIVE_ALGORITHM__H_
 #define __NAIVE_ALGORITHM__H_
 
-#include <stdlib.h>
-#include <ctime>
+#include <cstdlib>
 #include <vector>
 
 #include "AbstractAlgorithm.h"
