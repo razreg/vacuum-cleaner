@@ -10,7 +10,7 @@ all: clean simulator
 clean:
 	$(OCLEAN) simulator
 
-simulator: Main.o $(CPPOLIST)
+simulator: $(CPPOLIST)
 	$(CC) $^ $(CFLAGS) -o $@
 
 $(CPPOLIST): %.o: %.cpp %.h
