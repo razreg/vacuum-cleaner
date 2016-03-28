@@ -86,7 +86,7 @@ void loadHouseList(const string& housesPath, list<House*>& houseList) {
 	if (housesPath.back() != '/' && housesPath.back() != '\\') {
 		path += DIR_SEPARATOR;
 	}
-	path += "simple1.house";
+	path += "ido.house";
 
 	House& house = House::deseriallize(path);
 	logger.info("Validating house");
