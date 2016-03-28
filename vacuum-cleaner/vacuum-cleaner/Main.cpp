@@ -4,9 +4,11 @@ using namespace std;
 
 Logger logger = Logger("Main");
 
+// the house for this exercise is loaded from the file simple1.house, located in the current working directory 
+// or in the path given in the command line argument
 int main(int argc, char** argv) {
 
-	string usage = "Usage: simulator [-config <config_file_location>] [-house_path <houses_path_location>]";
+	string usage = "Usage: simulator [-config <config_file_location>] [-house_path <houses_location>]";
 
 	list<House*> houseList;
 	map<string, int> configMap;
@@ -25,13 +27,27 @@ int main(int argc, char** argv) {
 	string housesPath = workingDir;
 	logger.info("Parsing command line arguments");
 	for (int i = 1; i < argc; ++i) {
+		bool invalid = false;
 		if ((string(argv[i])).compare("-config") == 0) {
-			configPath = argv[i + 1];
+			if (argc > i + 1) {
+				configPath = argv[i + 1];
+			}
+			else {
+				invalid = true;
+			}
 		}
 		else if ((string(argv[i])).compare("-house_path") == 0) {
-			housesPath = argv[i + 1];
+			if (argc > i + 1) {
+				housesPath = argv[i + 1];
+			}
+			else {
+				invalid = true;
+			}
 		}
 		else if (i == 1 || i == 3) {
+			invalid = true;
+		}
+		if (invalid) {
 			// this argument is the first or third argument and not "-config" or "-house_path"
 			logger.fatal("Invalid arguments. " + usage);
 			return INVALID_ARGUMENTS;
@@ -119,7 +135,7 @@ void loadConfiguration(const string& configFileDir, map<string, int>& configMap)
 				string key = currLine.substr(0, (int)positionOfEquals);
 				if (positionOfEquals != string::npos) {
 					int value = stoi(currLine.substr((int)positionOfEquals + 1)); // possibly: invalid_argument or out_of_range
-					configMap.insert(pair<string, int>(key, value));
+					configMap.insert(pair<string, int>(key, max(0, value)));
 				}
 			}
 			configFileStream.close();

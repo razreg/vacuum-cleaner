@@ -1,7 +1,7 @@
 #ifndef __COMMON__H_
 #define __COMMON__H_
 
-#include <time.h> // srand
+#include <ctime> // srand
 #include <fstream> // files
 #include <iostream>
 #include <string>
@@ -28,7 +28,7 @@ const int DEFAULT_BATTERY_RECHARGE_RATE = 20;
 enum LogLevel { DEBUG, INFO, WARN, ERROR, FATAL, OFF };
 const string loggerLevels[] = { "DEBUG", "INFO", "WARN", "ERROR", "FATAL" };
 
-const LogLevel LOG_LEVEL = DEBUG;
+const LogLevel LOG_LEVEL = FATAL;
 
 // simple logger which simply writes to cout but with nice format
 class Logger {

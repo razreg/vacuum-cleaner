@@ -6,7 +6,7 @@
 #include "House.h"
 
 // file handling
-#include <stdio.h>
+#include <cstdio>
 #include <regex>
 #ifdef _WIN32
 	#include <direct.h>
