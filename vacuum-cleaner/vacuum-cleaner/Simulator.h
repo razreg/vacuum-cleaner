@@ -49,6 +49,7 @@ public:
 	~Simulator() {
 		int i = 0;
 		for (Robot* robot : robots) {
+			delete &robot->getHouse();
 			delete robot;
 			delete[] scoreMatrix[i++];
 		}

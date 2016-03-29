@@ -49,7 +49,6 @@ void Simulator::collectScores(int houseCount, int winnerNumSteps) {
 		logger.debug("House final state for algorithm [" + robot->getAlgorithmName() + "]:\n"
 			+ (string)robot->getHouse());
 		algorithmCount++;
-		delete &robot->getHouse();
 	}
 }
 
@@ -74,18 +73,15 @@ void Simulator::updateRobotListWithHouse(House& house, int houseCount) {
 	}
 }
 
-// TODO extract methods
 void Simulator::executeOnHouse(House* house, int maxSteps, int maxStepsAfterWinner, int houseCount) {
 	
 	int steps = 0;
 	int winnerNumSteps = 0;
 	int stepsAfterWinner = -1; // so when we increment for first time, when winner is found, it will be set to zero
-	int algorithmCount;
 	int positionInCompetition = 1;
-	int robotsFinishedInRound;
 	while (steps < maxSteps && stepsAfterWinner < maxStepsAfterWinner) {
-		algorithmCount = 0;
-		robotsFinishedInRound = 0;
+		int algorithmCount = 0;
+		int robotsFinishedInRound = 0;
 		for (Robot* robot : robots) {
 			if (!robot->performedIllegalStep() && !robot->isFinished()) {
 				if (robot->getBatteryValue() <= 0) {
