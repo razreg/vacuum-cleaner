@@ -6,45 +6,28 @@ Logger Simulator::logger = Logger("Simulator");
 
 void Simulator::execute() {
 
-	// basic score matrix - will be improved according to ex2 instructions
-	Score** scoreMatrix = initScoreMatrix();
-
 	int maxSteps = configMap.find(MAX_STEPS)->second;
 	int maxStepsAfterWinner = configMap.find(MAX_STEPS_AFTER_WINNER)->second;
-
-	// initialize robot list
-	list<Robot*> robots;
-	initRobotList(robots);
 
 	int houseCount = 0;
 	for (House* house : houseList) {
 		logger.info("Simulation started for house number [" + to_string(houseCount) + "] - Name: " + house->getShortName());
-		updateRobotListWithHouse(robots, *house, houseCount);
+		updateRobotListWithHouse(*house, houseCount);
 		// run algorithms in "Round Robin" fashion
-		executeOnHouse(house, robots, scoreMatrix, maxSteps, maxStepsAfterWinner, houseCount);
+		executeOnHouse(house, maxSteps, maxStepsAfterWinner, houseCount);
 		houseCount++;
 	}
-	printScoreMatrix(scoreMatrix);
-
-	// cleaning up
-	int i = 0;
-	for (Robot* robot : robots) {
-		delete robot;
-		delete[] scoreMatrix[i++];
-	}
-	robots.clear();
-	delete[] scoreMatrix;
+	printScoreMatrix();
 }
 
-Score** Simulator::initScoreMatrix() {
-	Score** scoreMatrix = new Score*[algorithms.size()];
-	for (size_t i = 0; i < algorithms.size(); ++i) {
+void Simulator::initScoreMatrix() {
+	scoreMatrix = new Score*[robots.size()];
+	for (size_t i = 0; i < robots.size(); ++i) {
 		scoreMatrix[i] = new Score[houseList.size()];
 	}
-	return scoreMatrix;
 }
 
-void Simulator::initRobotList(list<Robot*>& robots) {
+void Simulator::initRobotList(list<AbstractAlgorithm*>& algorithms) {
 	logger.info("Initializing robot list");
 	for (AbstractAlgorithm* algorithm : algorithms) {
 		string algoName = typeid(*algorithm).name();
@@ -54,7 +37,7 @@ void Simulator::initRobotList(list<Robot*>& robots) {
 	}
 }
 
-void Simulator::collectScores(Score** scoreMatrix, list<Robot*>& robots, int houseCount, int winnerNumSteps) {
+void Simulator::collectScores(int houseCount, int winnerNumSteps) {
 	int algorithmCount = 0;
 	for (Robot* robot : robots) {
 		scoreMatrix[algorithmCount][houseCount].setIsBackInDocking(robot->inDocking());
@@ -70,8 +53,8 @@ void Simulator::collectScores(Score** scoreMatrix, list<Robot*>& robots, int hou
 	}
 }
 
-void Simulator::printScoreMatrix(Score** scoreMatrix) {
-	for (size_t i = 0; i < algorithms.size(); ++i) {
+void Simulator::printScoreMatrix() {
+	for (size_t i = 0; i < robots.size(); ++i) {
 		for (size_t j = 0; j < houseList.size(); ++j) {
 			cout << scoreMatrix[i][j].getScore();
 			if (j < houseList.size() - 1) {
@@ -82,7 +65,7 @@ void Simulator::printScoreMatrix(Score** scoreMatrix) {
 	}
 }
 
-void Simulator::updateRobotListWithHouse(list<Robot*>& robots, House& house, int houseCount) {
+void Simulator::updateRobotListWithHouse(House& house, int houseCount) {
 	logger.info("Defining house [" + to_string(houseCount) + "] for robot list");
 	for (Robot* robot : robots) {
 		House* currHouse = new House(house); // copy constructor called
@@ -91,8 +74,8 @@ void Simulator::updateRobotListWithHouse(list<Robot*>& robots, House& house, int
 	}
 }
 
-// TODO make scoreMatrix a member
-void Simulator::executeOnHouse(House* house, list<Robot*>& robots, Score** scoreMatrix, int maxSteps, int maxStepsAfterWinner, int houseCount) {
+// TODO extract methods
+void Simulator::executeOnHouse(House* house, int maxSteps, int maxStepsAfterWinner, int houseCount) {
 	
 	int steps = 0;
 	int winnerNumSteps = 0;
@@ -113,37 +96,15 @@ void Simulator::executeOnHouse(House* house, list<Robot*>& robots, Score** score
 					}
 					scoreMatrix[algorithmCount][houseCount].setThisNumSteps(steps + 1); // increment steps but stay
 				}
-				else if (robot->getHouse().getTotalDust() > 0) {
-					// notify on aboutToFinish if there is a winner or steps == maxSteps - maxStepsAfterWinner
-					if (stepsAfterWinner == 0 || steps == maxSteps - maxStepsAfterWinner) {
-						logger.debug("Notifying algorithm [" + robot->getAlgorithmName() + "] that the simulation is about to end");
-						robot->aboutToFinish(maxStepsAfterWinner);
-					}
-					robot->step(); // this also updates the sensor and the battery but not the house
-					if (!robot->getHouse().isInside(robot->getPosition()) ||
-						robot->getHouse().isWall(robot->getPosition())) {
-						logger.warn("Algorithm [" + robot->getAlgorithmName() +
-							"] has performed an illegal step. Robot in position="
-							+ (string)robot->getPosition());
-						scoreMatrix[algorithmCount][houseCount].reportBadBehavior();
-						robot->reportBadBehavior();
-					}
-					robot->getHouse().clean(robot->getPosition()); // perform one cleaning step
-					scoreMatrix[algorithmCount][houseCount].setThisNumSteps(steps + 1);
+				else {
+					performStep(*robot, steps, maxSteps, maxStepsAfterWinner, stepsAfterWinner,
+						algorithmCount, houseCount);
 				}
 
 				// robot finished cleaning?
 				if (robot->getHouse().getTotalDust() == 0 && robot->inDocking()) {
-					logger.info("Algorithm [" + robot->getAlgorithmName() + "] has successfully cleaned the house and returned to docking station");
-					// update the number of steps the winner has performed if no winner was found before
-					if (winnerNumSteps == 0) {
-						winnerNumSteps = steps + 1;
-					}
-					// update position in competition
-					scoreMatrix[algorithmCount][houseCount]
-						.setPositionInCompetition(positionInCompetition);
-					robotsFinishedInRound++;
-					robot->setFinished();
+					robotFinishedCleaning(*robot, steps, winnerNumSteps, algorithmCount, 
+						houseCount, positionInCompetition, robotsFinishedInRound);
 				}
 			}
 			algorithmCount++;
@@ -158,6 +119,41 @@ void Simulator::executeOnHouse(House* house, list<Robot*>& robots, Score** score
 	if (winnerNumSteps == 0) {
 		winnerNumSteps = steps;
 	}
-	collectScores(scoreMatrix, robots, houseCount, winnerNumSteps);
+	collectScores(houseCount, winnerNumSteps);
 	logger.info("Simulation completed for house number [" + to_string(houseCount) + "] - Name: " + house->getShortName());
+}
+
+void Simulator::robotFinishedCleaning(Robot& robot, int steps, int& winnerNumSteps, 
+	int algorithmCount, int houseCount, int positionInCompetition, int& robotsFinishedInRound) {
+
+	logger.info("Algorithm [" + robot.getAlgorithmName() + "] has successfully cleaned the house and returned to docking station");
+	// update the number of steps the winner has performed if no winner was found before
+	if (winnerNumSteps == 0) {
+		winnerNumSteps = steps + 1;
+	}
+	// update position in competition
+	scoreMatrix[algorithmCount][houseCount]
+		.setPositionInCompetition(positionInCompetition);
+	robotsFinishedInRound++;
+	robot.setFinished();
+}
+
+void Simulator::performStep(Robot& robot, int steps, int maxSteps, int maxStepsAfterWinner, 
+	int stepsAfterWinner, int algorithmCount, int houseCount) {
+	// notify on aboutToFinish if there is a winner or steps == maxSteps - maxStepsAfterWinner
+	if (stepsAfterWinner == 0 || steps == maxSteps - maxStepsAfterWinner) {
+		logger.debug("Notifying algorithm [" + robot.getAlgorithmName() + "] that the simulation is about to end");
+		robot.aboutToFinish(maxStepsAfterWinner);
+	}
+	robot.step(); // this also updates the sensor and the battery but not the house
+	if (!robot.getHouse().isInside(robot.getPosition()) ||
+		robot.getHouse().isWall(robot.getPosition())) {
+		logger.warn("Algorithm [" + robot.getAlgorithmName() +
+			"] has performed an illegal step. Robot in position="
+			+ (string)robot.getPosition());
+		scoreMatrix[algorithmCount][houseCount].reportBadBehavior();
+		robot.reportBadBehavior();
+	}
+	robot.getHouse().clean(robot.getPosition()); // perform one cleaning step
+	scoreMatrix[algorithmCount][houseCount].setThisNumSteps(steps + 1);
 }

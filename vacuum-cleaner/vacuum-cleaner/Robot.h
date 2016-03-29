@@ -73,14 +73,6 @@ public:
 		return battery.getCurrValue();
 	};
 
-	int chargeBattery() {
-		return battery.charge();
-	};
-
-	int comsumeBattery() {
-		return battery.consume();
-	};
-
 	void step();
 
 	bool inDocking() const {

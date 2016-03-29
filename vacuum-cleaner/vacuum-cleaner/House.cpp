@@ -88,12 +88,12 @@ void House::validateDocking() {
 	for (size_t i = 1; i < numRows-1; ++i) {
 		for (size_t j = 1; j < numCols-1; ++j) {
 			if (matrix[i][j] == DOCK) {
+				dockingStation = { j, i };
 				logger.debug("Docking station found in position=" + (string)dockingStation);
 				if (alreadyFound) {
 					throw invalid_argument("House contains more than one docking station");
 				}
 				alreadyFound = true;
-				dockingStation = { j, i };
 			}
 		}
 	}
