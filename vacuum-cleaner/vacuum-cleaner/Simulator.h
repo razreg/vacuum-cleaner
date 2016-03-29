@@ -17,14 +17,44 @@ class Simulator {
 
 	map<string, int>& configMap;
 	list<House*>& houseList;
-	list<AbstractAlgorithm*>& algorithms;
+	list<Robot*> robots;
+	Score** scoreMatrix; // basic score matrix - will be improved according to ex2 instructions
+
+	void initScoreMatrix();
+
+	void initRobotList(list<AbstractAlgorithm*>& algorithms);
+
+	void collectScores(int houseCount, int winnerNumSteps);
+
+	void printScoreMatrix();
+
+	void updateRobotListWithHouse(House& house, int houseCount);
+
+	void executeOnHouse(House* house, int maxSteps, int maxStepsAfterWinner, int houseCount);
+
+	void robotFinishedCleaning(Robot& robot, int steps, int& winnerNumSteps, int algorithmCount, 
+		int houseCount, int positionInCompetition, int& robotsFinishedInRound);
+
+	void performStep(Robot& robot, int steps, int maxSteps, int maxStepsAfterWinner,
+		int stepsAfterWinner, int algorithmCount, int houseCount);
 
 public:
 	
 	Simulator(map<string, int>& configMap, list<House*>& houseList, list<AbstractAlgorithm*>& algorithms) :
-		configMap(configMap), houseList(houseList), algorithms(algorithms) {};
+		configMap(configMap), houseList(houseList) {
+		initRobotList(algorithms);
+		initScoreMatrix();
+	};
 
 	~Simulator() {
+		int i = 0;
+		for (Robot* robot : robots) {
+			delete &robot->getHouse();
+			delete robot;
+			delete[] scoreMatrix[i++];
+		}
+		robots.clear();
+		delete[] scoreMatrix;
 		for (House* house : houseList) {
 			delete house;
 		}
