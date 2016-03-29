@@ -4,11 +4,7 @@ Logger Robot::logger = Logger("Robot");
 
 void Robot::step() {
 
-	if (sensor.inDocking()) {
-		//logger.debug("Robot in docking station (charging...)");
-		battery.charge();
-	}
-	else {
+	if (!sensor.inDocking()) {
 		battery.consume();
 	}
 
@@ -27,4 +23,9 @@ void Robot::step() {
 		position.moveNorth();
 	}
 	sensor.setPosition(position);
+
+	if (sensor.inDocking()) {
+		//logger.debug("Robot in docking station (charging...)");
+		battery.charge();
+	}
 }

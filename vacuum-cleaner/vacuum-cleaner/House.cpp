@@ -33,25 +33,7 @@ House& House::deseriallize(const string& filePath) {
 			// read matrix
 			matrix = new char*[nRows];
 			if (!failedToParsefile) {
-				size_t i = 0;
-				while (i < nRows && getline(houseFileStream, currLine)) {
-					logger.debug("Current line read [" + currLine + "]");
-					matrix[i] = new char[nCols];
-					for (size_t j = 0; j < nCols; ++j) {
-						matrix[i][j] = (j < currLine.length()) ? currLine.at(j) : ' '; // if there is no char j then store space
-						if (matrix[i][j] != DOCK && matrix[i][j] != WALL && (matrix[i][j] < '1' || matrix[i][j] > '9')) {
-							matrix[i][j] = ' '; // every unrecognized character (or '0') turns to whitespace
-						}
-					}
-					i++;
-				}
-				// add space rows if too few rows were read from file
-				for (; i < nRows; ++i) {
-					matrix[i] = new char[nCols];
-					for (size_t j = 0; j < nCols; ++j) {
-						matrix[i][j] = ' ';
-					}
-				}
+				readHouseMatrix(houseFileStream, matrix, nRows, nCols);
 			}
 		}
 		catch (exception e) {
@@ -68,6 +50,29 @@ House& House::deseriallize(const string& filePath) {
 	//creating the house based on the previously calculated fields
 	House *house = new House(shortName, description, nRows, nCols, matrix);
 	return *house;
+}
+
+void House::readHouseMatrix(ifstream& houseFileStream, char** matrix, size_t nRows, size_t nCols) {
+	string currLine;
+	size_t i = 0;
+	while (i < nRows && getline(houseFileStream, currLine)) {
+		logger.debug("Current line read [" + currLine + "]");
+		matrix[i] = new char[nCols];
+		for (size_t j = 0; j < nCols; ++j) {
+			matrix[i][j] = (j < currLine.length()) ? currLine.at(j) : ' '; // if there is no char j then store space
+			if (matrix[i][j] != DOCK && matrix[i][j] != WALL && (matrix[i][j] < '1' || matrix[i][j] > '9')) {
+				matrix[i][j] = ' '; // every unrecognized character (or '0') turns to whitespace
+			}
+		}
+		i++;
+	}
+	// add space rows if too few rows were read from file
+	for (; i < nRows; ++i) {
+		matrix[i] = new char[nCols];
+		for (size_t j = 0; j < nCols; ++j) {
+			matrix[i][j] = ' ';
+		}
+	}
 }
 
 Position House::getDockingStation() {

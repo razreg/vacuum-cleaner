@@ -27,6 +27,9 @@ const int INVALID_CONFIGURATION = 3;
 
 string getCurrentWorkingDirectory();
 void loadConfiguration(const string& configFileDir, map<string, int>& configMap);
+void populateConfigMap(ifstream& configFileStream, map<string, int>& configMap);
+void fixConfig(map<string, int>& configMap);
 void loadHouseList(const string& housesPath, list<House*>& houseList);
+bool parseArgs(int argc, char** argv, string& configPath, string& housesPath);
 
 #endif //__MAIN__H_
