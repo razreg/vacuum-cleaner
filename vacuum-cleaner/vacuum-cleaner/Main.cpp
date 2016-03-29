@@ -26,32 +26,10 @@ int main(int argc, char** argv) {
 	string configPath = workingDir;
 	string housesPath = workingDir;
 	logger.info("Parsing command line arguments");
-	for (int i = 1; i < argc; ++i) {
-		bool invalid = false;
-		if ((string(argv[i])).compare("-config") == 0) {
-			if (argc > i + 1) {
-				configPath = argv[i + 1];
-			}
-			else {
-				invalid = true;
-			}
-		}
-		else if ((string(argv[i])).compare("-house_path") == 0) {
-			if (argc > i + 1) {
-				housesPath = argv[i + 1];
-			}
-			else {
-				invalid = true;
-			}
-		}
-		else if (i == 1 || i == 3) {
-			invalid = true;
-		}
-		if (invalid) {
-			// this argument is the first or third argument and not "-config" or "-house_path"
-			logger.fatal("Invalid arguments. " + usage);
-			return INVALID_ARGUMENTS;
-		}
+	bool invalid = parseArgs(argc, argv, configPath, housesPath);
+	if (invalid) {
+		logger.fatal("Invalid arguments. " + usage);
+		return INVALID_ARGUMENTS;
 	}
 	logger.info("Using config file directory path as [" + configPath + "]");
 	logger.info("Using house files directory path as [" + housesPath + "]");
@@ -85,6 +63,35 @@ int main(int argc, char** argv) {
 	}
 
 	return SUCCESS;
+}
+
+bool parseArgs(int argc, char** argv, string& configPath, string& housesPath) {
+	bool invalid = false;
+	for (int i = 1; i < argc; ++i) {
+		if ((string(argv[i])).compare("-config") == 0) {
+			if (argc > i + 1) {
+				configPath = argv[i + 1];
+			}
+			else {
+				invalid = true;
+			}
+		}
+		else if ((string(argv[i])).compare("-house_path") == 0) {
+			if (argc > i + 1) {
+				housesPath = argv[i + 1];
+			}
+			else {
+				invalid = true;
+			}
+		}
+		else if (i == 1 || i == 3) {
+			invalid = true;
+		}
+		if (invalid) {
+			break;
+		}
+	}
+	return invalid;
 }
 
 string getCurrentWorkingDirectory() {
@@ -129,15 +136,7 @@ void loadConfiguration(const string& configFileDir, map<string, int>& configMap)
 	if (configFileStream) {
 		failedToParseConfig = false; // seems like we're lucky
 		try {
-			while (getline(configFileStream, currLine)) {
-				logger.debug("Read line from config file: " + currLine);
-				size_t positionOfEquals = currLine.find("=");
-				string key = currLine.substr(0, (int)positionOfEquals);
-				if (positionOfEquals != string::npos) {
-					int value = stoi(currLine.substr((int)positionOfEquals + 1)); // possibly: invalid_argument or out_of_range
-					configMap.insert(pair<string, int>(key, max(0, value)));
-				}
-			}
+			populateConfigMap(configFileStream, configMap);
 			configFileStream.close();
 		}
 		catch (exception& e) {
@@ -148,8 +147,23 @@ void loadConfiguration(const string& configFileDir, map<string, int>& configMap)
 		string configError = "configuration file directoy [" + configFileDir + "] is invalid";
 		throw invalid_argument(configError.c_str());
 	}
+	fixConfig(configMap); // fix map with defaults if missing configuration item
+}
 
-	// fix map with defaults if missing configuration item
+void populateConfigMap(ifstream& configFileStream, map<string, int>& configMap) {
+	string currLine;
+	while (getline(configFileStream, currLine)) {
+		logger.debug("Read line from config file: " + currLine);
+		size_t positionOfEquals = currLine.find("=");
+		string key = currLine.substr(0, (int)positionOfEquals);
+		if (positionOfEquals != string::npos) {
+			int value = stoi(currLine.substr((int)positionOfEquals + 1)); // possibly: invalid_argument or out_of_range
+			configMap.insert(pair<string, int>(key, max(0, value)));
+		}
+	}
+}
+
+void fixConfig(map<string, int>& configMap) {
 	map<string, int>::iterator mapIterator;
 	mapIterator = configMap.find(MAX_STEPS);
 	if (mapIterator == configMap.end()) {

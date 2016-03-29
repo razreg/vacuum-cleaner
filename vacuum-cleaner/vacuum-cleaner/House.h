@@ -21,6 +21,8 @@ class House {
 	Position dockingStation;
 	int totalDust = -1;
 
+	static void readHouseMatrix(ifstream& houseFileStream, char** matrix, size_t nRows, size_t nCols);
+
 public:
 
 	House() : matrix(nullptr) {};

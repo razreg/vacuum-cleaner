@@ -33,25 +33,7 @@ House& House::deseriallize(const string& filePath) {
 			// read matrix
 			matrix = new char*[nRows];
 			if (!failedToParsefile) {
-				size_t i = 0;
-				while (i < nRows && getline(houseFileStream, currLine)) {
-					logger.debug("Current line read [" + currLine + "]");
-					matrix[i] = new char[nCols];
-					for (size_t j = 0; j < nCols; ++j) {
-						matrix[i][j] = (j < currLine.length()) ? currLine.at(j) : ' '; // if there is no char j then store space
-						if (matrix[i][j] != DOCK && matrix[i][j] != WALL && (matrix[i][j] < '1' || matrix[i][j] > '9')) {
-							matrix[i][j] = ' '; // every unrecognized character (or '0') turns to whitespace
-						}
-					}
-					i++;
-				}
-				// add space rows if too few rows were read from file
-				for (; i < nRows; ++i) {
-					matrix[i] = new char[nCols];
-					for (size_t j = 0; j < nCols; ++j) {
-						matrix[i][j] = ' ';
-					}
-				}
+				readHouseMatrix(houseFileStream, matrix, nRows, nCols);
 			}
 		}
 		catch (exception e) {
@@ -70,6 +52,29 @@ House& House::deseriallize(const string& filePath) {
 	return *house;
 }
 
+void House::readHouseMatrix(ifstream& houseFileStream, char** matrix, size_t nRows, size_t nCols) {
+	string currLine;
+	size_t i = 0;
+	while (i < nRows && getline(houseFileStream, currLine)) {
+		logger.debug("Current line read [" + currLine + "]");
+		matrix[i] = new char[nCols];
+		for (size_t j = 0; j < nCols; ++j) {
+			matrix[i][j] = (j < currLine.length()) ? currLine.at(j) : ' '; // if there is no char j then store space
+			if (matrix[i][j] != DOCK && matrix[i][j] != WALL && (matrix[i][j] < '1' || matrix[i][j] > '9')) {
+				matrix[i][j] = ' '; // every unrecognized character (or '0') turns to whitespace
+			}
+		}
+		i++;
+	}
+	// add space rows if too few rows were read from file
+	for (; i < nRows; ++i) {
+		matrix[i] = new char[nCols];
+		for (size_t j = 0; j < nCols; ++j) {
+			matrix[i][j] = ' ';
+		}
+	}
+}
+
 Position House::getDockingStation() {
 	if (matrix[dockingStation.getY()][dockingStation.getX()] != DOCK) {
 		validateDocking();
@@ -83,12 +88,12 @@ void House::validateDocking() {
 	for (size_t i = 1; i < numRows-1; ++i) {
 		for (size_t j = 1; j < numCols-1; ++j) {
 			if (matrix[i][j] == DOCK) {
+				dockingStation = { j, i };
 				logger.debug("Docking station found in position=" + (string)dockingStation);
 				if (alreadyFound) {
 					throw invalid_argument("House contains more than one docking station");
 				}
 				alreadyFound = true;
-				dockingStation = { j, i };
 			}
 		}
 	}
