@@ -49,6 +49,7 @@ void Simulator::collectScores(int houseCount, int winnerNumSteps) {
 		logger.debug("House final state for algorithm [" + robot->getAlgorithmName() + "]:\n"
 			+ (string)robot->getHouse());
 		algorithmCount++;
+		delete &robot->getHouse(); // delete this copy of the house because it is going to be overriden in the next iteration
 	}
 }
 
