@@ -8,6 +8,7 @@ House& House::deseriallize(const string& filePath) {
 
 	logger.debug("Deseriallizing house...");
 
+	string houseFileError = "house file [" + filePath + "] does not exist";
 	string currLine, shortName, description;
 	size_t nRows = 0, nCols = 0;
 	char** matrix = nullptr;
@@ -15,6 +16,7 @@ House& House::deseriallize(const string& filePath) {
 	ifstream houseFileStream(filePath);
 	bool failedToParsefile = true; // assume we are going to fail
 	if (houseFileStream) {
+		houseFileError = "house file [" + filePath + "] is invalid";
 		failedToParsefile = false; // seems like we're lucky
 		try {
 			// read first three lines
@@ -30,9 +32,13 @@ House& House::deseriallize(const string& filePath) {
 				nCols = stoi(currLine);
 			}
 			logger.debug("House number of rows=[" + to_string(nRows) + "], num cols=[" + to_string(nCols) + "]");
+			if (nRows < 3 || nCols < 3) {
+				failedToParsefile = true; // house is only walls
+				houseFileError = "Number of rows or cols is too small in house file [" + filePath + "]";
+			}
 			// read matrix
-			matrix = new char*[nRows];
 			if (!failedToParsefile) {
+				matrix = new char*[nRows];
 				readHouseMatrix(houseFileStream, matrix, nRows, nCols);
 			}
 		}
@@ -43,7 +49,6 @@ House& House::deseriallize(const string& filePath) {
 	}
 
 	if (failedToParsefile) {
-		string houseFileError = "house file [" + filePath + "] is invalid or does not exist";
 		throw invalid_argument(houseFileError.c_str());
 	}
 
