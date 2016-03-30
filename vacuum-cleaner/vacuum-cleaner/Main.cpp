@@ -156,6 +156,9 @@ void populateConfigMap(ifstream& configFileStream, map<string, int>& configMap) 
 		logger.debug("Read line from config file: " + currLine);
 		size_t positionOfEquals = currLine.find("=");
 		string key = currLine.substr(0, (int)positionOfEquals);
+		size_t first = key.find_first_not_of(' ');
+		size_t last = key.find_last_not_of(' ');
+		key = key.substr(first, (last - first + 1));
 		if (positionOfEquals != string::npos) {
 			int value = stoi(currLine.substr((int)positionOfEquals + 1)); // possibly: invalid_argument or out_of_range
 			configMap.insert(pair<string, int>(key, max(0, value)));
