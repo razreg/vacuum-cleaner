@@ -62,6 +62,9 @@ int main(int argc, char** argv) {
 		return INTERNAL_FAILURE;
 	}
 
+	std::string name;
+	std::getline(std::cin, name);
+
 	return SUCCESS;
 }
 
