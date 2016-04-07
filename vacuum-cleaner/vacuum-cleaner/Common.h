@@ -5,6 +5,7 @@
 #include <fstream> // files
 #include <iostream>
 #include <string>
+#include <vector>
 #include <cstring> // strncpy
 #include <typeinfo> // logging algorithm class names
 #include <algorithm> // min, max
@@ -28,7 +29,7 @@ const int DEFAULT_BATTERY_RECHARGE_RATE = 20;
 enum LogLevel { DEBUG, INFO, WARN, ERROR, FATAL, OFF };
 const string loggerLevels[] = { "DEBUG", "INFO", "WARN", "ERROR", "FATAL" };
 
-const LogLevel LOG_LEVEL = FATAL;
+const LogLevel LOG_LEVEL = DEBUG;
 
 // simple logger which simply writes to cout but with nice format
 class Logger {
@@ -87,6 +88,10 @@ public:
 
 	void debug(const string& msg) {
 		log(msg, DEBUG);
+	};
+
+	bool debugEnabled() {
+		return LOG_LEVEL == DEBUG;
 	};
 };
 

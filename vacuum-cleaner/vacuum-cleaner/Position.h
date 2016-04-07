@@ -14,10 +14,20 @@ public:
 
 	Position(size_t xPos = 0, size_t yPos = 0) : X(xPos), Y(yPos) {};
 
-	Position(const Position* position) {
-		X = position->X;
-		Y = position->Y;
+	Position(const Position& position) {
+		X = position.X;
+		Y = position.Y;
 	};
+	
+	Position& Position::operator=(const Position& position) {
+		if (this != &position) {
+			X = position.X;
+			Y = position.Y;
+		}
+		return *this;
+	};
+
+	~Position() = default;
 
 	void setPosition(size_t xPos, size_t yPos) {
 		X = xPos;

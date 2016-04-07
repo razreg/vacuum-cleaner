@@ -1,23 +1,23 @@
 #include "Main.h"
 
 using namespace std;
+//namespace fs = boost::filesystem;
 
 Logger logger = Logger("Main");
 
-// the house for this exercise is loaded from the file simple1.house, located in the current working directory 
-// or in the path given in the command line argument
 int main(int argc, char** argv) {
 
-	string usage = "Usage: simulator [-config <config_file_location>] [-house_path <houses_location>]";
+	string usage = 
+		"Usage: simulator [­config <config path>] [­house_path <house path>] [­algorithm_path <algorithm path>]";
 
-	list<House*> houseList;
+	list<House> houseList;
 	map<string, int> configMap;
 	list<AbstractAlgorithm*> algorithms;
 
-	// set paths to config file and houses
+	// set paths
 	string workingDir;
 	try {
-		workingDir = getCurrentWorkingDirectory(); //getting full path to working directoy
+		workingDir = getCurrentWorkingDirectory();
 	}
 	catch (exception& e) {
 		logger.fatal(e.what());
@@ -25,10 +25,12 @@ int main(int argc, char** argv) {
 	}
 	string configPath = workingDir;
 	string housesPath = workingDir;
+	string algorithmsPath = workingDir;
 	logger.info("Parsing command line arguments");
-	bool invalid = parseArgs(argc, argv, configPath, housesPath);
+	bool invalid = parseArgs(argc, argv, configPath, housesPath, algorithmsPath);
 	if (invalid) {
-		logger.fatal("Invalid arguments. " + usage);
+		logger.fatal("Invalid arguments");
+		cout << usage << endl;
 		return INVALID_ARGUMENTS;
 	}
 	logger.info("Using config file directory path as [" + configPath + "]");
@@ -65,30 +67,29 @@ int main(int argc, char** argv) {
 	return SUCCESS;
 }
 
-bool parseArgs(int argc, char** argv, string& configPath, string& housesPath) {
+bool parseArgs(int argc, char** argv, string& configPath, string& housesPath, string& algorithmsPath) {
 	bool invalid = false;
-	for (int i = 1; i < argc; ++i) {
+	for (int i = 1; !invalid && i < argc; ++i) {
 		if ((string(argv[i])).compare("-config") == 0) {
-			if (argc > i + 1) {
+			invalid = argc <= i + 1;
+			if (!invalid) {
 				configPath = argv[i + 1];
-			}
-			else {
-				invalid = true;
 			}
 		}
 		else if ((string(argv[i])).compare("-house_path") == 0) {
-			if (argc > i + 1) {
+			invalid = argc <= i + 1;
+			if (!invalid) {
 				housesPath = argv[i + 1];
 			}
-			else {
-				invalid = true;
+		}
+		else if ((string(argv[i])).compare("-algorithm_path") == 0) {
+			invalid = argc <= i + 1;
+			if (!invalid) {
+				algorithmsPath = argv[i + 1];
 			}
 		}
-		else if (i == 1 || i == 3) {
+		else if (i % 2 == 1) {
 			invalid = true;
-		}
-		if (invalid) {
-			break;
 		}
 	}
 	return invalid;
@@ -103,26 +104,44 @@ string getCurrentWorkingDirectory() {
 	return currentPath;
 }
 
-void loadHouseList(const string& housesPath, list<House*>& houseList) {
+bool loadHouseList(const string& housesPath, list<House>& houseList) {
 	
-	string path = housesPath;
-	if (housesPath.back() != '/' && housesPath.back() != '\\') {
-		path += DIR_SEPARATOR;
+	/*
+	fs::path dir(housesPath);
+	bool valid = fs::exists(dir) && fs::is_directory(dir);
+	if (valid) {
+		fs::directory_iterator end_iter;
+		for (fs::directory_iterator dir_iter(dir); dir_iter != end_iter; ++dir_iter) {
+			if (fs::is_regular_file(dir_iter->status())) {
+				// TODO insert dir_iter to list after deseriallization
+				cout << *dir_iter << endl;
+				House house = House::deseriallize(housesPath);
+				logger.info("Validating house");
+				if (logger.debugEnabled()) logger.debug("Validating house walls");
+				house.validateWalls();
+				if (logger.debugEnabled()) logger.debug("Validating the existence of exactly one docking station");
+				house.validateDocking();
+				logger.info("House is valid");
+				houseList.push_back(move(house));
+			}
+		}
 	}
-	path += "simple1.house";
-
-	House& house = House::deseriallize(path);
+	*/
+	bool valid = true;
+	House house = House::deseriallize(housesPath + "/simple1.house");
 	logger.info("Validating house");
-	logger.debug("Validating house walls");
+	if (logger.debugEnabled()) logger.debug("Validating house walls");
 	house.validateWalls();
-	logger.debug("Validating the existence of exactly one docking station");
+	if (logger.debugEnabled()) logger.debug("Validating the existence of exactly one docking station");
 	house.validateDocking();
 	logger.info("House is valid");
-	houseList.push_back(&house);
+	houseList.push_back(move(house));
+
+	return valid;
 }
 
 void loadConfiguration(const string& configFileDir, map<string, int>& configMap) {
-	 
+	// TODO use boost?
 	string path = configFileDir;
 	if (configFileDir.back() != '/' && configFileDir.back() != '\\') {
 		path += DIR_SEPARATOR;
@@ -147,18 +166,15 @@ void loadConfiguration(const string& configFileDir, map<string, int>& configMap)
 		string configError = "configuration file directoy [" + configFileDir + "] is invalid";
 		throw invalid_argument(configError.c_str());
 	}
-	fixConfig(configMap); // fix map with defaults if missing configuration item
 }
 
 void populateConfigMap(ifstream& configFileStream, map<string, int>& configMap) {
 	string currLine;
 	while (getline(configFileStream, currLine)) {
-		logger.debug("Read line from config file: " + currLine);
+		if (logger.debugEnabled()) logger.debug("Read line from config file: " + currLine);
 		size_t positionOfEquals = currLine.find("=");
 		string key = currLine.substr(0, (int)positionOfEquals);
-		size_t first = key.find_first_not_of(' ');
-		size_t last = key.find_last_not_of(' ');
-		key = key.substr(first, (last - first + 1));
+		trimString(key);
 		if (positionOfEquals != string::npos) {
 			int value = stoi(currLine.substr((int)positionOfEquals + 1)); // possibly: invalid_argument or out_of_range
 			configMap.insert(pair<string, int>(key, max(0, value)));
@@ -166,38 +182,14 @@ void populateConfigMap(ifstream& configFileStream, map<string, int>& configMap) 
 	}
 }
 
-void fixConfig(map<string, int>& configMap) {
-	map<string, int>::iterator mapIterator;
-	mapIterator = configMap.find(MAX_STEPS);
-	if (mapIterator == configMap.end()) {
-		configMap.insert(pair<string, int>(MAX_STEPS, DEFAULT_MAX_STEPS));
-	}
-	logger.info("Configuration parameter: " + MAX_STEPS + "=" + to_string(configMap.find(MAX_STEPS)->second));
-	mapIterator = configMap.find(MAX_STEPS_AFTER_WINNER);
-	if (mapIterator == configMap.end()) {
-		configMap.insert(pair<string, int>(MAX_STEPS_AFTER_WINNER, DEFAULT_MAX_STEPS_AFTER_WINNER));
-	}
-	logger.info("Configuration parameter: " + MAX_STEPS_AFTER_WINNER + "=" + to_string(configMap.find(MAX_STEPS_AFTER_WINNER)->second));
-	mapIterator = configMap.find(BATTERY_CAPACITY);
-	if (mapIterator == configMap.end()) {
-		configMap.insert(pair<string, int>(BATTERY_CAPACITY, DEFAULT_BATTERY_CAPACITY));
-	}
-	logger.info("Configuration parameter: " + BATTERY_CAPACITY + "=" + to_string(configMap.find(BATTERY_CAPACITY)->second));
-	mapIterator = configMap.find(BATTERY_CONSUMPTION_RATE);
-	if (mapIterator == configMap.end()) {
-		configMap.insert(pair<string, int>(BATTERY_CONSUMPTION_RATE, DEFAULT_BATTERY_CONSUMPTION_RATE));
-	}
-	logger.info("Configuration parameter: " + BATTERY_CONSUMPTION_RATE + "=" + to_string(configMap.find(BATTERY_CONSUMPTION_RATE)->second));
-	mapIterator = configMap.find(BATTERY_RECHARGE_RATE);
-	if (mapIterator == configMap.end()) {
-		configMap.insert(pair<string, int>(BATTERY_RECHARGE_RATE, DEFAULT_BATTERY_RECHARGE_RATE));
-	}
-	logger.info("Configuration parameter: " + BATTERY_RECHARGE_RATE + "=" + to_string(configMap.find(BATTERY_RECHARGE_RATE)->second));
+void trimString(string& str) {
+	size_t first = str.find_first_not_of(' ');
+	size_t last = str.find_last_not_of(' ');
+	str = str.substr(first, (last - first + 1));
 }
 
 bool endsWith(const string& housesPath, const string& suffix) {
-	if (suffix.size() > housesPath.size())
-		return false;
-	return equal(housesPath.begin() + housesPath.size() - suffix.size(), housesPath.end(), suffix.begin());
+	return suffix.size() > housesPath.size() && 
+		equal(housesPath.begin() + housesPath.size() - suffix.size(), housesPath.end(), suffix.begin());
 }
 

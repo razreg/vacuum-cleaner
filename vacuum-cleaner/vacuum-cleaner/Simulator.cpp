@@ -6,15 +6,14 @@ Logger Simulator::logger = Logger("Simulator");
 
 void Simulator::execute() {
 
-	int maxSteps = configMap.find(MAX_STEPS)->second;
 	int maxStepsAfterWinner = configMap.find(MAX_STEPS_AFTER_WINNER)->second;
 
 	int houseCount = 0;
-	for (House* house : houseList) {
-		logger.info("Simulation started for house number [" + to_string(houseCount) + "] - Name: " + house->getShortName());
-		updateRobotListWithHouse(*house, houseCount);
+	for (House& house : houseList) {
+		logger.info("Simulation started for house number [" + to_string(houseCount) + "] - Name: " + house.getName());
+		updateRobotListWithHouse(house, houseCount);
 		// run algorithms in "Round Robin" fashion
-		executeOnHouse(house, maxSteps, maxStepsAfterWinner, houseCount);
+		executeOnHouse(house, house.getMaxSteps(), maxStepsAfterWinner, houseCount);
 		houseCount++;
 	}
 	printScoreMatrix();
@@ -32,24 +31,25 @@ void Simulator::initRobotList(list<AbstractAlgorithm*>& algorithms) {
 	for (AbstractAlgorithm* algorithm : algorithms) {
 		string algoName = typeid(*algorithm).name();
 		logger.info("Initializing robot with algorithm [" + algoName.substr(algoName.find_last_of(' ') + 1) + "]");
-		Robot *robot = new Robot(configMap, *algorithm);
-		robots.push_back(robot);
+		robots.emplace_back(configMap, *algorithm);
 	}
 }
 
 void Simulator::collectScores(int houseCount, int winnerNumSteps) {
 	int algorithmCount = 0;
-	for (Robot* robot : robots) {
-		scoreMatrix[algorithmCount][houseCount].setIsBackInDocking(robot->inDocking());
+	for (Robot& robot : robots) {
+		scoreMatrix[algorithmCount][houseCount].setIsBackInDocking(robot.inDocking());
 		scoreMatrix[algorithmCount][houseCount].setWinnerNumSteps(winnerNumSteps);
-		scoreMatrix[algorithmCount][houseCount].setFinalSumDirtInHouse(robot->getHouse().getTotalDust());
-		if (robot->getHouse().getTotalDust() > 0 || !robot->inDocking()) {
+		scoreMatrix[algorithmCount][houseCount].setFinalSumDirtInHouse(robot.getHouse().getTotalDust());
+		if (robot.getHouse().getTotalDust() > 0 || !robot.inDocking()) {
 			scoreMatrix[algorithmCount][houseCount].setPositionInCompetition(DIDNT_FINISH_POSITION_IN_COMPETETION);
 		}
-		logger.debug("House final state for algorithm [" + robot->getAlgorithmName() + "]:\n"
-			+ (string)robot->getHouse());
+		if (logger.debugEnabled()) {
+			logger.debug("House final state for algorithm [" + robot.getAlgorithmName() + "]:\n"
+				+ (string)robot.getHouse());
+		}
 		algorithmCount++;
-		delete &robot->getHouse(); // delete this copy of the house because it is going to be overriden in the next iteration
+		delete &robot.getHouse(); // delete this copy of the house because it is going to be overriden in the next iteration
 	}
 }
 
@@ -67,14 +67,15 @@ void Simulator::printScoreMatrix() {
 
 void Simulator::updateRobotListWithHouse(House& house, int houseCount) {
 	logger.info("Defining house [" + to_string(houseCount) + "] for robot list");
-	for (Robot* robot : robots) {
+	for (Robot& robot : robots) {
 		House* currHouse = new House(house); // copy constructor called
-		robot->restart();
-		robot->setHouse(currHouse);
+		robot.restart();
+		robot.setHouse(currHouse);
 	}
 }
 
-void Simulator::executeOnHouse(House* house, int maxSteps, int maxStepsAfterWinner, int houseCount) {
+// TODO don't send house if only used for logging
+void Simulator::executeOnHouse(House& house, int maxSteps, int maxStepsAfterWinner, int houseCount) {
 	
 	int steps = 0;
 	int winnerNumSteps = 0;
@@ -83,24 +84,24 @@ void Simulator::executeOnHouse(House* house, int maxSteps, int maxStepsAfterWinn
 	while (steps < maxSteps && stepsAfterWinner < maxStepsAfterWinner) {
 		int algorithmCount = 0;
 		int robotsFinishedInRound = 0;
-		for (Robot* robot : robots) {
-			if (!robot->performedIllegalStep() && !robot->isFinished()) {
-				if (robot->getBatteryValue() <= 0) {
+		for (Robot& robot : robots) {
+			if (!robot.performedIllegalStep() && !robot.isFinished()) {
+				if (robot.getBatteryValue() <= 0) {
 					// if we didn't alreay notify that the battery died
-					if (!robot->isBatteryDeadNotified()) {
-						robot->setBatteryDeadNotified();
-						logger.info("Robot using algorithm [" + robot->getAlgorithmName() + "] has dead battery");
+					if (!robot.isBatteryDeadNotified()) {
+						robot.setBatteryDeadNotified();
+						logger.info("Robot using algorithm [" + robot.getAlgorithmName() + "] has dead battery");
 					}
 					scoreMatrix[algorithmCount][houseCount].setThisNumSteps(steps + 1); // increment steps but stay
 				}
 				else {
-					performStep(*robot, steps, maxSteps, maxStepsAfterWinner, stepsAfterWinner,
+					performStep(robot, steps, maxSteps, maxStepsAfterWinner, stepsAfterWinner,
 						algorithmCount, houseCount);
 				}
 
 				// robot finished cleaning?
-				if (robot->getHouse().getTotalDust() == 0 && robot->inDocking()) {
-					robotFinishedCleaning(*robot, steps, winnerNumSteps, algorithmCount, 
+				if (robot.getHouse().getTotalDust() == 0 && robot.inDocking()) {
+					robotFinishedCleaning(robot, steps, winnerNumSteps, algorithmCount, 
 						houseCount, positionInCompetition, robotsFinishedInRound);
 				}
 			}
@@ -117,7 +118,7 @@ void Simulator::executeOnHouse(House* house, int maxSteps, int maxStepsAfterWinn
 		winnerNumSteps = steps;
 	}
 	collectScores(houseCount, winnerNumSteps);
-	logger.info("Simulation completed for house number [" + to_string(houseCount) + "] - Name: " + house->getShortName());
+	logger.info("Simulation completed for house number [" + to_string(houseCount) + "] - Name: " + house.getName());
 }
 
 void Simulator::robotFinishedCleaning(Robot& robot, int steps, int& winnerNumSteps, 
@@ -139,7 +140,9 @@ void Simulator::performStep(Robot& robot, int steps, int maxSteps, int maxStepsA
 	int stepsAfterWinner, int algorithmCount, int houseCount) {
 	// notify on aboutToFinish if there is a winner or steps == maxSteps - maxStepsAfterWinner
 	if (stepsAfterWinner == 0 || steps == maxSteps - maxStepsAfterWinner) {
-		logger.debug("Notifying algorithm [" + robot.getAlgorithmName() + "] that the simulation is about to end");
+		if (logger.debugEnabled()) {
+			logger.debug("Notifying algorithm [" + robot.getAlgorithmName() + "] that the simulation is about to end");
+		}
 		robot.aboutToFinish(maxStepsAfterWinner);
 	}
 	robot.step(); // this also updates the sensor and the battery but not the house
