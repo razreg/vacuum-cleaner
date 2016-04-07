@@ -13,6 +13,7 @@ class House {
 
 	static Logger logger;
 
+	string path;
 	string name;
 	size_t maxSteps;
 	size_t numRows;
@@ -28,11 +29,11 @@ public:
 
 	House() {};
 
-	House(string houseShortName, size_t maxSteps, size_t numRows_, size_t numCols_,
-		vector<vector<char>>& houseMatrix) : name(houseShortName), maxSteps(maxSteps),
-		numRows(numRows_), numCols(numCols_), matrix(houseMatrix) {};
+	House(string filePath, string houseName, size_t maxSteps, size_t numRows, size_t numCols,
+		vector<vector<char>>& houseMatrix) : path(filePath), name(houseName), maxSteps(maxSteps),
+		numRows(numRows), numCols(numCols), matrix(houseMatrix) {};
 
-	House(const House& copyFromMe) : name(copyFromMe.name), maxSteps(copyFromMe.maxSteps),
+	House(const House& copyFromMe) : path(copyFromMe.path), name(copyFromMe.name), maxSteps(copyFromMe.maxSteps),
 		numRows(copyFromMe.numRows), numCols(copyFromMe.numCols), dockingStation(copyFromMe.dockingStation) {
 		for (size_t i = 0; i < numRows; ++i) {
 			vector<char> row;
@@ -43,12 +44,13 @@ public:
 		}
 	};
 
-	House(House&& moveFromMe) : name(move(moveFromMe.name)), maxSteps(moveFromMe.maxSteps),
-		numRows(moveFromMe.numRows), numCols(moveFromMe.numCols), 
-		dockingStation(move(moveFromMe.dockingStation)), matrix(move(moveFromMe.matrix)) {};
+	House(House&& moveFromMe) : path(move(moveFromMe.path)), name(move(moveFromMe.name)), 
+		maxSteps(moveFromMe.maxSteps), numRows(moveFromMe.numRows), numCols(moveFromMe.numCols), 
+		matrix(move(moveFromMe.matrix)), dockingStation(move(moveFromMe.dockingStation)) {};
 
-	House& House::operator=(const House& copyFromMe) {
+	House& operator=(const House& copyFromMe) {
 		if (this != &copyFromMe) {
+			path = copyFromMe.path;
 			name = copyFromMe.name;
 			maxSteps = copyFromMe.maxSteps;
 			numRows = copyFromMe.numRows;
@@ -63,19 +65,23 @@ public:
 	
 	operator string() const;
 
-	string getName(){
+	string getPath() const {
+		return this->path;
+	};
+
+	string getName() const {
 		return this->name;
 	};
 
-	size_t getMaxSteps(){
+	size_t getMaxSteps() const {
 		return this->maxSteps;
 	};
 
-	int getNumRows(){
+	int getNumRows() const {
 		return this->numRows;
 	};
 
-	int getnumCols(){
+	int getnumCols() const {
 		return this->numCols;
 	};
 

@@ -1,7 +1,7 @@
 #include "Main.h"
 
 using namespace std;
-//namespace fs = boost::filesystem;
+namespace fs = boost::filesystem;
 
 Logger logger = Logger("Main");
 
@@ -53,6 +53,7 @@ int main(int argc, char** argv) {
 		return INVALID_CONFIGURATION;
 	}
 
+	// TODO load algorithms
 	NaiveAlgorithm naiveAlgorithm;
 	algorithms.push_back(&naiveAlgorithm);
 	Simulator simulator(configMap, houseList, algorithms);
@@ -106,50 +107,36 @@ string getCurrentWorkingDirectory() {
 
 bool loadHouseList(const string& housesPath, list<House>& houseList) {
 	
-	/*
 	fs::path dir(housesPath);
 	bool valid = fs::exists(dir) && fs::is_directory(dir);
 	if (valid) {
 		fs::directory_iterator end_iter;
 		for (fs::directory_iterator dir_iter(dir); dir_iter != end_iter; ++dir_iter) {
 			if (fs::is_regular_file(dir_iter->status())) {
-				// TODO insert dir_iter to list after deseriallization
-				cout << *dir_iter << endl;
-				House house = House::deseriallize(housesPath);
-				logger.info("Validating house");
-				if (logger.debugEnabled()) logger.debug("Validating house walls");
-				house.validateWalls();
-				if (logger.debugEnabled()) logger.debug("Validating the existence of exactly one docking station");
-				house.validateDocking();
-				logger.info("House is valid");
-				houseList.push_back(move(house));
+				if (dir_iter->path().has_extension() && dir_iter->path().extension() == ".house") {
+					House house = House::deseriallize(dir_iter->path().string());
+					logger.info("Validating house");
+					if (logger.debugEnabled()) logger.debug("Validating house walls");
+					house.validateWalls();
+					if (logger.debugEnabled()) logger.debug("Validating the existence of exactly one docking station");
+					house.validateDocking();
+					logger.info("House is valid");
+					houseList.push_back(move(house));
+				}
 			}
 		}
+		houseList.sort([](const House& a, const House& b) {
+			return a.getPath() < b.getPath();
+		});
 	}
-	*/
-	bool valid = true;
-	House house = House::deseriallize(housesPath + "/simple1.house");
-	logger.info("Validating house");
-	if (logger.debugEnabled()) logger.debug("Validating house walls");
-	house.validateWalls();
-	if (logger.debugEnabled()) logger.debug("Validating the existence of exactly one docking station");
-	house.validateDocking();
-	logger.info("House is valid");
-	houseList.push_back(move(house));
-
 	return valid;
 }
 
+// create a map of key-value pairs from config file (expected format of each line: key=value)
 void loadConfiguration(const string& configFileDir, map<string, int>& configMap) {
-	// TODO use boost?
-	string path = configFileDir;
-	if (configFileDir.back() != '/' && configFileDir.back() != '\\') {
-		path += DIR_SEPARATOR;
-	}
-	path += "config.ini";
-
-	// create a map of key-value pairs from config file (expected format of each line: key=value)
-	ifstream configFileStream(path);
+	
+	fs::path path = fs::path(configFileDir) / "config.ini";
+	ifstream configFileStream(path.string());
 	string currLine;
 	bool failedToParseConfig = true; // assume we are going to fail
 	if (configFileStream) {
@@ -187,9 +174,3 @@ void trimString(string& str) {
 	size_t last = str.find_last_not_of(' ');
 	str = str.substr(first, (last - first + 1));
 }
-
-bool endsWith(const string& housesPath, const string& suffix) {
-	return suffix.size() > housesPath.size() && 
-		equal(housesPath.begin() + housesPath.size() - suffix.size(), housesPath.end(), suffix.begin());
-}
-

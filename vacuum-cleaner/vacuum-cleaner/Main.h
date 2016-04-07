@@ -6,19 +6,17 @@
 #include "House.h"
 
 // file handling
-//#include <boost/filesystem/operations.hpp>
-//#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
 #include <cstdio>
 #include <regex>
 #ifdef _WIN32
 	#include <direct.h>
 	#define getCurrentWorkingDir _getcwd
-	#define DIR_SEPARATOR '\\' 
 #endif
 #ifdef __linux__
 	#include <unistd.h>
 	#define getCurrentWorkingDir getcwd
-	#define DIR_SEPARATOR '/'
 #endif
 
 // exit codes

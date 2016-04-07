@@ -11,7 +11,7 @@ House House::deseriallize(const string& filePath) {
 	string houseFileError = "house file [" + filePath + "] does not exist";
 	string currLine, houseName;
 	size_t nRows = 0, nCols = 0;
-	size_t maxSteps;
+	size_t maxNumSteps = 0;
 	vector<vector<char>> matrix;
 
 	ifstream houseFileStream(filePath);
@@ -27,7 +27,7 @@ House House::deseriallize(const string& filePath) {
 				if (logger.debugEnabled()) {
 					logger.debug("House name/description=[" + houseName + "]");
 				}
-				maxSteps = max(0, stoi(currLine));
+				maxNumSteps = max(0, stoi(currLine));
 				failedToParsefile = !getline(houseFileStream, currLine).good();
 				if (!failedToParsefile) {
 					nRows = max(0, stoi(currLine));
@@ -39,7 +39,7 @@ House House::deseriallize(const string& filePath) {
 			}
 			if (!failedToParsefile) {
 				if (logger.debugEnabled()) {
-					logger.debug("House max steps=[" + to_string(maxSteps) + "]");
+					logger.debug("House max steps=[" + to_string(maxNumSteps) + "]");
 					logger.debug("House number of rows=[" + to_string(nRows) + "], num cols=[" + to_string(nCols) + "]");
 				}
 				if (nRows < 3 || nCols < 3) {
@@ -63,7 +63,7 @@ House House::deseriallize(const string& filePath) {
 	}
 
 	//creating the house based on the previously calculated fields
-	return House(houseName, maxSteps, nRows, nCols, matrix);
+	return House(filePath, houseName, maxNumSteps, nRows, nCols, matrix);
 }
 
 void House::readHouseMatrix(ifstream& houseFileStream, vector<vector<char>>& matrix, size_t nRows, size_t nCols) {
