@@ -2,7 +2,6 @@
 #define __NAIVE_ALGORITHM__H_
 
 #include <cstdlib>
-#include <vector>
 
 #include "AbstractAlgorithm.h"
 #include "Common.h"
@@ -14,7 +13,6 @@ class NaiveAlgorithm : public AbstractAlgorithm {
 	static Logger logger;
 
 	const AbstractSensor* sensor;
-	int maxSteps;
 	int maxStepsAfterWinner;
 
 public:

@@ -13,52 +13,62 @@ class House {
 
 	static Logger logger;
 
-	string shortName;
-	string description;
+	string name;
+	size_t maxSteps;
 	size_t numRows;
 	size_t numCols;
-	char** matrix;
+	vector<vector<char>> matrix;
 	Position dockingStation;
 	int totalDust = -1;
 
-	static void readHouseMatrix(ifstream& houseFileStream, char** matrix, size_t nRows, size_t nCols);
+	static void readHouseMatrix(ifstream& houseFileStream, vector<vector<char>>& matrix, 
+		size_t nRows, size_t nCols);
 
 public:
 
-	House() : matrix(nullptr) {};
+	House() {};
 
-	House(string houseShortName, string houseDescription, size_t numRows_, size_t numCols_,
-		char** houseMatrix) : shortName(houseShortName), description(houseDescription),
+	House(string houseShortName, size_t maxSteps, size_t numRows_, size_t numCols_,
+		vector<vector<char>>& houseMatrix) : name(houseShortName), maxSteps(maxSteps),
 		numRows(numRows_), numCols(numCols_), matrix(houseMatrix) {};
 
-	House(const House& copyFromMe) : shortName(copyFromMe.shortName), description(copyFromMe.description),
+	House(const House& copyFromMe) : name(copyFromMe.name), maxSteps(copyFromMe.maxSteps),
 		numRows(copyFromMe.numRows), numCols(copyFromMe.numCols), dockingStation(copyFromMe.dockingStation) {
-		matrix = new char*[numRows];
 		for (size_t i = 0; i < numRows; ++i) {
-			matrix[i] = new char[numCols];
+			vector<char> row;
 			for (size_t j = 0; j < numCols; ++j) {
-				matrix[i][j] = copyFromMe.matrix[i][j];
+				row.push_back(copyFromMe.matrix[i][j]);
 			}
+			matrix.push_back(row);
 		}
 	};
 
-	~House() {
-		if (matrix != nullptr) {
-			for (size_t i = 0; i < numRows; ++i) {
-				delete [] matrix[i];
-			}
-			delete [] matrix;
+	House(House&& moveFromMe) : name(move(moveFromMe.name)), maxSteps(moveFromMe.maxSteps),
+		numRows(moveFromMe.numRows), numCols(moveFromMe.numCols), 
+		dockingStation(move(moveFromMe.dockingStation)), matrix(move(moveFromMe.matrix)) {};
+
+	House& House::operator=(const House& copyFromMe) {
+		if (this != &copyFromMe) {
+			name = copyFromMe.name;
+			maxSteps = copyFromMe.maxSteps;
+			numRows = copyFromMe.numRows;
+			numCols = copyFromMe.numCols;
+			dockingStation = copyFromMe.dockingStation;
+			matrix = copyFromMe.matrix;
 		}
+		return *this;
 	};
+
+	~House() {};
 	
 	operator string() const;
 
-	string getShortName(){
-		return this->shortName;
+	string getName(){
+		return this->name;
 	};
 
-	string getDescription(){
-		return this->description;
+	size_t getMaxSteps(){
+		return this->maxSteps;
 	};
 
 	int getNumRows(){
@@ -67,10 +77,6 @@ public:
 
 	int getnumCols(){
 		return this->numCols;
-	};
-
-	char** getMatrix(){
-		return this->matrix;
 	};
 
 	// dust level at given position. 0 if dust level is undefined (wall, docking station, etc.)
@@ -120,7 +126,7 @@ public:
 
 	int getTotalDust();
 
-	static House& deseriallize(const string& filePath);
+	static House deseriallize(const string& filePath);
 };
 
 #endif // __HOUSE__H_
