@@ -2,8 +2,7 @@
 
 Logger NaiveAlgorithm::logger = Logger("NaiveAlogorithm");
 
-void NaiveAlgorithm::setConfiguration(map<string, int> config){
-	maxSteps = config.find(MAX_STEPS)->second;
+void NaiveAlgorithm::setConfiguration(map<string, int> config) {
 	maxStepsAfterWinner = config.find(MAX_STEPS_AFTER_WINNER)->second;
 }
 

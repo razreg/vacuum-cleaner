@@ -4,14 +4,15 @@ using namespace std;
 
 Logger House::logger = Logger("House");
 
-House& House::deseriallize(const string& filePath) {
+House House::deseriallize(const string& filePath) {
 
-	logger.debug("Deseriallizing house...");
+	if (logger.debugEnabled()) logger.debug("Deseriallizing house...");
 
 	string houseFileError = "house file [" + filePath + "] does not exist";
-	string currLine, shortName, description;
+	string currLine, houseName;
 	size_t nRows = 0, nCols = 0;
-	char** matrix = nullptr;
+	size_t maxNumSteps = 0;
+	vector<vector<char>> matrix;
 
 	ifstream houseFileStream(filePath);
 	bool failedToParsefile = true; // assume we are going to fail
@@ -19,26 +20,35 @@ House& House::deseriallize(const string& filePath) {
 		houseFileError = "house file [" + filePath + "] is invalid";
 		failedToParsefile = false; // seems like we're lucky
 		try {
-			// read first three lines
 			failedToParsefile = 
-				!getline(houseFileStream, shortName).good() ||
-				!getline(houseFileStream, description).good() ||
+				!getline(houseFileStream, houseName).good() || 
 				!getline(houseFileStream, currLine).good();
-			logger.debug("House short name=[" + shortName + "], description=[" + description + "]");
-			// read next two lines
 			if (!failedToParsefile) {
-				nRows = stoi(currLine);
+				if (logger.debugEnabled()) {
+					logger.debug("House name/description=[" + houseName + "]");
+				}
+				maxNumSteps = max(0, stoi(currLine));
 				failedToParsefile = !getline(houseFileStream, currLine).good();
-				nCols = stoi(currLine);
+				if (!failedToParsefile) {
+					nRows = max(0, stoi(currLine));
+					failedToParsefile = !getline(houseFileStream, currLine).good();
+					if (!failedToParsefile) {
+						nCols = max(0, stoi(currLine));
+					}
+				}
 			}
-			logger.debug("House number of rows=[" + to_string(nRows) + "], num cols=[" + to_string(nCols) + "]");
-			if (nRows < 3 || nCols < 3) {
-				failedToParsefile = true; // house is only walls
-				houseFileError = "Number of rows or cols is too small in house file [" + filePath + "]";
+			if (!failedToParsefile) {
+				if (logger.debugEnabled()) {
+					logger.debug("House max steps=[" + to_string(maxNumSteps) + "]");
+					logger.debug("House number of rows=[" + to_string(nRows) + "], num cols=[" + to_string(nCols) + "]");
+				}
+				if (nRows < 3 || nCols < 3) {
+					failedToParsefile = true; // house is only walls
+					houseFileError = "Number of rows or cols is too small in house file [" + filePath + "]";
+				}
 			}
 			// read matrix
 			if (!failedToParsefile) {
-				matrix = new char*[nRows];
 				readHouseMatrix(houseFileStream, matrix, nRows, nCols);
 			}
 		}
@@ -53,30 +63,31 @@ House& House::deseriallize(const string& filePath) {
 	}
 
 	//creating the house based on the previously calculated fields
-	House *house = new House(shortName, description, nRows, nCols, matrix);
-	return *house;
+	return House(filePath, houseName, maxNumSteps, nRows, nCols, matrix);
 }
 
-void House::readHouseMatrix(ifstream& houseFileStream, char** matrix, size_t nRows, size_t nCols) {
+void House::readHouseMatrix(ifstream& houseFileStream, vector<vector<char>>& matrix, size_t nRows, size_t nCols) {
 	string currLine;
 	size_t i = 0;
 	while (i < nRows && getline(houseFileStream, currLine)) {
-		logger.debug("Current line read [" + currLine + "]");
-		matrix[i] = new char[nCols];
+		if (logger.debugEnabled()) logger.debug("Current line read [" + currLine + "]");
+		vector<char> row;
 		for (size_t j = 0; j < nCols; ++j) {
-			matrix[i][j] = (j < currLine.length()) ? currLine.at(j) : ' '; // if there is no char j then store space
-			if (matrix[i][j] != DOCK && matrix[i][j] != WALL && (matrix[i][j] < '1' || matrix[i][j] > '9')) {
-				matrix[i][j] = ' '; // every unrecognized character (or '0') turns to whitespace
+			row.push_back((j < currLine.length()) ? currLine.at(j) : ' '); // if there is no char j then store space
+			if (row[j] != DOCK && row[j] != WALL && (row[j] < '1' || row[j] > '9')) {
+				row[j] = ' '; // every unrecognized character (or '0') turns to whitespace
 			}
 		}
+		matrix.push_back(row);
 		i++;
 	}
 	// add space rows if too few rows were read from file
 	for (; i < nRows; ++i) {
-		matrix[i] = new char[nCols];
+		vector<char> row;
 		for (size_t j = 0; j < nCols; ++j) {
-			matrix[i][j] = ' ';
+			row.push_back(' ');
 		}
+		matrix.push_back(row);
 	}
 }
 
@@ -94,7 +105,9 @@ void House::validateDocking() {
 		for (size_t j = 1; j < numCols-1; ++j) {
 			if (matrix[i][j] == DOCK) {
 				dockingStation = { j, i };
-				logger.debug("Docking station found in position=" + (string)dockingStation);
+				if (logger.debugEnabled()) {
+					logger.debug("Docking station found in position=" + (string)dockingStation);
+				}
 				if (alreadyFound) {
 					throw invalid_argument("House contains more than one docking station");
 				}

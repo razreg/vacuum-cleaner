@@ -5,6 +5,7 @@
 #include <fstream> // files
 #include <iostream>
 #include <string>
+#include <vector>
 #include <cstring> // strncpy
 #include <typeinfo> // logging algorithm class names
 #include <algorithm> // min, max
@@ -87,6 +88,10 @@ public:
 
 	void debug(const string& msg) {
 		log(msg, DEBUG);
+	};
+
+	bool debugEnabled() {
+		return LOG_LEVEL == DEBUG;
 	};
 };
 

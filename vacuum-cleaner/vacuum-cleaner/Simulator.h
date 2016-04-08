@@ -16,8 +16,8 @@ class Simulator {
 	static Logger logger;
 
 	map<string, int>& configMap;
-	list<House*>& houseList;
-	list<Robot*> robots;
+	list<House>& houseList;
+	list<Robot> robots;
 	Score** scoreMatrix; // basic score matrix - will be improved according to ex2 instructions
 
 	void initScoreMatrix();
@@ -30,7 +30,7 @@ class Simulator {
 
 	void updateRobotListWithHouse(House& house, int houseCount);
 
-	void executeOnHouse(House* house, int maxSteps, int maxStepsAfterWinner, int houseCount);
+	void executeOnHouse(House& house, int maxSteps, int maxStepsAfterWinner, int houseCount);
 
 	void robotFinishedCleaning(Robot& robot, int steps, int& winnerNumSteps, int algorithmCount, 
 		int houseCount, int positionInCompetition, int& robotsFinishedInRound);
@@ -40,24 +40,14 @@ class Simulator {
 
 public:
 	
-	Simulator(map<string, int>& configMap, list<House*>& houseList, list<AbstractAlgorithm*>& algorithms) :
+	Simulator(map<string, int>& configMap, list<House>& houseList, list<AbstractAlgorithm*>& algorithms) :
 		configMap(configMap), houseList(houseList) {
 		initRobotList(algorithms);
 		initScoreMatrix();
 	};
 
 	~Simulator() {
-		int i = 0;
-		for (Robot* robot : robots) {
-			delete robot;
-			delete[] scoreMatrix[i++];
-		}
-		robots.clear();
-		delete[] scoreMatrix;
-		for (House* house : houseList) {
-			delete house;
-		}
-		houseList.clear();
+		// TODO destroy scoreMatrix and create copy constructor + copy assignment operator
 	};
 
 	void execute();
