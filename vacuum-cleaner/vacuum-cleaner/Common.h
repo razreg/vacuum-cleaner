@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <map>
 #include <cstring> // strncpy
 #include <typeinfo> // logging algorithm class names
 #include <algorithm> // min, max

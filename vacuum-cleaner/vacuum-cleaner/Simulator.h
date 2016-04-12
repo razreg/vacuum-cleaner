@@ -1,7 +1,6 @@
 #ifndef __SIMULATOR__H_
 #define __SIMULATOR__H_
 
-#include <map>
 #include <list>
 
 #include "Score.h"

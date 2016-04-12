@@ -34,6 +34,7 @@ public:
 		vector<vector<char>>& houseMatrix) : filename(filename), name(houseName), maxSteps(maxSteps),
 		numRows(numRows), numCols(numCols), matrix(houseMatrix) {};
 
+	// TODO move implementation to House.cpp
 	House(const House& copyFromMe) : filename(copyFromMe.filename), name(copyFromMe.name), maxSteps(copyFromMe.maxSteps),
 		numRows(copyFromMe.numRows), numCols(copyFromMe.numCols), dockingStation(copyFromMe.dockingStation) {
 		for (size_t i = 0; i < numRows; ++i) {

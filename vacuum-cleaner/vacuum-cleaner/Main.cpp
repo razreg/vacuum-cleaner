@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
 
 	list<House> houseList;
 	map<string, int> configMap;
-	list<AbstractAlgorithm*> algorithms;
+	list<AbstractAlgorithm*> algorithms; // TODO don't use simple pointers!
 
 	// set paths
 	string workingDir;
