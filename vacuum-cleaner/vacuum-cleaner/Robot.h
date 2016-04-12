@@ -73,7 +73,7 @@ public:
 		return battery.getCurrValue();
 	};
 
-	void step();
+	void step(House& house); //**IDO**
 
 	bool inDocking() const {
 		return sensor.inDocking();

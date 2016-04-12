@@ -54,7 +54,9 @@ int main(int argc, char** argv) {
 	}
 
 	// TODO load algorithms
-	NaiveAlgorithm naiveAlgorithm;
+	Algorithm1 naiveAlgorithm; //**IDO**
+
+	//NaiveAlgorithm naiveAlgorithm; 
 	algorithms.push_back(&naiveAlgorithm);
 	Simulator simulator(configMap, houseList, algorithms);
 	try {
@@ -64,9 +66,6 @@ int main(int argc, char** argv) {
 		logger.fatal(e.what());
 		return INTERNAL_FAILURE;
 	}
-
-	std::string name;
-	std::getline(std::cin, name);
 
 	return SUCCESS;
 }
@@ -132,20 +131,8 @@ bool loadHouseList(const string& housesPath, list<House>& houseList) {
 			return a.getPath() < b.getPath();
 		});
 	}
-<<<<<<< HEAD
-	path += "ido.house";
 
-	House& house = House::deseriallize(path);
-	logger.info("Validating house");
-	logger.debug("Validating house walls");
-	house.validateWalls();
-	logger.debug("Validating the existence of exactly one docking station");
-	house.validateDocking();
-	logger.info("House is valid");
-	houseList.push_back(&house);
-=======
 	return valid;
->>>>>>> master
 }
 
 // create a map of key-value pairs from config file (expected format of each line: key=value)

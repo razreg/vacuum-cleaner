@@ -5,6 +5,9 @@
 #include "NaiveAlgorithm.h"
 #include "House.h"
 
+#include "Algorithm1.h"  //**IDO**
+
+
 // file handling
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
