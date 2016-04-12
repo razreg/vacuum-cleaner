@@ -19,6 +19,7 @@ void Simulator::execute() {
 	printScoreMatrix();
 }
 
+// TODO consider making the scoreMatrix an object
 void Simulator::initScoreMatrix() {
 	scoreMatrix = new Score*[robots.size()];
 	for (size_t i = 0; i < robots.size(); ++i) {

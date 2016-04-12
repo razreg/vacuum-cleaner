@@ -104,6 +104,7 @@
   <ItemGroup>
     <ClCompile Include="House.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="RightAlgorithm.cpp" />
     <ClCompile Include="Robot.cpp" />
     <ClCompile Include="Score.cpp" />
     <ClCompile Include="Simulator.cpp" />
@@ -116,6 +117,7 @@
     <ClInclude Include="Battery.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Direction.h" />
+    <ClInclude Include="RightAlgorithm.h" />
     <ClInclude Include="House.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="NaiveAlgorithm.h" />

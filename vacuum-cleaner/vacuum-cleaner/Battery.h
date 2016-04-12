@@ -12,9 +12,9 @@ class Battery {
 
 public:
 
-	Battery(int capacity = DEFAULT_BATTERY_CAPACITY,
-		int consumptionRate = DEFAULT_BATTERY_CONSUMPTION_RATE,
-		int rechargeRate = DEFAULT_BATTERY_RECHARGE_RATE) :
+	Battery() {};
+
+	Battery(int capacity, int consumptionRate, int rechargeRate) :
 		capacity(capacity), consumptionRate(consumptionRate), rechargeRate(rechargeRate) {};
 
 	int getCurrValue() {

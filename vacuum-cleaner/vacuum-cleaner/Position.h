@@ -14,7 +14,7 @@ public:
 
 	Position(size_t xPos = 0, size_t yPos = 0) : X(xPos), Y(yPos) {};
 
-	Position(Position&& position) {
+	Position(Position&& position) noexcept {
 		X = position.X;
 		Y = position.Y;
 	};

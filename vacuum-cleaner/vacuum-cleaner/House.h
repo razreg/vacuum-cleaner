@@ -5,6 +5,7 @@
 #include "Common.h"
 
 using namespace std;
+namespace fs = boost::filesystem;
 
 const char WALL = 'W';
 const char DOCK = 'D';
@@ -13,7 +14,7 @@ class House {
 
 	static Logger logger;
 
-	string path;
+	string filename;
 	string name;
 	size_t maxSteps;
 	size_t numRows;
@@ -29,11 +30,11 @@ public:
 
 	House() {};
 
-	House(string filePath, string houseName, size_t maxSteps, size_t numRows, size_t numCols,
-		vector<vector<char>>& houseMatrix) : path(filePath), name(houseName), maxSteps(maxSteps),
+	House(string filename, string houseName, size_t maxSteps, size_t numRows, size_t numCols,
+		vector<vector<char>>& houseMatrix) : filename(filename), name(houseName), maxSteps(maxSteps),
 		numRows(numRows), numCols(numCols), matrix(houseMatrix) {};
 
-	House(const House& copyFromMe) : path(copyFromMe.path), name(copyFromMe.name), maxSteps(copyFromMe.maxSteps),
+	House(const House& copyFromMe) : filename(copyFromMe.filename), name(copyFromMe.name), maxSteps(copyFromMe.maxSteps),
 		numRows(copyFromMe.numRows), numCols(copyFromMe.numCols), dockingStation(copyFromMe.dockingStation) {
 		for (size_t i = 0; i < numRows; ++i) {
 			vector<char> row;
@@ -44,13 +45,13 @@ public:
 		}
 	};
 
-	House(House&& moveFromMe) : path(move(moveFromMe.path)), name(move(moveFromMe.name)), 
+	House(House&& moveFromMe) noexcept : filename(move(moveFromMe.filename)), name(move(moveFromMe.name)),
 		maxSteps(moveFromMe.maxSteps), numRows(moveFromMe.numRows), numCols(moveFromMe.numCols), 
 		matrix(move(moveFromMe.matrix)), dockingStation(move(moveFromMe.dockingStation)) {};
 
 	House& operator=(const House& copyFromMe) {
 		if (this != &copyFromMe) {
-			path = copyFromMe.path;
+			filename = copyFromMe.filename;
 			name = copyFromMe.name;
 			maxSteps = copyFromMe.maxSteps;
 			numRows = copyFromMe.numRows;
@@ -65,8 +66,8 @@ public:
 	
 	operator string() const;
 
-	string getPath() const {
-		return this->path;
+	string getFileName() const {
+		return this->filename;
 	};
 
 	string getName() const {
@@ -132,7 +133,7 @@ public:
 
 	int getTotalDust();
 
-	static House deseriallize(const string& filePath);
+	static House deseriallize(fs::path filePath);
 };
 
 #endif // __HOUSE__H_

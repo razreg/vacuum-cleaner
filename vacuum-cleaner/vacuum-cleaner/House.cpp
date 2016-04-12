@@ -1,69 +1,82 @@
 #include "House.h"
 
-using namespace std;
-
 Logger House::logger = Logger("House");
 
-House House::deseriallize(const string& filePath) {
+House House::deseriallize(fs::path filePath) {
 
 	if (logger.debugEnabled()) logger.debug("Deseriallizing house...");
 
-	string houseFileError = "house file [" + filePath + "] does not exist";
+	bool failedToParsefile = false;
+	string filename = filePath.filename().string();
+	string houseFileError = filename + ": invalid house file format";
+
+	// House data
 	string currLine, houseName;
 	size_t nRows = 0, nCols = 0;
 	size_t maxNumSteps = 0;
 	vector<vector<char>> matrix;
 
-	ifstream houseFileStream(filePath);
-	bool failedToParsefile = true; // assume we are going to fail
-	if (houseFileStream) {
-		houseFileError = "house file [" + filePath + "] is invalid";
-		failedToParsefile = false; // seems like we're lucky
-		try {
-			failedToParsefile = 
-				!getline(houseFileStream, houseName).good() || 
-				!getline(houseFileStream, currLine).good();
-			if (!failedToParsefile) {
+	if ((failedToParsefile = !fs::exists(filePath))) {
+		houseFileError = filename + ": cannot open file";
+	}
+	else {
+		ifstream houseFileStream(filePath.string());
+		if ((failedToParsefile = !houseFileStream.good())) {
+			houseFileError = filename + ": cannot open file";
+		}
+		else {
+			if (!(failedToParsefile = !getline(houseFileStream, houseName).good())) {
 				if (logger.debugEnabled()) {
 					logger.debug("House name/description=[" + houseName + "]");
 				}
-				maxNumSteps = max(0, stoi(currLine));
-				failedToParsefile = !getline(houseFileStream, currLine).good();
-				if (!failedToParsefile) {
-					nRows = max(0, stoi(currLine));
-					failedToParsefile = !getline(houseFileStream, currLine).good();
-					if (!failedToParsefile) {
-						nCols = max(0, stoi(currLine));
+				
+				for (size_t i = 2; i <= 4 && 
+					!(failedToParsefile = !getline(houseFileStream, currLine).good()); ++i) {
+					int temp = -1;
+					try {
+						temp = stoi(currLine);
+					}
+					catch (exception& e) {
+						failedToParsefile = true;
+						houseFileError = filename + ": line number " + to_string(i) + " in house file shall be a positive number, found: " + currLine;
+						break;
+					}
+					if (temp <= 0) {
+						failedToParsefile = true;
+						houseFileError = filename + ": line number " + to_string(i) + " in house file shall be a positive number, found: " + to_string(temp);
+						break;
+					}
+					else {
+						switch (i) {
+						case 2:
+							maxNumSteps = temp;
+							break;
+						case 3:
+							nRows = temp;
+							break;
+						case 4:
+							nCols = temp;
+							break;
+						}
 					}
 				}
-			}
-			if (!failedToParsefile) {
-				if (logger.debugEnabled()) {
-					logger.debug("House max steps=[" + to_string(maxNumSteps) + "]");
-					logger.debug("House number of rows=[" + to_string(nRows) + "], num cols=[" + to_string(nCols) + "]");
-				}
-				if (nRows < 3 || nCols < 3) {
-					failedToParsefile = true; // house is only walls
-					houseFileError = "Number of rows or cols is too small in house file [" + filePath + "]";
+
+				if (!failedToParsefile) {
+					if (logger.debugEnabled()) {
+						logger.debug("House max steps=[" + to_string(maxNumSteps) + "]");
+						logger.debug("House number of rows=[" + to_string(nRows) + "], num cols=[" + to_string(nCols) + "]");
+					}
+					readHouseMatrix(houseFileStream, matrix, nRows, nCols); // TODO what happens when nCols or nRows < 3
 				}
 			}
-			// read matrix
-			if (!failedToParsefile) {
-				readHouseMatrix(houseFileStream, matrix, nRows, nCols);
-			}
+			houseFileStream.close();
 		}
-		catch (exception e) {
-			failedToParsefile = true; // not so lucky after all
-		}
-		houseFileStream.close();
 	}
 
-	if (failedToParsefile) {
-		throw invalid_argument(houseFileError.c_str());
-	}
+	if (failedToParsefile) throw invalid_argument(houseFileError.c_str());
 
 	//creating the house based on the previously calculated fields
-	return House(filePath, houseName, maxNumSteps, nRows, nCols, matrix);
+	return House(filename, houseName, maxNumSteps, nRows, nCols, matrix);
 }
 
 void House::readHouseMatrix(ifstream& houseFileStream, vector<vector<char>>& matrix, size_t nRows, size_t nCols) {
@@ -109,14 +122,14 @@ void House::validateDocking() {
 					logger.debug("Docking station found in position=" + (string)dockingStation);
 				}
 				if (alreadyFound) {
-					throw invalid_argument("House contains more than one docking station");
+					throw invalid_argument(filename + ": too many docking stations (more than one D in house)");
 				}
 				alreadyFound = true;
 			}
 		}
 	}
 	if (!alreadyFound) {
-		throw invalid_argument("No docking station found in house");
+		throw invalid_argument(filename + ": missing docking station (no D in house)");
 	}
 }
 
