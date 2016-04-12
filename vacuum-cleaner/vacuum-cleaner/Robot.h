@@ -91,9 +91,11 @@ public:
 		return illegalStepPerformed;
 	};
 
+	// TODO change to return actual name (filename without extension)
 	string getAlgorithmName() {
-		string algoName = typeid(algorithm).name();
-		return algoName.substr(algoName.find_last_of(' ') + 1);
+		//string algoName = typeid(algorithm).name();
+		//return algoName.substr(algoName.find_last_of(' ') + 1);
+		return "Placeholder";
 	};
 
 	void setBatteryDeadNotified() {

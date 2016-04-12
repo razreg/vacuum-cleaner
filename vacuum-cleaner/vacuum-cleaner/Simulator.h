@@ -3,7 +3,7 @@
 
 #include <list>
 
-#include "Score.h"
+#include "Results.h"
 #include "Robot.h"
 #include "AbstractAlgorithm.h"
 #include "House.h"
@@ -17,36 +17,43 @@ class Simulator {
 	map<string, int>& configMap;
 	list<House>& houseList;
 	list<Robot> robots;
-	Score** scoreMatrix; // basic score matrix - will be improved according to ex2 instructions
-
-	void initScoreMatrix();
+	Results* results = nullptr;
 
 	void initRobotList(list<AbstractAlgorithm*>& algorithms);
 
-	void collectScores(int houseCount, int winnerNumSteps);
+	void collectScores(string houseName, int winnerNumSteps);
 
-	void printScoreMatrix();
+	void updateRobotListWithHouse(House& house);
 
-	void updateRobotListWithHouse(House& house, int houseCount);
+	void executeOnHouse(House& house, int maxSteps, int maxStepsAfterWinner);
 
-	void executeOnHouse(House& house, int maxSteps, int maxStepsAfterWinner, int houseCount);
+	void robotFinishedCleaning(Robot& robot, int steps, int& winnerNumSteps, 
+		int positionInCompetition, int& robotsFinishedInRound);
 
-	void robotFinishedCleaning(Robot& robot, int steps, int& winnerNumSteps, int algorithmCount, 
-		int houseCount, int positionInCompetition, int& robotsFinishedInRound);
-
-	void performStep(Robot& robot, int steps, int maxSteps, int maxStepsAfterWinner,
-		int stepsAfterWinner, int algorithmCount, int houseCount);
+	void performStep(Robot& robot, int steps, int maxSteps, int maxStepsAfterWinner, int stepsAfterWinner);
 
 public:
 	
+	// TODO move implementation to Simulator.cpp
 	Simulator(map<string, int>& configMap, list<House>& houseList, list<AbstractAlgorithm*>& algorithms) :
 		configMap(configMap), houseList(houseList) {
 		initRobotList(algorithms);
-		initScoreMatrix();
+		vector<string> algorithmNames;
+		vector<string> houseNames;
+		for (House& house : houseList) {
+			houseNames.push_back(house.getName());
+		}
+		for (AbstractAlgorithm* algorithm : algorithms) {
+			algorithmNames.push_back("Placeholder"); // TODO insert algorithm name
+		}
+		results = new Results(move(algorithmNames), move(houseNames));
 	};
 
+	// TODO create copy constructor + copy assignment operator
 	~Simulator() {
-		// TODO destroy scoreMatrix and create copy constructor + copy assignment operator
+		if (results != nullptr) {
+			delete results;
+		}
 	};
 
 	void execute();

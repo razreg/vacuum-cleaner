@@ -76,7 +76,7 @@ House House::deseriallize(fs::path filePath) {
 	if (failedToParsefile) throw invalid_argument(houseFileError.c_str());
 
 	//creating the house based on the previously calculated fields
-	return House(filename, houseName, maxNumSteps, nRows, nCols, matrix);
+	return House(filePath.stem().string(), maxNumSteps, nRows, nCols, matrix);
 }
 
 void House::readHouseMatrix(ifstream& houseFileStream, vector<vector<char>>& matrix, size_t nRows, size_t nCols) {

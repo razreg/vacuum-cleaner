@@ -161,7 +161,7 @@ bool loadHouseList(const string& housesPath, list<House>& houseList, vector<stri
 		return false;
 	}
 
-	houseList.sort([](const House& a, const House& b) {return a.getFileName() < b.getFileName();});
+	houseList.sort([](const House& a, const House& b) {return a.getName() < b.getName();});
 	return true;
 }
 
@@ -247,6 +247,9 @@ void trimString(string& str) {
 }
 
 void printErrors(vector<string>& houseErrors, vector<string>& algorithmErrors) {
+	if (houseErrors.empty() && algorithmErrors.empty()) {
+		return;
+	}
 	cout << endl;
 	cout << "Errors:" << endl;
 	for (string& err : houseErrors) {

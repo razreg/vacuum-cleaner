@@ -14,27 +14,42 @@ class Results {
 	vector<string> algorithmNames;
 	vector<string> houseNames;
 
-	void printHeaderCell(ostream& out, string& str) const {
+	void printHeaderCell(ostream& out, string str) const {
 		out << left << setw(9) << setfill(' ') << str << " |";
-	}
+	};
 
-	void printAlgorithmCell(ostream& out, string& str) const {
+	void printAlgorithmCell(ostream& out, string str) const {
 		out << "|" << left << setw(13) << setfill(' ') << str << "|";
-	}
+	};
 
-	void printScoreCell(ostream& out, string& str) const {
+	void printScoreCell(ostream& out, string str) const {
 		out << right << setw(10) << setfill(' ') << str << "|";
-	}
+	};
 
 	void printScoreCell(ostream& out, double num) const {
-		out << right << setw(10) << setfill(' ') << setprecision(2) << num << "|";
-	}
+		out << right << setw(10) << setfill(' ') << fixed << setprecision(2) << num << "|";
+	};
+
+	void printHorizontalLine(ostream& out) {
+		int amount = 15 + (houseNames.size() + 1) * 11;
+		out << left << setw(amount) << setfill('-') << "" << endl;
+	};
 
 public:
 
-	Results(vector<string>& algorithmNames, vector<string>& houseNames);
+	Results(vector<string>&& algorithmNames, vector<string>&& houseNames);
 
-	void print(ostream& out);
+	map<string, Score>& operator [] (string str) {
+		if (scoreMap.find(str) != scoreMap.end()) {
+			return scoreMap[str];
+		}
+		else {
+			throw out_of_range("Algorithm name [" + str + "] not in results");
+		}
+		
+	}
+
+	void print(ostream& out = cout);
 
 };
 
