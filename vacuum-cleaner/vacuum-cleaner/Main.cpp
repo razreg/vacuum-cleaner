@@ -54,10 +54,14 @@ int main(int argc, char** argv) {
 	}
 
 	// TODO load algorithms
-	Algorithm1 naiveAlgorithm; //**IDO**
+	Algorithm1 algo1; //**IDO**
+	//Algorithm2 algo2; //**IDO**
+	algorithms.push_back(&algo1);//**IDO**
+	//algorithms.push_back(&algo2);//**IDO**
 
 	//NaiveAlgorithm naiveAlgorithm; 
-	algorithms.push_back(&naiveAlgorithm);
+	//algorithms.push_back(&naiveAlgorithm);
+
 	Simulator simulator(configMap, houseList, algorithms);
 	try {
 		simulator.execute();

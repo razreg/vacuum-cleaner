@@ -8,6 +8,7 @@ void Robot::step(House& house) {
 		battery.consume();
 	}
 
+	//DELETE 
 	cout << battery.getCurrValue() << endl;
 	cout << (int)house.getMovesBack().size() << endl;
 

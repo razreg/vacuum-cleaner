@@ -6,6 +6,7 @@
 #include "House.h"
 
 #include "Algorithm1.h"  //**IDO**
+#include "Algorithm2.h"  //**IDO**
 
 
 // file handling
