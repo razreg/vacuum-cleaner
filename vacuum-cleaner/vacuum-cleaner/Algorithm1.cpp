@@ -14,11 +14,6 @@ Direction Algorithm1::step() {
 
 	SensorInformation sensorInformation = sensor->sense();
 
-	//DELETE 
-	cout << "currValue: " << currValue << endl;
-	cout << "list size: " << movesBack.size() << endl;
-	cout << "dirt: " << sensorInformation.dirtLevel << endl;
-
 	// construct a vector of valid directions
 	vector<Direction> directions;
 	directions.push_back(Direction::Stay); //STAY is in directions no matter what! (list's size is at least 1)

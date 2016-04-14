@@ -16,13 +16,6 @@ Direction Algorithm2::step() {
 
 	SensorInformation sensorInformation = sensor->sense();
 
-	//DELETE 
-	cout << "currValue: " << currValue << endl;
-	cout << movesBack.size() << endl;
-	cout << "(" << Xpos << ", " << Ypos<< ")" << endl;
-	cout << "dirt: " << sensorInformation.dirtLevel << endl;
-	cout << "size of outOFDock: " << outOFDock.size() << endl;
-
 	// construct a vector of valid directions
 	vector<Direction> directions;
 	directions.push_back(Direction::Stay);
