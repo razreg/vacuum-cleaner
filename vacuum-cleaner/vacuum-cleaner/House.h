@@ -16,8 +16,6 @@ class House {
 
 	static Logger logger;
 
-	vector<Direction> movesBack; //**IDO**
-
 	string path;
 	string name;
 	size_t maxSteps;
@@ -89,22 +87,6 @@ public:
 	int getnumCols() const {
 		return this->numCols;
 	};
-
-	vector<Direction> getMovesBack() { //**IDO**
-		return this->movesBack;
-	}
-
-	void pushMovesBack(Direction direction){ //**IDO**
-		this->movesBack.push_back(direction);
-	}
-
-	void popMovesBack(){ //**IDO**
-		this->movesBack.pop_back();
-	}
-
-	void eraseMovesBack(){ //**IDO**
-		this->movesBack.erase(this->movesBack.begin(), this->movesBack.end());
-	}
 
 	// dust level at given position. 0 if dust level is undefined (wall, docking station, etc.)
 	int getDirtLevel(const Position& position) const {

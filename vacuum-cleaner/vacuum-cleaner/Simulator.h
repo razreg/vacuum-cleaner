@@ -36,7 +36,7 @@ class Simulator {
 		int houseCount, int positionInCompetition, int& robotsFinishedInRound);
 
 	void performStep(Robot& robot, int steps, int maxSteps, int maxStepsAfterWinner,
-		int stepsAfterWinner, int algorithmCount, int houseCount, House& house); //**IDO**
+		int stepsAfterWinner, int algorithmCount, int houseCount);
 
 public:
 	

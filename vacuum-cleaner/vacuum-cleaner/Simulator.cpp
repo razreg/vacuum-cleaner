@@ -96,7 +96,7 @@ void Simulator::executeOnHouse(House& house, int maxSteps, int maxStepsAfterWinn
 				}
 				else {
 					performStep(robot, steps, maxSteps, maxStepsAfterWinner, stepsAfterWinner,
-						algorithmCount, houseCount, house); //**IDO**
+						algorithmCount, houseCount);
 				}
 
 				// robot finished cleaning?
@@ -138,7 +138,7 @@ void Simulator::robotFinishedCleaning(Robot& robot, int steps, int& winnerNumSte
 }
 
 void Simulator::performStep(Robot& robot, int steps, int maxSteps, int maxStepsAfterWinner, 
-	int stepsAfterWinner, int algorithmCount, int houseCount, House& house) { //**IDO**
+	int stepsAfterWinner, int algorithmCount, int houseCount) {
 	// notify on aboutToFinish if there is a winner or steps == maxSteps - maxStepsAfterWinner
 	if (stepsAfterWinner == 0 || steps == maxSteps - maxStepsAfterWinner) {
 		if (logger.debugEnabled()) {
@@ -146,7 +146,7 @@ void Simulator::performStep(Robot& robot, int steps, int maxSteps, int maxStepsA
 		}
 		robot.aboutToFinish(maxStepsAfterWinner);
 	}
-	robot.step(house); // this also updates the sensor and the battery but not the house //**IDO**
+	robot.step(); // this also updates the sensor and the battery but not the house
 	if (!robot.getHouse().isInside(robot.getPosition()) ||
 		robot.getHouse().isWall(robot.getPosition())) {
 		logger.warn("Algorithm [" + robot.getAlgorithmName() +

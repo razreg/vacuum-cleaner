@@ -1,22 +1,23 @@
-#include "Algorithm1.h"
+#include "Algorithm3.h"
 
-Logger Algorithm1::logger = Logger("Algorithm1");
+Logger Algorithm3::logger = Logger("Algorithm3");
 
-void Algorithm1::setConfiguration(map<string, int> config) {
+void Algorithm3::setConfiguration(map<string, int> config) {
 	maxStepsAfterWinner = config.find(MAX_STEPS_AFTER_WINNER)->second;
 	maxSteps = config.find(MAX_STEPS)->second;
 	capacity = config.find(BATTERY_CAPACITY)->second;
 	consumptionRate = config.find(BATTERY_CONSUMPTION_RATE)->second;
 	rechargeRate = config.find(BATTERY_RECHARGE_RATE)->second;
+	currValue = capacity;
 }
 
-Direction Algorithm1::step() {
+Direction Algorithm3::step() {
 
 	SensorInformation sensorInformation = sensor->sense();
 
 	//DELETE 
 	cout << "currValue: " << currValue << endl;
-	cout << "list size: " << movesBack.size() << endl;
+	cout << movesBack.size() << endl;
 	cout << "dirt: " << sensorInformation.dirtLevel << endl;
 
 	// construct a vector of valid directions
@@ -47,12 +48,15 @@ Direction Algorithm1::step() {
 			returnedDir = directions[0];
 		else if (directions.size() == 2)
 			returnedDir = directions[1];
-		else if (directions.size() == 3)
-			returnedDir = directions[2];
-		else if (directions.size() == 4)
-			returnedDir = directions[3];
-		else returnedDir = directions[4];
-			
+		else { // two possible directions at least
+			if (isDirectionInList(directions, Direction::East))
+				returnedDir = Direction::East;
+			else if (isDirectionInList(directions, Direction::South))
+				returnedDir = Direction::South;
+			else if (isDirectionInList(directions, Direction::North))
+				returnedDir = Direction::North;
+			else returnedDir = Direction::West;
+		}
 
 		updateMovesBack(returnedDir);
 		setCurrValue();
