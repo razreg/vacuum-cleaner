@@ -4,9 +4,6 @@
 #include "Position.h"
 #include "Common.h"
 
-#include "Direction.h"
-
-
 using namespace std;
 
 const char WALL = 'W';
