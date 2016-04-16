@@ -36,13 +36,21 @@
     <ClCompile Include="NaiveAlgorithm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RightAlgorithm.cpp">
+	<ClCompile Include="Algorithm1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Algorithm2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Algorithm3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+	<ClCompile Include="RightAlgorithm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Results.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
+    </ClCompile>  </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractSensor.h">
       <Filter>Header Files</Filter>
@@ -86,13 +94,21 @@
     <ClInclude Include="Position.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RightAlgorithm.h">
+	<ClInclude Include="Algorithm1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Algorithm2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Algorithm3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+	<ClInclude Include="RightAlgorithm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Results.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
+    </ClInclude>  </ItemGroup>
   <ItemGroup>
     <None Include="makefile" />
   </ItemGroup>

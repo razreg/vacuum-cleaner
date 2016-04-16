@@ -16,7 +16,8 @@ void Robot::step() {
 	}
 	else if (direction == Direction::West) {
 		position.moveWest();
-	} else if (direction == Direction::South) {
+	}
+	else if (direction == Direction::South) {
 		position.moveSouth();
 	}
 	else if (direction == Direction::North) {

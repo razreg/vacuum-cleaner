@@ -5,6 +5,11 @@
 #include "NaiveAlgorithm.h"
 #include "House.h"
 
+#include "Algorithm1.h"  //**IDO**
+#include "Algorithm2.h"  //**IDO**
+#include "Algorithm3.h"  //**IDO**
+
+
 // file handling
 #include <cstdio>
 #include <regex>
