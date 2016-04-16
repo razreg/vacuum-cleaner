@@ -107,6 +107,7 @@ void Simulator::executeOnHouse(House& house, int maxSteps, int maxStepsAfterWinn
 			}
 			algorithmCount++;
 		}
+
 		steps++;
 		if (winnerNumSteps > 0) {
 			stepsAfterWinner++;
@@ -154,6 +155,7 @@ void Simulator::performStep(Robot& robot, int steps, int maxSteps, int maxStepsA
 		scoreMatrix[algorithmCount][houseCount].reportBadBehavior();
 		robot.reportBadBehavior();
 	}
+
 	robot.getHouse().clean(robot.getPosition()); // perform one cleaning step
 	scoreMatrix[algorithmCount][houseCount].setThisNumSteps(steps + 1);
 }

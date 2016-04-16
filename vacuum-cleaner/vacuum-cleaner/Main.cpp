@@ -54,8 +54,17 @@ int main(int argc, char** argv) {
 	}
 
 	// TODO load algorithms
-	NaiveAlgorithm naiveAlgorithm;
-	algorithms.push_back(&naiveAlgorithm);
+
+	//Algorithm1 algo1; //**IDO**
+	//Algorithm2 algo2; //**IDO**
+	Algorithm3 algo3; //**IDO**
+	//algorithms.push_back(&algo1);//**IDO**
+	//algorithms.push_back(&algo2);//**IDO**
+	algorithms.push_back(&algo3);//**IDO**
+
+	//NaiveAlgorithm naiveAlgorithm; 
+	//algorithms.push_back(&naiveAlgorithm);
+
 	Simulator simulator(configMap, houseList, algorithms);
 	try {
 		simulator.execute();
@@ -129,6 +138,7 @@ bool loadHouseList(const string& housesPath, list<House>& houseList) {
 			return a.getPath() < b.getPath();
 		});
 	}
+
 	return valid;
 }
 
