@@ -17,6 +17,7 @@ class Robot {
 	static Logger logger;
 
 	AbstractAlgorithm& algorithm;
+	string algorithmName;
 	House* house;
 	SensorImpl sensor;
 	Battery battery;
@@ -34,15 +35,16 @@ class Robot {
 
 public:
 
-	Robot(const map<string, int>& configMap, AbstractAlgorithm& algorithm, House* house) :
-		algorithm(algorithm), house(house) {
+	Robot(const map<string, int>& configMap, AbstractAlgorithm& algorithm, string algorithmName, House* house) :
+		algorithm(algorithm), algorithmName(algorithmName), house(house) {
 		configBattery(configMap);
 		setHouse(house);
 		this->algorithm.setConfiguration(configMap);
 		this->algorithm.setSensor(this->sensor);
 	};
 
-	Robot(const map<string, int>& configMap, AbstractAlgorithm& algorithm) : algorithm(algorithm) {
+	Robot(const map<string, int>& configMap, AbstractAlgorithm& algorithm, string algorithmName) : 
+		algorithm(algorithm), algorithmName(algorithmName) {
 		configBattery(configMap);
 		this->algorithm.setConfiguration(configMap);
 		this->algorithm.setSensor(this->sensor);
@@ -53,12 +55,14 @@ public:
 		sensor.setHouse(*this->house); 
 		position = this->house->getDockingStation(); // copy constructor
 		sensor.setPosition(position);
+		algorithm.setSensor(sensor);
 	}
 
 	void restart() {
 		battery.setCurrValue(battery.getCapacity());
 		illegalStepPerformed = false;
 		batteryDead = false;
+		finished = false;
 	};
 
 	House& getHouse() {
@@ -91,11 +95,8 @@ public:
 		return illegalStepPerformed;
 	};
 
-	// TODO change to return actual name (filename without extension)
 	string getAlgorithmName() {
-		//string algoName = typeid(algorithm).name();
-		//return algoName.substr(algoName.find_last_of(' ') + 1);
-		return "Placeholder";
+		return algorithmName;
 	};
 
 	void setBatteryDeadNotified() {

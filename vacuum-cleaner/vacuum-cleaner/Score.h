@@ -1,15 +1,11 @@
 #ifndef __SCORE__H_
 #define __SCORE__H_
 
-#include "Common.h"
-
 using namespace std;
 
 const int DIDNT_FINISH_POSITION_IN_COMPETETION = 10;
 
 class Score {
-
-	static Logger logger;
 
 	int positionInCompetition = 0;
 	int winnerNumSteps = 0;

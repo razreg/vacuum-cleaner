@@ -1,8 +1,6 @@
 #ifndef __BATTERY__H_
 #define __BATTERY__H_
 
-#include "Common.h"
-
 class Battery {
 
 	int currValue;
@@ -37,7 +35,7 @@ public:
 		return capacity;
 	};
 
-	int getConsumptionRate() {
+	int getConsumptionRate() { // TODO change to size_t - everything except currValue
 		return consumptionRate;
 	};
 
@@ -55,6 +53,14 @@ public:
 
 	void setRechargeRate(int rechargeRate) {
 		this->rechargeRate = rechargeRate;
+	};
+
+	bool empty() {
+		return currValue <= 0;
+	};
+
+	bool full() {
+		return currValue >= capacity;
 	};
 
 };

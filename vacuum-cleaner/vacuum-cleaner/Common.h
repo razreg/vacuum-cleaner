@@ -8,7 +8,7 @@
 #include <vector>
 #include <map>
 #include <cstring> // strncpy
-#include <typeinfo> // logging algorithm class names
+#include <typeinfo> // logging algorithm class names // TODO remove
 #include <algorithm> // min, max
 
 #include <boost/filesystem/operations.hpp>

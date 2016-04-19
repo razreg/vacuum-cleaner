@@ -2,6 +2,17 @@
 
 Logger House::logger = Logger("House");
 
+House::House(const House& copyFromMe) : name(copyFromMe.name), maxSteps(copyFromMe.maxSteps),
+numRows(copyFromMe.numRows), numCols(copyFromMe.numCols), dockingStation(copyFromMe.dockingStation) {
+	for (size_t i = 0; i < numRows; ++i) {
+		vector<char> row;
+		for (size_t j = 0; j < numCols; ++j) {
+			row.push_back(copyFromMe.matrix[i][j]);
+		}
+		matrix.push_back(row);
+	}
+}
+
 House House::deseriallize(fs::path filePath) {
 
 	if (logger.debugEnabled()) logger.debug("Deseriallizing house...");

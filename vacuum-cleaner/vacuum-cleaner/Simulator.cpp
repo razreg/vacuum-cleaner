@@ -17,12 +17,12 @@ void Simulator::execute() {
 	results->print();
 }
 
-void Simulator::initRobotList(list<AbstractAlgorithm*>& algorithms) {
+void Simulator::initRobotList(list<unique_ptr<AbstractAlgorithm>>& algorithms, list<string>& algorithmNames) {
 	logger.info("Initializing robot list");
-	for (AbstractAlgorithm* algorithm : algorithms) {
-		string algoName = typeid(*algorithm).name();
-		logger.info("Initializing robot with algorithm [" + algoName.substr(algoName.find_last_of(' ') + 1) + "]");
-		robots.emplace_back(configMap, *algorithm);
+	auto namesIter = algorithmNames.begin();
+	for (auto iter = algorithms.begin(); 
+	iter != algorithms.end() && namesIter != algorithmNames.end(); ++iter, ++namesIter) {
+		robots.emplace_back(configMap, **iter, *namesIter);
 	}
 }
 
@@ -52,7 +52,6 @@ void Simulator::updateRobotListWithHouse(House& house) {
 	}
 }
 
-// TODO don't send house if only used for logging
 void Simulator::executeOnHouse(House& house, int maxSteps, int maxStepsAfterWinner) {
 	
 	int steps = 0;
@@ -116,11 +115,11 @@ void Simulator::performStep(Robot& robot, int steps, int maxSteps, int maxStepsA
 	string algorithmName = robot.getAlgorithmName();
 
 	// notify on aboutToFinish if there is a winner or steps == maxSteps - maxStepsAfterWinner
-	if (stepsAfterWinner == 0 || steps == maxSteps - maxStepsAfterWinner) {
+	if (stepsAfterWinner == 0 || steps == max(0, maxSteps - maxStepsAfterWinner)) {
 		if (logger.debugEnabled()) {
 			logger.debug("Notifying algorithm [" + robot.getAlgorithmName() + "] that the simulation is about to end");
 		}
-		robot.aboutToFinish(maxStepsAfterWinner);
+		robot.aboutToFinish(min(maxStepsAfterWinner, maxSteps - steps));
 	}
 	robot.step(); // this also updates the sensor and the battery but not the house
 	if (!robot.getHouse().isInside(robot.getPosition()) ||
@@ -130,6 +129,8 @@ void Simulator::performStep(Robot& robot, int steps, int maxSteps, int maxStepsA
 			+ (string)robot.getPosition());
 		(*results)[algorithmName][houseName].reportBadBehavior();
 		robot.reportBadBehavior();
+		// TODO send error to print in main:
+		// "Algorithm " + so file_name without so suffix + " when running on House " + houseName + " went on a wall in step " + to_string(steps + 1)
 	}
 
 	robot.getHouse().clean(robot.getPosition()); // perform one cleaning step

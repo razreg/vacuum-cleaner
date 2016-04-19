@@ -19,7 +19,7 @@ class Simulator {
 	list<Robot> robots;
 	Results* results = nullptr;
 
-	void initRobotList(list<AbstractAlgorithm*>& algorithms);
+	void initRobotList(list<unique_ptr<AbstractAlgorithm>>& algorithms, list<string>& algorithmNames);
 
 	void collectScores(string houseName, int winnerNumSteps);
 
@@ -35,18 +35,16 @@ class Simulator {
 public:
 	
 	// TODO move implementation to Simulator.cpp
-	Simulator(map<string, int>& configMap, list<House>& houseList, list<AbstractAlgorithm*>& algorithms) :
+	Simulator(map<string, int>& configMap, list<House>& houseList, 
+		list<unique_ptr<AbstractAlgorithm>>& algorithms, list<string>&& algorithmNames) :
 		configMap(configMap), houseList(houseList) {
-		initRobotList(algorithms);
-		vector<string> algorithmNames;
+		initRobotList(algorithms, algorithmNames);
 		vector<string> houseNames;
 		for (House& house : houseList) {
 			houseNames.push_back(house.getName());
 		}
-		for (AbstractAlgorithm* algorithm : algorithms) {
-			algorithmNames.push_back("Placeholder"); // TODO insert algorithm name
-		}
-		results = new Results(move(algorithmNames), move(houseNames));
+		// TODO insert algorithm names
+		results = new Results(algorithmNames, move(houseNames)); // TODO remove new?
 	};
 
 	// TODO create copy constructor + copy assignment operator

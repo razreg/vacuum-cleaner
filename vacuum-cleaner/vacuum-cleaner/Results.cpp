@@ -1,6 +1,6 @@
 #include "Results.h"
 
-Results::Results(vector<string>&& algorithmNames, vector<string>&& houseNames) : 
+Results::Results(list<string> algorithmNames, vector<string>&& houseNames) : 
 	algorithmNames(algorithmNames), houseNames(houseNames) {
 	for (string algorithm : this->algorithmNames) {
 		for (string house : this->houseNames) {

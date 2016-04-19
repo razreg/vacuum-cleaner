@@ -1,73 +1,80 @@
 #ifndef __ALGORITHM_1__H_
 #define __ALGORITHM_1__H_
 
-#include <cstdlib>
+#include <memory>
 
 #include "AbstractAlgorithm.h"
+#include "AlgorithmRegistration.h"
+
+#include "Direction.h"
+#include "Battery.h"
 #include "Common.h"
 
 using namespace std;
 
 class Algorithm1 : public AbstractAlgorithm {
 
-	static Logger logger;
-
-	vector<Direction> movesBack;
+	vector<Direction> movesBack; // TODO stack instead of vector?
 	const AbstractSensor* sensor;
-	int maxStepsAfterWinner;
-	int maxSteps;
-	int capacity;
-	int consumptionRate;
-	int rechargeRate;
-	int currValue;
+	Battery battery;
+	size_t stepsLeft;
+	Direction lastDirection;
+
+	// we start with 3 so the algorithm will start going east but it doesn't really matter (set it to whatever)
+	size_t directionCounter = 3;
+	bool configured = false;
+	vector<int> directionsPermutation;
+
+	void restartAlgorithm() {
+		if (configured) {
+			battery.setCurrValue(battery.getCapacity());
+		}
+		movesBack.clear();
+		directionCounter = 3;
+		vector<int> perm = { 0, 2, 1, 3 };
+		directionsPermutation = move(perm);
+		stepsLeft = numeric_limits<size_t>::max();
+	};
 
 public:
 
-	Algorithm1() {
-		srand(time(NULL));
-	};
-
 	void setSensor(const AbstractSensor& sensor) override {
 		this->sensor = &sensor;
-		currValue = capacity;
+		restartAlgorithm();
 	};
 
-	void setConfiguration(map<string, int> config) override;
+	void setConfiguration(map<string, int> config) override {
+		battery.setCapacity(config.find(BATTERY_CAPACITY)->second);
+		battery.setCurrValue(battery.getCapacity());
+		battery.setConsumptionRate(config.find(BATTERY_CONSUMPTION_RATE)->second);
+		battery.setRechargeRate(config.find(BATTERY_RECHARGE_RATE)->second);
+		configured = true;
+	};
 
 	Direction step() override;
 
-	void aboutToFinish(int stepsTillFinishing) override {};
+	void aboutToFinish(int stepsTillFinishing) override {
+		stepsLeft = stepsTillFinishing > 0 ? stepsTillFinishing : 0;
+	};
 
 	bool inDockingStation() {
-		return movesBack.size() == 0;
-	}
+		return movesBack.empty();
+	};
 
-	void setCurrValue() { //back to docking station
-		if (inDockingStation()) {
-			currValue = min(currValue -1 + rechargeRate, capacity); // charge battery
-			movesBack.erase(movesBack.begin(), movesBack.end()); // empty movesback
-		}
-		else currValue = max(0, currValue - consumptionRate); // consume battery
-	}
+	bool isReturnTripFeasable(size_t moves) {
+		return moves <= stepsLeft && // There are enough steps
+			!battery.empty() && (size_t)battery.getCurrValue() >= moves * battery.getConsumptionRate(); // The battery will suffice
+	};
 
-	//updates the vector which is responsible for returning back to docking station (opposite of the current returned direction)
+	// updates the vector used to return back to docking station
 	void updateMovesBack(Direction direction) {
-		switch (direction)  {
-		case (Direction::North) :
-			movesBack.push_back(Direction::South);
-			break;
-		case (Direction::South) :
-			movesBack.push_back(Direction::North);
-			break;
-		case (Direction::East) :
-			movesBack.push_back(Direction::West);
-			break;
-		case (Direction::West) :
-			movesBack.push_back(Direction::East);
-			break;
-		default:
-			break;
-		}
+		movesBack.push_back(
+			direction == Direction::North ? Direction::South :
+			direction == Direction::South ? Direction::North :
+			direction == Direction::East ? Direction::West :
+			direction == Direction::West ? Direction::East :
+			Direction::Stay
+		);
 	}
 
 };
