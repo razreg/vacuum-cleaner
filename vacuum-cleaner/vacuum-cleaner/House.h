@@ -1,6 +1,8 @@
 #ifndef __HOUSE__H_
 #define __HOUSE__H_
 
+#include <sstream>
+
 #include "Position.h"
 #include "Common.h"
 

@@ -42,9 +42,6 @@
     <ClCompile Include="Results.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AlgorithmRegistration.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="AlgorithmRegistrar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

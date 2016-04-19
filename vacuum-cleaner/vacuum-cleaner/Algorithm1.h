@@ -14,7 +14,7 @@ using namespace std;
 
 class Algorithm1 : public AbstractAlgorithm {
 
-	vector<Direction> movesBack; // TODO stack instead of vector?
+	vector<Direction> movesBack;
 	const AbstractSensor* sensor;
 	Battery battery;
 	size_t stepsLeft;
@@ -44,10 +44,10 @@ public:
 	};
 
 	void setConfiguration(map<string, int> config) override {
-		battery.setCapacity(config.find(BATTERY_CAPACITY)->second);
+		battery.setCapacity(max(0, config.find(BATTERY_CAPACITY)->second));
 		battery.setCurrValue(battery.getCapacity());
-		battery.setConsumptionRate(config.find(BATTERY_CONSUMPTION_RATE)->second);
-		battery.setRechargeRate(config.find(BATTERY_RECHARGE_RATE)->second);
+		battery.setConsumptionRate(max(0, config.find(BATTERY_CONSUMPTION_RATE)->second));
+		battery.setRechargeRate(max(0, config.find(BATTERY_RECHARGE_RATE)->second));
 		configured = true;
 	};
 
@@ -63,7 +63,7 @@ public:
 
 	bool isReturnTripFeasable(size_t moves) {
 		return moves <= stepsLeft && // There are enough steps
-			!battery.empty() && (size_t)battery.getCurrValue() >= moves * battery.getConsumptionRate(); // The battery will suffice
+			!battery.empty() && battery.getCurrValue() >= moves * battery.getConsumptionRate(); // The battery will suffice
 	};
 
 	// updates the vector used to return back to docking station

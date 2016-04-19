@@ -30,12 +30,14 @@ class Results {
 		out << right << setw(10) << setfill(' ') << fixed << setprecision(2) << num << "|";
 	};
 
-	void printHorizontalLine(ostream& out) {
+	void printHorizontalLine(ostream& out) const {
 		int amount = 15 + (houseNames.size() + 1) * 11;
 		out << left << setw(amount) << setfill('-') << "" << endl;
 	};
 
 public:
+
+	Results() {};
 
 	Results(list<string> algorithmNames, vector<string>&& houseNames);
 
@@ -46,10 +48,18 @@ public:
 		else {
 			throw out_of_range("Algorithm name [" + str + "] not in results");
 		}
-		
 	}
 
-	void print(ostream& out = cout);
+	const map<string, Score>& operator [] (string str) const {
+		if (scoreMap.find(str) != scoreMap.end()) {
+			return scoreMap.at(str);
+		}
+		else {
+			throw out_of_range("Algorithm name [" + str + "] not in results");
+		}
+	}
+
+	void print(ostream& out = cout) const;
 
 };
 

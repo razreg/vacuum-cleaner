@@ -15,7 +15,9 @@ std::unique_ptr<T> _make_unique(Args&&... args) {
 
 class AlgorithmRegistration {
 public:
-	AlgorithmRegistration(std::function<unique_ptr<AbstractAlgorithm>()>);
+	AlgorithmRegistration(std::function<unique_ptr<AbstractAlgorithm>()> algorithmFactory) {
+		AlgorithmRegistrar::getInstance().registerAlgorithm(algorithmFactory);
+	};
 };
 
 #define REGISTER_ALGORITHM(class_name) AlgorithmRegistration register_me_##class_name([]{return _make_unique<class_name>();});

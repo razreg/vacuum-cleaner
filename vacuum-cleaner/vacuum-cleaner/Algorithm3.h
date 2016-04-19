@@ -23,10 +23,6 @@ class Algorithm3 : public AbstractAlgorithm {
 
 public:
 
-	Algorithm3() {
-		srand(time(NULL));
-	};
-
 	void setSensor(const AbstractSensor& sensor) override {
 		this->sensor = &sensor;
 		currValue = capacity;

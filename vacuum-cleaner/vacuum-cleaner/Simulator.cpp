@@ -4,7 +4,18 @@ using namespace std;
 
 Logger Simulator::logger = Logger("Simulator");
 
-void Simulator::execute() {
+Simulator::Simulator(map<string, int>& configMap, list<House>& houseList,
+	list<unique_ptr<AbstractAlgorithm>>& algorithms, list<string>&& algorithmNames) :
+	configMap(configMap), houseList(houseList), results() {
+	initRobotList(algorithms, algorithmNames);
+	vector<string> houseNames;
+	for (House& house : houseList) {
+		houseNames.push_back(house.getName());
+	}
+	results = Results(algorithmNames, move(houseNames));
+}
+
+vector<string> Simulator::execute() {
 
 	int maxStepsAfterWinner = configMap.find(MAX_STEPS_AFTER_WINNER)->second;
 
@@ -14,7 +25,8 @@ void Simulator::execute() {
 		// run algorithms in "Round Robin" fashion
 		executeOnHouse(house, house.getMaxSteps(), maxStepsAfterWinner);
 	}
-	results->print();
+	results.print();
+	return errors;
 }
 
 void Simulator::initRobotList(list<unique_ptr<AbstractAlgorithm>>& algorithms, list<string>& algorithmNames) {
@@ -29,26 +41,24 @@ void Simulator::initRobotList(list<unique_ptr<AbstractAlgorithm>>& algorithms, l
 void Simulator::collectScores(string houseName, int winnerNumSteps) {
 	for (Robot& robot : robots) {
 		string algorithmName = robot.getAlgorithmName();
-		(*results)[algorithmName][houseName].setIsBackInDocking(robot.inDocking());
-		(*results)[algorithmName][houseName].setWinnerNumSteps(winnerNumSteps);
-		(*results)[algorithmName][houseName].setFinalSumDirtInHouse(robot.getHouse().getTotalDust());
+		results[algorithmName][houseName].setIsBackInDocking(robot.inDocking());
+		results[algorithmName][houseName].setWinnerNumSteps(winnerNumSteps);
+		results[algorithmName][houseName].setFinalSumDirtInHouse(robot.getHouse().getTotalDust());
 		if (robot.getHouse().getTotalDust() > 0 || !robot.inDocking()) {
-			(*results)[algorithmName][houseName].setPositionInCompetition(DIDNT_FINISH_POSITION_IN_COMPETETION);
+			results[algorithmName][houseName].setPositionInCompetition(DIDNT_FINISH_POSITION_IN_COMPETETION);
 		}
 		if (logger.debugEnabled()) {
 			logger.debug("House final state for algorithm [" + robot.getAlgorithmName() + "]:\n"
 				+ (string)robot.getHouse());
 		}
-		delete &robot.getHouse(); // delete this copy of the house because it is going to be overriden in the next iteration
 	}
 }
 
 void Simulator::updateRobotListWithHouse(House& house) {
 	logger.info("Defining house [" + house.getName() + "] for robot list");
 	for (Robot& robot : robots) {
-		House* currHouse = new House(house); // copy constructor called
 		robot.restart();
-		robot.setHouse(currHouse);
+		robot.setHouse(House(house));
 	}
 }
 
@@ -62,13 +72,13 @@ void Simulator::executeOnHouse(House& house, int maxSteps, int maxStepsAfterWinn
 		int robotsFinishedInRound = 0;
 		for (Robot& robot : robots) {
 			if (!robot.performedIllegalStep() && !robot.isFinished()) {
-				if (robot.getBatteryValue() <= 0) {
+				if (robot.getBatteryValue() == 0) {
 					// if we didn't alreay notify that the battery died
 					if (!robot.isBatteryDeadNotified()) {
 						robot.setBatteryDeadNotified();
 						logger.info("Robot using algorithm [" + robot.getAlgorithmName() + "] has dead battery");
 					}
-					(*results)[robot.getAlgorithmName()][house.getName()].setThisNumSteps(steps + 1); // increment steps but stay
+					results[robot.getAlgorithmName()][house.getName()].setThisNumSteps(steps + 1); // increment steps but stay
 				}
 				else {
 					performStep(robot, steps, maxSteps, maxStepsAfterWinner, stepsAfterWinner);
@@ -104,7 +114,7 @@ void Simulator::robotFinishedCleaning(Robot& robot, int steps, int& winnerNumSte
 		winnerNumSteps = steps + 1;
 	}
 	// update position in competition
-	(*results)[robot.getAlgorithmName()][robot.getHouse().getName()]
+	results[robot.getAlgorithmName()][robot.getHouse().getName()]
 		.setPositionInCompetition(positionInCompetition);
 	robotsFinishedInRound++;
 	robot.setFinished();
@@ -127,12 +137,12 @@ void Simulator::performStep(Robot& robot, int steps, int maxSteps, int maxStepsA
 		logger.warn("Algorithm [" + robot.getAlgorithmName() +
 			"] has performed an illegal step. Robot in position="
 			+ (string)robot.getPosition());
-		(*results)[algorithmName][houseName].reportBadBehavior();
+		results[algorithmName][houseName].reportBadBehavior();
 		robot.reportBadBehavior();
-		// TODO send error to print in main:
-		// "Algorithm " + so file_name without so suffix + " when running on House " + houseName + " went on a wall in step " + to_string(steps + 1)
+		errors.push_back("Algorithm " + robot.getAlgorithmName() + " when running on House " 
+			+ houseName + " went on a wall in step " + to_string(steps + 1));
 	}
 
 	robot.getHouse().clean(robot.getPosition()); // perform one cleaning step
-	(*results)[algorithmName][houseName].setThisNumSteps(steps + 1);
+	results[algorithmName][houseName].setThisNumSteps(steps + 1);
 }

@@ -17,6 +17,10 @@ int main(int argc, char** argv) {
 	list<unique_ptr<AbstractAlgorithm>> algorithms;
 	list<string> algorithmNames;
 
+	vector<string> algorithmErrors;
+	vector<string> houseErrors;
+	vector<string> simulationErrors;
+
 	// set paths
 	string workingDir;
 	try {
@@ -53,7 +57,6 @@ int main(int argc, char** argv) {
 	}
 
 	// Algorithms
-	vector<string> algorithmErrors;
 	logger.debug("Loading algorithms from directory");
 	try { // TODO check which exception may be thrown
 		isValid = loadAlgorithms(algorithmsPath, algorithms, algorithmNames, algorithmErrors, usage);
@@ -67,7 +70,6 @@ int main(int argc, char** argv) {
 	}
 
 	// Houses
-	vector<string> houseErrors;
 	try {
 		logger.debug("Loading houses from directory");
 		isValid = loadHouseList(housesPath, houseList, houseErrors, usage);
@@ -81,17 +83,16 @@ int main(int argc, char** argv) {
 	}
 
 	// Start simulator
-	// TODO send algorithmNames to simulator
 	Simulator simulator(configMap, houseList, algorithms, move(algorithmNames));
 	try {
-		simulator.execute();
+		simulationErrors = simulator.execute();
 	}
 	catch (exception& e) {
 		logger.fatal(e.what());
 		return INTERNAL_FAILURE;
 	}
 
-	printErrors(houseErrors, algorithmErrors);
+	printErrors(houseErrors, algorithmErrors, simulationErrors);
 	return SUCCESS;
 }
 
@@ -245,16 +246,18 @@ void trimString(string& str) {
 	str = str.substr(first, (last - first + 1));
 }
 
-void printErrors(vector<string>& houseErrors, vector<string>& algorithmErrors) {
-	if (houseErrors.empty() && algorithmErrors.empty()) {
-		return;
+void printErrors(vector<string>& houseErrors, vector<string>& algorithmErrors, vector<string>& simulationErrors) {
+	if (!houseErrors.empty() || !algorithmErrors.empty() || !simulationErrors.empty()) {
+		cout << endl;
+		cout << "Errors:" << endl;
 	}
-	cout << endl;
-	cout << "Errors:" << endl;
 	for (string& err : houseErrors) {
 		cout << err << endl;
 	}
 	for (string& err : algorithmErrors) {
+		cout << err << endl;
+	}
+	for (string& err : simulationErrors) {
 		cout << err << endl;
 	}
 }
@@ -278,13 +281,11 @@ bool loadAlgorithms(const string& algorithmsPath, list<unique_ptr<AbstractAlgori
 				}
 				int result = 
 					registrar.loadAlgorithm(dir_iter->path().string(), dir_iter->path().stem().string());
-				if (result == AlgorithmRegistrar::NO_ALGORITHM_REGISTERED) {
-					if (logger.debugEnabled()) logger.debug("Failed to load file");
+				if (result == AlgorithmRegistrar::FILE_CANNOT_BE_LOADED) {
 					errors.push_back(dir_iter->path().filename().string() +
 						": file cannot be loaded or is not a valid.so");
 				}
 				else if (result == AlgorithmRegistrar::NO_ALGORITHM_REGISTERED) {
-					if (logger.debugEnabled()) logger.debug("Failed to register algorithm");
 					errors.push_back(dir_iter->path().filename().string() +
 						": valid .so but no algorithm was registered after loading it");
 				}

@@ -38,7 +38,7 @@ bool isConfigMapValid(map<string, int>& configMap);
 
 void trimString(string& str);
 
-void printErrors(vector<string>& houseErrors, vector<string>& algorithmErrors);
+void printErrors(vector<string>& houseErrors, vector<string>& algorithmErrors, vector<string>& simulationErrors);
 
 bool isDirectory(fs::path& dir, string& usage);
 

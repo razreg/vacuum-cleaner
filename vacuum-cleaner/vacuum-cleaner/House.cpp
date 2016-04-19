@@ -174,18 +174,9 @@ int House::getTotalDust() {
 }
 
 House::operator string() const {
-	string house = "";
-	char *arr = new char[numCols + 1];
-	arr[numCols] = '\0';
+	stringstream houseStringStream;
 	for (size_t i = 0; i < numRows; ++i) {
-		for (size_t j = 0; j < numCols; ++j) {
-			arr[j] = matrix[i][j];
-		}
-		house += arr;
-		if (i < numRows - 1) {
-			house += '\n';
-		}
+		houseStringStream << string(matrix[i].begin(), matrix[i].end()) << endl;
 	}
-	delete [] arr;
-	return house;
+	return houseStringStream.str();
 }

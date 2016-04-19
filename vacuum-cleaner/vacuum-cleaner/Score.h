@@ -44,7 +44,7 @@ public:
 		badBehavior = true;
 	};
 
-	int getScore() {
+	int getScore() const {
 		int score = (badBehavior) ? 0 : max(0, 2000 
 			- (positionInCompetition - 1) * 50 
 			+ (winnerNumSteps - thisNumSteps) * 10 

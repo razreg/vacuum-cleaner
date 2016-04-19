@@ -4,16 +4,13 @@ CFLAGS = -std=c++11 -O2 -Wall -pedantic -pthread
 OLIST = Main.o House.o SensorImpl.o Robot.o Results.o AlgorithmRegistrar.o Simulator.o
 ALGOS = Algorithm1.o
 
-all: simulator AlgorithmRegistration.o algorithms
+all: simulator algorithms
 
 clean:
 	-rm -f *.o *.so *.gch simulator
 
 simulator: $(OLIST)
 	$(CC) $^ -rdynamic -o $@ $(LIBS)
-
-AlgorithmRegistration.o: AlgorithmRegistration.cpp
-	$(CC) $(CFLAGS) -c $< -mcmodel=large
 
 $(OLIST): %.o: %.cpp
 	$(CC) $(CFLAGS) -c $<
@@ -24,4 +21,4 @@ $(ALGOS): %.o: %.cpp
 	$(CC) $(CFLAGS) -c $< -mcmodel=large
 
 $(ALGOS:.o=.so): %.so: %.o
-	$(CC) -shared -Wl,-soname,$@ -o $@ AlgorithmRegistration.o $<
+	$(CC) -shared -Wl,-soname,$@ -o $@ $<

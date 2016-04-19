@@ -9,8 +9,12 @@ Results::Results(list<string> algorithmNames, vector<string>&& houseNames) :
 	}
 }
 
-void Results::print(ostream& out) {
+void Results::print(ostream& out) const {
 	
+	if (houseNames.empty() || algorithmNames.empty()) {
+		return;
+	}
+
 	printHorizontalLine(out);
 	printAlgorithmCell(out, string(" "));
 	for (string house : houseNames) {
@@ -23,7 +27,7 @@ void Results::print(ostream& out) {
 		printAlgorithmCell(out, algorithm);
 		double avg = 0.0;
 		for (string house : houseNames) {
-			int score = scoreMap[algorithm][house].getScore();
+			int score = (*this)[algorithm].at(house).getScore();
 			avg += score;
 			printScoreCell(out, to_string(score));
 		}
