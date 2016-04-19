@@ -53,7 +53,7 @@ public:
 	}
 
 	//updates the vector which is responsible for returning back to docking station (opposite of the current returned direction)
-	void updateMovesBack(Direction direction) {
+	void storeDataForReturnTrip(Direction direction) {
 		switch (direction)  {
 		case (Direction::North) :
 			movesBack.push_back(Direction::South);

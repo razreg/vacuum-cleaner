@@ -40,27 +40,29 @@ class Robot {
 		algorithm.setSensor(sensor);
 	};
 
+	void configure(const map<string, int>& configMap) {
+		configBattery(configMap);
+		this->algorithm.setConfiguration(configMap);
+		this->algorithm.setSensor(this->sensor);
+	}
+
 public:
 
 	Robot(const map<string, int>& configMap, AbstractAlgorithm& algorithm, string algorithmName, House&& house) :
 		algorithm(algorithm), algorithmName(algorithmName), house(house) {
-		configBattery(configMap);
 		updateSensorWithHouse();
-		this->algorithm.setConfiguration(configMap);
-		this->algorithm.setSensor(this->sensor);
+		configure(configMap);
 	};
 
 	Robot(const map<string, int>& configMap, AbstractAlgorithm& algorithm, string algorithmName) : 
 		algorithm(algorithm), algorithmName(algorithmName) {
-		configBattery(configMap);
-		this->algorithm.setConfiguration(configMap);
-		this->algorithm.setSensor(this->sensor);
+		configure(configMap);
 	};
 
 	void setHouse(House&& house) {
 		this->house = house;
 		updateSensorWithHouse();
-	}
+	};
 
 	void restart() {
 		battery.setCurrValue(battery.getCapacity());

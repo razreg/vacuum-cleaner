@@ -2,7 +2,7 @@ CC = g++
 LIBS = -ldl -lboost_thread -lboost_filesystem -lboost_system
 CFLAGS = -std=c++11 -O2 -Wall -pedantic -pthread
 OLIST = Main.o House.o SensorImpl.o Robot.o Results.o AlgorithmRegistrar.o Simulator.o
-ALGOS = Algorithm1.o
+ALGOS = Algorithm1.o Algorithm2.o
 
 all: simulator algorithms
 

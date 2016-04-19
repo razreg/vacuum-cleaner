@@ -53,7 +53,7 @@ Direction Algorithm3::step() {
 			else returnedDir = Direction::West;
 		}
 
-		updateMovesBack(returnedDir);
+		storeDataForReturnTrip(returnedDir);
 		setCurrValue();
 		return returnedDir;
 	}

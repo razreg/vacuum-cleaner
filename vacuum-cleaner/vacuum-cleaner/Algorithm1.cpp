@@ -30,22 +30,19 @@ Direction Algorithm1::step() {
 					directionCounter = (directionCounter + 1) % stayIndex;
 				} while (sensorInformation.isWall[directionCounter] && i++ < stayIndex);
 				direction = static_cast<Direction>(directionCounter);
-				updateMovesBack(direction);
 				lastDirection = direction;
 			}
 		}
 		else if (sensorInformation.dirtLevel <= 1) {
 			// prefer to stay on your track
-			if (!movesBack.empty() && !sensorInformation.isWall[static_cast<int>(lastDirection)]) {
+			if (!sensorInformation.isWall[static_cast<int>(lastDirection)]) {
 				direction = lastDirection;
-				updateMovesBack(direction);
 			}
 			else {
 				for (int i : directionsPermutation) {
 					int index = (directionCounter + i) % stayIndex;
 					if (!sensorInformation.isWall[index]) {
 						direction = static_cast<Direction>(index);
-						updateMovesBack(direction);
 						lastDirection = direction;
 						break;
 					}
@@ -64,6 +61,6 @@ Direction Algorithm1::step() {
 	}
 
 	--stepsLeft;
-
+	storeDataForReturnTrip(direction);
 	return direction;
 }

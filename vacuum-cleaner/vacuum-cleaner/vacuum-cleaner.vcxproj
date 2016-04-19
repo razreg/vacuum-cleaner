@@ -124,6 +124,7 @@
     <ClInclude Include="Common.h" />
     <ClInclude Include="Direction.h" />
     <ClInclude Include="AlgorithmRegistrar.h" />
+    <ClInclude Include="BaseAlgorithm.h" />
     <ClInclude Include="Results.h" />
     <ClInclude Include="House.h" />
     <ClInclude Include="Main.h" />

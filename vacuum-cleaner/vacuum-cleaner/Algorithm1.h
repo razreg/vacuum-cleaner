@@ -55,17 +55,20 @@ public:
 		stepsLeft = stepsTillFinishing > 0 ? stepsTillFinishing : 0;
 	};
 
-	bool inDockingStation() {
+	bool inDockingStation() const {
 		return movesBack.empty();
 	};
 
-	bool isReturnTripFeasable(size_t moves) {
+	bool isReturnTripFeasable(size_t moves) const {
 		return moves <= stepsLeft && // There are enough steps
 			!battery.empty() && battery.getCurrValue() >= moves * battery.getConsumptionRate(); // The battery will suffice
 	};
 
 	// updates the vector used to return back to docking station
-	void updateMovesBack(Direction direction) {
+	void storeDataForReturnTrip(Direction direction) {
+		if (direction == Direction::Stay) {
+			return;
+		}
 		movesBack.push_back(
 			direction == Direction::North ? Direction::South :
 			direction == Direction::South ? Direction::North :

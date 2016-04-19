@@ -36,11 +36,11 @@ public:
 		vector<vector<char>>& houseMatrix) : name(houseName), maxSteps(maxSteps),
 		numRows(numRows), numCols(numCols), matrix(houseMatrix) {};
 
-	House(const House& copyFromMe);
-
 	House(House&& moveFromMe) noexcept : name(move(moveFromMe.name)),
-		maxSteps(moveFromMe.maxSteps), numRows(moveFromMe.numRows), numCols(moveFromMe.numCols), 
+		maxSteps(moveFromMe.maxSteps), numRows(moveFromMe.numRows), numCols(moveFromMe.numCols),
 		matrix(move(moveFromMe.matrix)), dockingStation(move(moveFromMe.dockingStation)) {};
+
+	House(const House& copyFromMe);
 
 	House& operator=(const House& copyFromMe) {
 		if (this != &copyFromMe) {
