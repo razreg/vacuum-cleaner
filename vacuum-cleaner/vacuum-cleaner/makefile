@@ -2,7 +2,7 @@ CC = g++
 LIBS = -ldl -lboost_thread -lboost_filesystem -lboost_system
 CFLAGS = -std=c++11 -O2 -Wall -pedantic -pthread
 OLIST = Main.o House.o SensorImpl.o Robot.o Results.o AlgorithmRegistrar.o Simulator.o
-ALGOS = Algorithm1.o Algorithm2.o
+ALGOS = Algorithm1.o Algorithm2.o Algorithm3.o
 
 all: simulator algorithms
 
@@ -15,10 +15,19 @@ simulator: $(OLIST)
 $(OLIST): %.o: %.cpp
 	$(CC) $(CFLAGS) -c $<
 
-algorithms: $(ALGOS) $(ALGOS:.o=.so)
+algorithms: ManhattenAlgorithm.o $(ALGOS) $(ALGOS:.o=.so)
 
 $(ALGOS): %.o: %.cpp
 	$(CC) $(CFLAGS) -c $< -mcmodel=large
 
-$(ALGOS:.o=.so): %.so: %.o
+ManhattenAlgorithm.o: ManhattenAlgorithm.cpp
+	$(CC) $(CFLAGS) -c $< -mcmodel=large
+
+Algorithm1.so: Algorithm1.o
 	$(CC) -shared -Wl,-soname,$@ -o $@ $<
+
+Algorithm2.so: Algorithm2.o
+	$(CC) -shared -Wl,-soname,$@ -o $@ $< ManhattenAlgorithm.o
+
+Algorithm3.so: Algorithm3.o
+	$(CC) -shared -Wl,-soname,$@ -o $@ $< ManhattenAlgorithm.o

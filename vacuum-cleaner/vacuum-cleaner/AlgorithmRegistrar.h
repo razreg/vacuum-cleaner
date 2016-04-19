@@ -4,7 +4,6 @@
 #include <list>
 #include <functional>
 #include <memory>
-#include <cassert> // TODO remove
 #include <dlfcn.h>
 
 #include "AbstractAlgorithm.h"
@@ -23,13 +22,17 @@ class AlgorithmRegistrar {
 	};
 	
 	void setNameForLastAlgorithm(const string& algorithmName) {
-		assert(algorithmFactories.size() - 1 == algorithmNames.size()); // TODO handle differently
+		if (algorithmFactories.size() - 1 != algorithmNames.size()) {
+			throw runtime_error("Corrupted algorithm list - the amounts of algorithm factories and algorithm names don't match");
+		}
 		algorithmNames.push_back(algorithmName);
 	};
 
 	static AlgorithmRegistrar instance;
 
-public: // TODO make real singleton
+	AlgorithmRegistrar() {}; // Now no one can instantiate from outside of this class (Singleton)
+
+public:
 
 	friend class AlgorithmRegistration;
 	

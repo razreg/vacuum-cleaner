@@ -77,7 +77,7 @@ House House::deseriallize(fs::path filePath) {
 						logger.debug("House max steps=[" + to_string(maxNumSteps) + "]");
 						logger.debug("House number of rows=[" + to_string(nRows) + "], num cols=[" + to_string(nCols) + "]");
 					}
-					readHouseMatrix(houseFileStream, matrix, nRows, nCols); // TODO what happens when nCols or nRows < 3
+					readHouseMatrix(houseFileStream, matrix, nRows, nCols);
 				}
 			}
 			houseFileStream.close();

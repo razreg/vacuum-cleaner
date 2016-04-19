@@ -6,7 +6,6 @@ namespace fs = boost::filesystem;
 Logger logger = Logger("Main");
 AlgorithmRegistrar& registrar = AlgorithmRegistrar::getInstance();
 
-// TODO try to break to smaller methods
 int main(int argc, char** argv) {
 
 	string usage =
@@ -58,14 +57,14 @@ int main(int argc, char** argv) {
 
 	// Algorithms
 	logger.debug("Loading algorithms from directory");
-	try { // TODO check which exception may be thrown
+	try {
 		isValid = loadAlgorithms(algorithmsPath, algorithms, algorithmNames, algorithmErrors, usage);
 		if (!isValid) {
 			return INVALID_ALGORITHMS;
 		}
 	}
 	catch (exception& e) {
-		logger.fatal(e.what());
+		logger.fatal(e.what()); // see AlgorithmRegistrar::setNameForLastAlgorithm
 		return INVALID_ALGORITHMS;
 	}
 
@@ -275,7 +274,6 @@ bool loadAlgorithms(const string& algorithmsPath, list<unique_ptr<AbstractAlgori
 	for (fs::directory_iterator dir_iter(dir); dir_iter != end_iter; ++dir_iter) {
 		if (fs::is_regular_file(dir_iter->status())) {
 			if (dir_iter->path().has_extension() && dir_iter->path().extension() == ".so") {
-				// TODO catch exceptions if might be thrown
 				if (logger.debugEnabled()) {
 					logger.debug("Loading algorithm from file [" + dir_iter->path().filename().string() + "]");
 				}
@@ -298,7 +296,6 @@ bool loadAlgorithms(const string& algorithmsPath, list<unique_ptr<AbstractAlgori
 		algorithmNames = registrar.getAlgorithmNames();
 	}
 
-	// TODO sort algorithms?
 	return !allLoadingFailed(algorithms, errors, usage, "algorithm", dir);
 }
 
