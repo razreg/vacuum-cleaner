@@ -17,7 +17,8 @@ class Robot {
 	static Logger logger;
 
 	AbstractAlgorithm& algorithm;
-	House* house;
+	string algorithmName;
+	House house;
 	SensorImpl sensor;
 	Battery battery;
 	Position position;
@@ -26,50 +27,59 @@ class Robot {
 	bool finished = false;
 
 	void configBattery(const map<string, int>& configMap) {
-		battery.setCapacity(configMap.find(BATTERY_CAPACITY)->second);
-		battery.setConsumptionRate(configMap.find(BATTERY_CONSUMPTION_RATE)->second);
-		battery.setRechargeRate(configMap.find(BATTERY_RECHARGE_RATE)->second);
+		battery.setCapacity(max(0, configMap.find(BATTERY_CAPACITY)->second));
+		battery.setConsumptionRate(max(0, configMap.find(BATTERY_CONSUMPTION_RATE)->second));
+		battery.setRechargeRate(max(0, configMap.find(BATTERY_RECHARGE_RATE)->second));
 		battery.setCurrValue(battery.getCapacity());
 	};
 
+	void updateSensorWithHouse() {
+		sensor.setHouse(this->house);
+		position = this->house.getDockingStation(); // copy constructor
+		sensor.setPosition(position);
+		algorithm.setSensor(sensor);
+	};
+
+	void configure(const map<string, int>& configMap) {
+		configBattery(configMap);
+		this->algorithm.setConfiguration(configMap);
+		this->algorithm.setSensor(this->sensor);
+	}
+
 public:
 
-	Robot(const map<string, int>& configMap, AbstractAlgorithm& algorithm, House* house) :
-		algorithm(algorithm), house(house) {
-		configBattery(configMap);
-		setHouse(house);
-		this->algorithm.setConfiguration(configMap);
-		this->algorithm.setSensor(this->sensor);
+	Robot(const map<string, int>& configMap, AbstractAlgorithm& algorithm, string algorithmName, House&& house) :
+		algorithm(algorithm), algorithmName(algorithmName), house(house) {
+		updateSensorWithHouse();
+		configure(configMap);
 	};
 
-	Robot(const map<string, int>& configMap, AbstractAlgorithm& algorithm) : algorithm(algorithm) {
-		configBattery(configMap);
-		this->algorithm.setConfiguration(configMap);
-		this->algorithm.setSensor(this->sensor);
+	Robot(const map<string, int>& configMap, AbstractAlgorithm& algorithm, string algorithmName) : 
+		algorithm(algorithm), algorithmName(algorithmName) {
+		configure(configMap);
 	};
 
-	void setHouse(House* house) {
+	void setHouse(House&& house) {
 		this->house = house;
-		sensor.setHouse(*this->house); 
-		position = this->house->getDockingStation(); // copy constructor
-		sensor.setPosition(position);
-	}
+		updateSensorWithHouse();
+	};
 
 	void restart() {
 		battery.setCurrValue(battery.getCapacity());
 		illegalStepPerformed = false;
 		batteryDead = false;
+		finished = false;
 	};
 
 	House& getHouse() {
-		return *house;
+		return house;
 	};
 
 	Position getPosition() const {
 		return position;
 	};
 
-	int getBatteryValue() {
+	size_t getBatteryValue() const {
 		return battery.getCurrValue();
 	};
 
@@ -87,24 +97,23 @@ public:
 		illegalStepPerformed = true;
 	};
 
-	bool performedIllegalStep() {
+	bool performedIllegalStep() const {
 		return illegalStepPerformed;
 	};
 
-	string getAlgorithmName() {
-		string algoName = typeid(algorithm).name();
-		return algoName.substr(algoName.find_last_of(' ') + 1);
+	string getAlgorithmName() const {
+		return algorithmName;
 	};
 
 	void setBatteryDeadNotified() {
 		batteryDead = true;
 	};
 
-	bool isBatteryDeadNotified() {
+	bool isBatteryDeadNotified() const {
 		return batteryDead;
 	};
 
-	bool isFinished() {
+	bool isFinished() const {
 		return finished;
 	};
 

@@ -1,15 +1,11 @@
 #ifndef __SCORE__H_
 #define __SCORE__H_
 
-#include "Common.h"
-
 using namespace std;
 
 const int DIDNT_FINISH_POSITION_IN_COMPETETION = 10;
 
 class Score {
-
-	static Logger logger;
 
 	int positionInCompetition = 0;
 	int winnerNumSteps = 0;
@@ -48,21 +44,12 @@ public:
 		badBehavior = true;
 	};
 
-	int getScore() {
+	int getScore() const {
 		int score = (badBehavior) ? 0 : max(0, 2000 
 			- (positionInCompetition - 1) * 50 
 			+ (winnerNumSteps - thisNumSteps) * 10 
 			- finalSumDirtInHouse * 3 
 			+ (isBackInDocking ? 50 : -200));
-		if (logger.debugEnabled()) {
-			logger.debug(to_string(score) + " = ("
-				+ to_string(badBehavior) + ") ? 0 : max(0, 2000 - ("
-				+ to_string(positionInCompetition) + " - 1) * 50 + ("
-				+ to_string(winnerNumSteps) + " - "
-				+ to_string(thisNumSteps) + ") * 10 - "
-				+ to_string(finalSumDirtInHouse) + " * 3 + ("
-				+ to_string(isBackInDocking) + " ? 50 : -200))");
-		}
 		return score;
 	};
 

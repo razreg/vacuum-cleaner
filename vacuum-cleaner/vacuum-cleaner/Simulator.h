@@ -1,10 +1,9 @@
 #ifndef __SIMULATOR__H_
 #define __SIMULATOR__H_
 
-#include <map>
 #include <list>
 
-#include "Score.h"
+#include "Results.h"
 #include "Robot.h"
 #include "AbstractAlgorithm.h"
 #include "House.h"
@@ -18,39 +17,28 @@ class Simulator {
 	map<string, int>& configMap;
 	list<House>& houseList;
 	list<Robot> robots;
-	Score** scoreMatrix; // basic score matrix - will be improved according to ex2 instructions
+	Results results;
+	vector<string> errors;
 
-	void initScoreMatrix();
+	void initRobotList(list<unique_ptr<AbstractAlgorithm>>& algorithms, list<string>& algorithmNames);
 
-	void initRobotList(list<AbstractAlgorithm*>& algorithms);
+	void collectScores(string houseName, int winnerNumSteps);
 
-	void collectScores(int houseCount, int winnerNumSteps);
+	void updateRobotListWithHouse(House& house);
 
-	void printScoreMatrix();
+	void executeOnHouse(House& house, int maxSteps, int maxStepsAfterWinner);
 
-	void updateRobotListWithHouse(House& house, int houseCount);
+	void robotFinishedCleaning(Robot& robot, int steps, int& winnerNumSteps, 
+		int positionInCompetition, int& robotsFinishedInRound);
 
-	void executeOnHouse(House& house, int maxSteps, int maxStepsAfterWinner, int houseCount);
-
-	void robotFinishedCleaning(Robot& robot, int steps, int& winnerNumSteps, int algorithmCount, 
-		int houseCount, int positionInCompetition, int& robotsFinishedInRound);
-
-	void performStep(Robot& robot, int steps, int maxSteps, int maxStepsAfterWinner,
-		int stepsAfterWinner, int algorithmCount, int houseCount);
+	void performStep(Robot& robot, int steps, int maxSteps, int maxStepsAfterWinner, int stepsAfterWinner);
 
 public:
 	
-	Simulator(map<string, int>& configMap, list<House>& houseList, list<AbstractAlgorithm*>& algorithms) :
-		configMap(configMap), houseList(houseList) {
-		initRobotList(algorithms);
-		initScoreMatrix();
-	};
+	Simulator(map<string, int>& configMap, list<House>& houseList, 
+		list<unique_ptr<AbstractAlgorithm>>& algorithms, list<string>&& algorithmNames);
 
-	~Simulator() {
-		// TODO destroy scoreMatrix and create copy constructor + copy assignment operator
-	};
-
-	void execute();
+	vector<string> execute();
 
 };
 

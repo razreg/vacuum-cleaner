@@ -1,16 +1,33 @@
 CC = g++
-CFLAGS = -std=c++11 -O2 -Wall -pedantic -pthread -lboost_thread -lboost_filesystem -lboost_system
-OLIST = Main.o House.o Score.o NaiveAlgorithm.o SensorImpl.o Robot.o Simulator.o Algorithm1.o Algorithm2.o Algorithm3.o
-OCLEAN = -rm -f *.o *.gch
+LIBS = -ldl -lboost_thread -lboost_filesystem -lboost_system
+CFLAGS = -std=c++11 -O2 -Wall -pedantic -pthread
+OLIST = Main.o House.o SensorImpl.o Robot.o Results.o AlgorithmRegistrar.o Simulator.o
+ALGOS = Algorithm1.o Algorithm2.o Algorithm3.o
 
-all: clean simulator
-	$(OCLEAN)
+all: simulator algorithms
 
 clean:
-	$(OCLEAN) simulator
+	-rm -f *.o *.so *.gch simulator
 
 simulator: $(OLIST)
-	$(CC) $^ $(CFLAGS) -o $@
+	$(CC) $^ -rdynamic -o $@ $(LIBS)
 
-$(OLIST): %.o: %.cpp %.h
-	$(CC) -c $(CFLAGS) $<
+$(OLIST): %.o: %.cpp
+	$(CC) $(CFLAGS) -c $<
+
+algorithms: ManhattenAlgorithm.o $(ALGOS) $(ALGOS:.o=.so)
+
+$(ALGOS): %.o: %.cpp
+	$(CC) $(CFLAGS) -c $< -mcmodel=large
+
+ManhattenAlgorithm.o: ManhattenAlgorithm.cpp
+	$(CC) $(CFLAGS) -c $< -mcmodel=large
+
+Algorithm1.so: Algorithm1.o
+	$(CC) -shared -Wl,-soname,$@ -o $@ $<
+
+Algorithm2.so: Algorithm2.o
+	$(CC) -shared -Wl,-soname,$@ -o $@ $< ManhattenAlgorithm.o
+
+Algorithm3.so: Algorithm3.o
+	$(CC) -shared -Wl,-soname,$@ -o $@ $< ManhattenAlgorithm.o

@@ -1,0 +1,32 @@
+#include "AlgorithmRegistrar.h"
+
+using namespace std;
+
+Logger AlgorithmRegistrar::logger = Logger("Registrar");
+AlgorithmRegistrar AlgorithmRegistrar::instance;
+
+AlgorithmRegistrar::~AlgorithmRegistrar() {
+	algorithmFactories.clear();
+	if (!dlibs.empty())
+		for (void* dlib : dlibs)
+			if (dlib != NULL) dlclose(dlib);
+}
+
+// filename is the name of the file without the extension (only stem)
+int AlgorithmRegistrar::loadAlgorithm(const string& path, const string& filename) {
+	size_t size = instance.size();
+
+	void* dlib = dlopen(path.c_str(), RTLD_NOW);
+	if (dlib == NULL) {
+		if (logger.debugEnabled()) logger.debug("Failed to load file. Details: " + string(dlerror()));
+		return FILE_CANNOT_BE_LOADED;
+	}
+	dlibs.push_back(dlib);
+
+	if (instance.size() == size) {
+		if (logger.debugEnabled()) logger.debug("Failed to register algorithm");
+		return NO_ALGORITHM_REGISTERED; // no algorithm registered
+	}
+	instance.setNameForLastAlgorithm(filename);
+	return ALGORITHM_REGISTERED_SUCCESSFULY;
+}

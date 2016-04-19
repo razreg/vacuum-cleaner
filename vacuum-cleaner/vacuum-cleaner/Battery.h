@@ -1,60 +1,66 @@
 #ifndef __BATTERY__H_
 #define __BATTERY__H_
 
-#include "Common.h"
-
 class Battery {
 
-	int currValue;
-	int capacity;
-	int consumptionRate;
-	int rechargeRate;
+	size_t currValue;
+	size_t capacity;
+	size_t consumptionRate;
+	size_t rechargeRate;
 
 public:
 
-	Battery(int capacity = DEFAULT_BATTERY_CAPACITY,
-		int consumptionRate = DEFAULT_BATTERY_CONSUMPTION_RATE,
-		int rechargeRate = DEFAULT_BATTERY_RECHARGE_RATE) :
+	Battery() {};
+
+	Battery(size_t capacity, size_t consumptionRate, size_t rechargeRate) :
 		capacity(capacity), consumptionRate(consumptionRate), rechargeRate(rechargeRate) {};
 
-	int getCurrValue() {
+	size_t getCurrValue() const {
 		return currValue;
 	};
 
-	int setCurrValue(int newValue) {
-		return currValue = max(0, min(newValue, capacity));
+	size_t setCurrValue(int newValue) {
+		return currValue = newValue < 0 ? 0 : min((size_t) newValue, capacity);
 	};
 
-	int charge() {
+	size_t charge() {
 		return currValue = min(currValue + rechargeRate, capacity);
 	};
 
-	int consume() {
-		return currValue = max(0, currValue - consumptionRate);
+	size_t consume() {
+		return currValue = currValue < consumptionRate ? 0 : currValue - consumptionRate;
 	};
 
-	int getCapacity() {
+	size_t getCapacity() const {
 		return capacity;
 	};
 
-	int getConsumptionRate() {
+	size_t getConsumptionRate() const {
 		return consumptionRate;
 	};
 
-	int getRechargeRate() {
+	size_t getRechargeRate() const {
 		return rechargeRate;
 	};
 
-	void setCapacity(int capacity) {
+	void setCapacity(size_t capacity) {
 		this->capacity = capacity;
 	};
 
-	void setConsumptionRate(int consumptionRate) {
+	void setConsumptionRate(size_t consumptionRate) {
 		this->consumptionRate = consumptionRate;
 	};
 
-	void setRechargeRate(int rechargeRate) {
+	void setRechargeRate(size_t rechargeRate) {
 		this->rechargeRate = rechargeRate;
+	};
+
+	bool empty() const {
+		return currValue == 0;
+	};
+
+	bool full() const {
+		return currValue >= capacity;
 	};
 
 };

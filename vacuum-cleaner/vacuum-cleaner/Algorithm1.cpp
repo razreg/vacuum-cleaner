@@ -1,56 +1,66 @@
 #include "Algorithm1.h"
 
-Logger Algorithm1::logger = Logger("Algorithm1");
+REGISTER_ALGORITHM(Algorithm1)
 
-void Algorithm1::setConfiguration(map<string, int> config) {
-	maxStepsAfterWinner = config.find(MAX_STEPS_AFTER_WINNER)->second;
-	maxSteps = config.find(MAX_STEPS)->second;
-	capacity = config.find(BATTERY_CAPACITY)->second;
-	consumptionRate = config.find(BATTERY_CONSUMPTION_RATE)->second;
-	rechargeRate = config.find(BATTERY_RECHARGE_RATE)->second;
-}
-
+/**
+ * Return trip scheme is to follow the reverse trip.
+ * In order to prevent the algorithm from getting back to the docking station to charge 
+ * and then take the same path as before, we keep a cyclic counter so it will have some 
+ * freedom to choose where to go.
+ * When in docking station charge till full.
+ */
 Direction Algorithm1::step() {
 
+	Direction direction = Direction::Stay; // default
 	SensorInformation sensorInformation = sensor->sense();
 
-	// construct a vector of valid directions
-	vector<Direction> directions;
-	directions.push_back(Direction::Stay); //STAY is in directions no matter what! (list's size is at least 1)
-	for (int i = 0; i < static_cast<int>(Direction::Stay); ++i) {
-		if (!sensorInformation.isWall[i]) {
-			directions.push_back(static_cast<Direction>(i));
+	// consume battery
+	if (!inDockingStation()) {
+		battery.consume();
+	}
+
+	// if the robot can return after next step or can't return now - keep cleaning
+	if (isReturnTripFeasable(movesBack.size() + 2) || !isReturnTripFeasable(movesBack.size())) {
+		int stayIndex = static_cast<int>(Direction::Stay);
+		if (inDockingStation()) {
+			// stay in docking station until battery is full and don't travel if can't come back in time
+			if (battery.full() && isReturnTripFeasable(movesBack.size() + 2)) {
+				int i = 0;
+				do {
+					directionCounter = (directionCounter + 1) % stayIndex;
+				} while (sensorInformation.isWall[directionCounter] && i++ < stayIndex);
+				direction = static_cast<Direction>(directionCounter);
+				lastDirection = direction;
+			}
+		}
+		else if (sensorInformation.dirtLevel <= 1) {
+			// prefer to stay on your track
+			if (!sensorInformation.isWall[static_cast<int>(lastDirection)]) {
+				direction = lastDirection;
+			}
+			else {
+				for (int i : directionsPermutation) {
+					int index = (directionCounter + i) % stayIndex;
+					if (!sensorInformation.isWall[index]) {
+						direction = static_cast<Direction>(index);
+						lastDirection = direction;
+						break;
+					}
+				}
+			}
 		}
 	}
-
-	if (movesBack.size()>0 && currValue <= ((int)movesBack.size())*consumptionRate) {
-		Direction direction = movesBack.back();
+	else if (!movesBack.empty()) { // robot must return now to get to docking
+		direction = movesBack.back();
 		movesBack.pop_back();
-		setCurrValue();
-		return direction;
 	}
 
-	else {
-
-		//the order of dorections in vector "directions" is: STAY, EAST, WEST, SOUTH and NORTH.
-		//if the robot can't move east than move west, and if not west than move south, and if not south than move north
-		//and if not north than stay.
-
-		Direction returnedDir;
-
-		if ((sensorInformation.dirtLevel > 1 && sensorInformation.dirtLevel <= 9) || directions.size() == 1)
-			returnedDir = directions[0];
-		else if (directions.size() == 2)
-			returnedDir = directions[1];
-		else if (directions.size() == 3)
-			returnedDir = directions[2];
-		else if (directions.size() == 4)
-			returnedDir = directions[3];
-		else returnedDir = directions[4];
-			
-
-		updateMovesBack(returnedDir);
-		setCurrValue();
-		return returnedDir;
+	// charge battery
+	if (inDockingStation()) {
+		battery.charge();
 	}
+
+	--stepsLeft;
+	storeDataForReturnTrip(direction);
+	return direction;
 }

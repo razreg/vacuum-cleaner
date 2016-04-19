@@ -1,8 +1,6 @@
 #ifndef __POSITON__H_
 #define __POSITON__H_
 
-#include "Common.h"
-
 using namespace std;
 
 class Position {
@@ -14,7 +12,7 @@ public:
 
 	Position(size_t xPos = 0, size_t yPos = 0) : X(xPos), Y(yPos) {};
 
-	Position(Position&& position) {
+	Position(Position&& position) noexcept {
 		X = position.X;
 		Y = position.Y;
 	};
