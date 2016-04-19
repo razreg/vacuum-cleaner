@@ -1,8 +1,6 @@
 #ifndef __POSITON__H_
 #define __POSITON__H_
 
-#include "Common.h"
-
 using namespace std;
 
 class Position {

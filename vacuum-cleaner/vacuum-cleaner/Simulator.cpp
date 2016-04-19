@@ -30,7 +30,7 @@ vector<string> Simulator::execute() {
 }
 
 void Simulator::initRobotList(list<unique_ptr<AbstractAlgorithm>>& algorithms, list<string>& algorithmNames) {
-	logger.info("Initializing robot list");
+	logger.debug("Initializing robot list");
 	auto namesIter = algorithmNames.begin();
 	for (auto iter = algorithms.begin(); 
 	iter != algorithms.end() && namesIter != algorithmNames.end(); ++iter, ++namesIter) {
@@ -55,7 +55,7 @@ void Simulator::collectScores(string houseName, int winnerNumSteps) {
 }
 
 void Simulator::updateRobotListWithHouse(House& house) {
-	logger.info("Defining house [" + house.getName() + "] for robot list");
+	logger.debug("Defining house [" + house.getName() + "] for robot list");
 	for (Robot& robot : robots) {
 		robot.restart();
 		robot.setHouse(House(house));

@@ -33,15 +33,15 @@ int main(int argc, char** argv) {
 	string configPath = workingDir;
 	string housesPath = workingDir;
 	string algorithmsPath = workingDir;
-	logger.info("Parsing command line arguments");
+	logger.debug("Parsing command line arguments");
 	bool isValid = parseArgs(argc, argv, configPath, housesPath, algorithmsPath);
 	if (!isValid) {
 		logger.fatal("Invalid arguments");
 		cout << usage << endl;
 		return INVALID_ARGUMENTS;
 	}
-	logger.info("Using config file directory path as [" + configPath + "]");
-	logger.info("Using house files directory path as [" + housesPath + "]");
+	logger.debug("Using config file directory path as [" + configPath + "]");
+	logger.debug("Using house files directory path as [" + housesPath + "]");
 
 	// Configuration
 	try {
@@ -146,12 +146,12 @@ bool loadHouseList(const string& housesPath, list<House>& houseList, vector<stri
 			if (dir_iter->path().has_extension() && dir_iter->path().extension() == ".house") {
 				try {
 					House house = House::deseriallize(dir_iter->path());
-					logger.info("Validating house");
+					logger.debug("Validating house");
 					if (logger.debugEnabled()) logger.debug("Validating house walls");
 					house.validateWalls();
 					if (logger.debugEnabled()) logger.debug("Validating the existence of exactly one docking station");
 					house.validateDocking();
-					logger.info("House is valid");
+					logger.debug("House is valid");
 					houseList.push_back(move(house));
 				}
 				catch (exception& e) {

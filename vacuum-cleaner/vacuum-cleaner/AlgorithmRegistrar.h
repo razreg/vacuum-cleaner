@@ -4,9 +4,7 @@
 #include <list>
 #include <functional>
 #include <memory>
-#include <iostream>
-#include <string>
-#include <cassert>
+#include <cassert> // TODO remove
 #include <dlfcn.h>
 
 #include "AbstractAlgorithm.h"
@@ -36,17 +34,8 @@ public: // TODO make real singleton
 	friend class AlgorithmRegistration;
 	
 	enum { ALGORITHM_REGISTERED_SUCCESSFULY = 0, FILE_CANNOT_BE_LOADED = -1, NO_ALGORITHM_REGISTERED = -2 };
-
-	~AlgorithmRegistrar() {
-		cout << "dlcosing..." << endl;
-		if (!dlibs.empty()) {
-			for (void* dlib : dlibs) {
-				if (dlib != NULL) {
-					dlclose(dlib);
-				}
-			}
-		}
-	};
+	
+	~AlgorithmRegistrar();
 
 	int loadAlgorithm(const string& path, const string& so_file_name_without_so_suffix);
 

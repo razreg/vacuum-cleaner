@@ -1,17 +1,12 @@
 #ifndef __MAIN__H_
 #define __MAIN__H_
 
+#include <dlfcn.h>
+
 #include "Simulator.h"
 #include "House.h"
 #include "AbstractAlgorithm.h"
-//#include "AlgorithmFactory.h"
 #include "AlgorithmRegistrar.h"
-
-// file handling
-#include <dlfcn.h>
-#include <cstdio>
-#include <regex>
-#include <unistd.h>
 
 // exit codes
 const int SUCCESS = 0;

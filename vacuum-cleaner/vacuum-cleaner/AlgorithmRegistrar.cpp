@@ -5,6 +5,13 @@ using namespace std;
 Logger AlgorithmRegistrar::logger = Logger("Registrar");
 AlgorithmRegistrar AlgorithmRegistrar::instance;
 
+AlgorithmRegistrar::~AlgorithmRegistrar() {
+	algorithmFactories.clear();
+	if (!dlibs.empty())
+		for (void* dlib : dlibs)
+			if (dlib != NULL) dlclose(dlib);
+}
+
 // filename is the name of the file without the extension (only stem)
 int AlgorithmRegistrar::loadAlgorithm(const string& path, const string& filename) {
 	size_t size = instance.size();

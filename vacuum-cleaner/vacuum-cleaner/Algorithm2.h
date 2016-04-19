@@ -1,8 +1,6 @@
 #ifndef __ALGORITHM_2__H_
 #define __ALGORITHM_2__H_
 
-#include <memory>
-
 #include "AbstractAlgorithm.h"
 #include "AlgorithmRegistration.h"
 

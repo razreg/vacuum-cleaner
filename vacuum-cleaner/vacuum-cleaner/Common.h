@@ -1,15 +1,13 @@
 #ifndef __COMMON__H_
 #define __COMMON__H_
 
-#include <ctime> // srand
-#include <fstream> // files
 #include <iostream>
 #include <string>
 #include <vector>
 #include <map>
 #include <cstring> // strncpy
 #include <algorithm> // min, max
-
+#include <fstream> // files
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 
