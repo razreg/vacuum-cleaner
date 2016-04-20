@@ -6,7 +6,7 @@
 
 using namespace std;
 
-class Algorithm1 : public BaseAlgorithm {
+class _305623571_A : public BaseAlgorithm {
 
 	vector<Direction> movesBack;
 

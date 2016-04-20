@@ -7,7 +7,7 @@ const int DIDNT_FINISH_POSITION_IN_COMPETETION = 10;
 
 class Score {
 
-	int positionInCompetition = 0;
+	int positionInCompetition = DIDNT_FINISH_POSITION_IN_COMPETETION;
 	int winnerNumSteps = 0;
 	int thisNumSteps = 0;
 	int finalSumDirtInHouse = 0;

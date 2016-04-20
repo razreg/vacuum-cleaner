@@ -29,12 +29,16 @@ Direction ManhattenAlgorithm::step() {
 				do {
 					directionCounter = (directionCounter + 1) % stayIndex;
 				} while (sensorInformation.isWall[directionCounter] && i++ < stayIndex);
-				direction = static_cast<Direction>(directionCounter);
-				lastDirection = direction;
+				if (!sensorInformation.isWall[directionCounter]) {
+					direction = static_cast<Direction>(directionCounter);
+					lastDirection = direction;
+					storeDataForReturnTrip(direction);
+				}
 			}
 		}
 		else if (isReadyToMoveOn(sensorInformation)) {
 			direction = keepCleaningOutOfDocking(sensorInformation);
+			storeDataForReturnTrip(direction);
 		}
 	}
 	else if (!inDockingStation()) { // robot must return now to get to docking
@@ -47,7 +51,6 @@ Direction ManhattenAlgorithm::step() {
 	}
 
 	--stepsLeft;
-	storeDataForReturnTrip(direction);
 	if (stepsToBypassWall > 0) {
 		--stepsToBypassWall;
 	}

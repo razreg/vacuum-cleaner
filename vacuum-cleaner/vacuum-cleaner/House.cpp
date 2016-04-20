@@ -133,14 +133,14 @@ void House::validateDocking() {
 					logger.debug("Docking station found in position=" + (string)dockingStation);
 				}
 				if (alreadyFound) {
-					throw invalid_argument(filename + ": too many docking stations (more than one D in house)");
+					throw invalid_argument(name + ".house: too many docking stations (more than one D in house)");
 				}
 				alreadyFound = true;
 			}
 		}
 	}
 	if (!alreadyFound) {
-		throw invalid_argument(filename + ": missing docking station (no D in house)");
+		throw invalid_argument(name + ".house: missing docking station (no D in house)");
 	}
 }
 

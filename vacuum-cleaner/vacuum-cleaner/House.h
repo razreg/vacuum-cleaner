@@ -16,7 +16,6 @@ class House {
 
 	static Logger logger;
 
-	string filename;
 	string name;
 	size_t maxSteps;
 	size_t numRows;
@@ -34,11 +33,26 @@ public:
 
 	House(string houseName, size_t maxSteps, size_t numRows, size_t numCols,
 		vector<vector<char>>& houseMatrix) : name(houseName), maxSteps(maxSteps),
-		numRows(numRows), numCols(numCols), matrix(houseMatrix) {};
+		numRows(numRows), numCols(numCols), matrix(houseMatrix) {
+	};
 
 	House(House&& moveFromMe) noexcept : name(move(moveFromMe.name)),
 		maxSteps(moveFromMe.maxSteps), numRows(moveFromMe.numRows), numCols(moveFromMe.numCols),
-		matrix(move(moveFromMe.matrix)), dockingStation(move(moveFromMe.dockingStation)) {};
+		matrix(move(moveFromMe.matrix)), dockingStation(move(moveFromMe.dockingStation)) {
+	};
+
+	House& operator=(House&& moveFromMe) {
+		if (this != &moveFromMe) {
+			name = move(moveFromMe.name);
+			maxSteps = moveFromMe.maxSteps;
+			numRows = moveFromMe.numRows;
+			numCols = moveFromMe.numCols;
+			matrix = move(moveFromMe.matrix);
+			dockingStation = move(moveFromMe.dockingStation);
+			totalDust = -1;
+		}
+		return *this;
+	};
 
 	House(const House& copyFromMe);
 
@@ -50,6 +64,7 @@ public:
 			numCols = copyFromMe.numCols;
 			dockingStation = copyFromMe.dockingStation;
 			matrix = copyFromMe.matrix;
+			totalDust = -1;
 		}
 		return *this;
 	};

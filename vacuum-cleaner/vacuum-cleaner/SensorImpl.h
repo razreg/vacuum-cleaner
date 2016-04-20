@@ -22,7 +22,7 @@ public:
 		this->house = &house;
 	}
 
-	SensorInformation sense() const override;
+	virtual SensorInformation sense() const override;
 
 	bool inDocking() const {
 		return house->getDockingStation() == *currentPosition;

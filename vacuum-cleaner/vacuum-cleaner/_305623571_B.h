@@ -6,7 +6,7 @@
 
 using namespace std;
 
-class Algorithm2 : public ManhattenAlgorithm {
+class _305623571_B : public ManhattenAlgorithm {
 protected:
 	virtual bool isReadyToMoveOn(SensorInformation& sensorInformation) const override {
 		return sensorInformation.dirtLevel == 0;

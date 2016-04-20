@@ -38,7 +38,7 @@ public:
 	Simulator(map<string, int>& configMap, list<House>& houseList, 
 		list<unique_ptr<AbstractAlgorithm>>& algorithms, list<string>&& algorithmNames);
 
-	vector<string> execute();
+	vector<string> execute(); // returs simulation errors
 
 };
 

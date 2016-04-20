@@ -1,6 +1,8 @@
 #ifndef __ROBOT__H_
 #define __ROBOT__H_
 
+#include <utility>
+
 #include "SensorImpl.h"
 #include "AbstractAlgorithm.h"
 #include "House.h"
@@ -60,7 +62,7 @@ public:
 	};
 
 	void setHouse(House&& house) {
-		this->house = house;
+		this->house = forward<House>(house);
 		updateSensorWithHouse();
 	};
 

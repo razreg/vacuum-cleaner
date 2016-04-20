@@ -4,7 +4,7 @@
 #include "ManhattenAlgorithm.h"
 #include "AlgorithmRegistration.h"
 
-class Algorithm3 : public ManhattenAlgorithm {
+class _305623571_C : public ManhattenAlgorithm {
 protected:
 	virtual bool isReadyToMoveOn(SensorInformation& sensorInformation) const override {
 		return true; // hyperactive algorithm - never stays in one place
