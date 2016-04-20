@@ -22,7 +22,6 @@ int AlgorithmRegistrar::loadAlgorithm(const string& path, const string& filename
 		return FILE_CANNOT_BE_LOADED;
 	}
 	dlibs.push_back(dlib);
-
 	if (instance.size() == size) {
 		if (logger.debugEnabled()) logger.debug("Failed to register algorithm");
 		return NO_ALGORITHM_REGISTERED; // no algorithm registered

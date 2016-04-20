@@ -278,7 +278,7 @@ bool loadAlgorithms(const string& algorithmsPath, list<unique_ptr<AbstractAlgori
 					registrar.loadAlgorithm(dir_iter->path().string(), dir_iter->path().stem().string());
 				if (result == AlgorithmRegistrar::FILE_CANNOT_BE_LOADED) {
 					errors.push_back(dir_iter->path().filename().string() +
-						": file cannot be loaded or is not a valid.so");
+						": file cannot be loaded or is not a valid .so");
 				}
 				else if (result == AlgorithmRegistrar::NO_ALGORITHM_REGISTERED) {
 					errors.push_back(dir_iter->path().filename().string() +
