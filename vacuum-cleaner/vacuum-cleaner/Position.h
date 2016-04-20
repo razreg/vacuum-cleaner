@@ -12,6 +12,8 @@ public:
 
 	Position(size_t xPos = 0, size_t yPos = 0) : X(xPos), Y(yPos) {};
 
+	// no need for move assignment operator because it is the same as 
+	// the copy assignment operator in this case
 	Position(Position&& position) noexcept {
 		X = position.X;
 		Y = position.Y;

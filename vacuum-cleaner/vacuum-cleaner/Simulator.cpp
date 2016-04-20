@@ -47,10 +47,10 @@ void Simulator::collectScores(string houseName, int winnerNumSteps) {
 		if (robot.getHouse().getTotalDust() > 0 || !robot.inDocking()) {
 			results[algorithmName][houseName].setPositionInCompetition(DIDNT_FINISH_POSITION_IN_COMPETETION);
 		}
-		if (logger.debugEnabled()) {
+		/*if (logger.debugEnabled()) {
 			logger.debug("House final state for algorithm [" + robot.getAlgorithmName() + "]:\n"
 				+ (string)robot.getHouse());
-		}
+		}*/
 	}
 }
 

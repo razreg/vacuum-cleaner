@@ -40,6 +40,10 @@ public:
 	
 	~AlgorithmRegistrar();
 
+	AlgorithmRegistrar(const AlgorithmRegistrar&) = delete;
+
+	AlgorithmRegistrar& operator=(const AlgorithmRegistrar&) = delete;
+
 	int loadAlgorithm(const string& path, const string& so_file_name_without_so_suffix);
 
 	list<unique_ptr<AbstractAlgorithm>> getAlgorithms() const {

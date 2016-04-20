@@ -102,9 +102,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Algorithm1.cpp" />
-    <ClCompile Include="Algorithm2.cpp" />
-    <ClCompile Include="Algorithm3.cpp" />
+    <ClCompile Include="_305623571_A.cpp" />
+    <ClCompile Include="_305623571_B.cpp" />
+    <ClCompile Include="_305623571_C.cpp" />
     <ClCompile Include="AlgorithmRegistrar.cpp" />
     <ClCompile Include="House.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -117,9 +117,9 @@
   <ItemGroup>
     <ClInclude Include="AbstractAlgorithm.h" />
     <ClInclude Include="AbstractSensor.h" />
-    <ClInclude Include="Algorithm1.h" />
-    <ClInclude Include="Algorithm2.h" />
-    <ClInclude Include="Algorithm3.h" />
+    <ClInclude Include="_305623571_A.h" />
+    <ClInclude Include="_305623571_B.h" />
+    <ClInclude Include="_305623571_C.h" />
     <ClInclude Include="AlgorithmRegistration.h" />
     <ClInclude Include="Battery.h" />
     <ClInclude Include="Common.h" />

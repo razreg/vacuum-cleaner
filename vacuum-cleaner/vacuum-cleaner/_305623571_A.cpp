@@ -1,6 +1,6 @@
-#include "Algorithm1.h"
+#include "_305623571_A.h"
 
-REGISTER_ALGORITHM(Algorithm1)
+REGISTER_ALGORITHM(_305623571_A)
 
 /**
  * Return trip scheme is to follow the reverse trip.
@@ -9,7 +9,7 @@ REGISTER_ALGORITHM(Algorithm1)
  * freedom to choose where to go.
  * When in docking station charge till full.
  */
-Direction Algorithm1::step() {
+Direction _305623571_A::step() {
 
 	Direction direction = Direction::Stay; // default
 	SensorInformation sensorInformation = sensor->sense();
@@ -29,14 +29,18 @@ Direction Algorithm1::step() {
 				do {
 					directionCounter = (directionCounter + 1) % stayIndex;
 				} while (sensorInformation.isWall[directionCounter] && i++ < stayIndex);
-				direction = static_cast<Direction>(directionCounter);
-				lastDirection = direction;
+				if (!sensorInformation.isWall[directionCounter]) {
+					direction = static_cast<Direction>(directionCounter);
+					lastDirection = direction;
+					storeDataForReturnTrip(direction);
+				}
 			}
 		}
 		else if (sensorInformation.dirtLevel <= 1) {
 			// prefer to stay on your track
 			if (!sensorInformation.isWall[static_cast<int>(lastDirection)]) {
 				direction = lastDirection;
+				storeDataForReturnTrip(direction);
 			}
 			else {
 				for (int i : directionsPermutation) {
@@ -44,6 +48,7 @@ Direction Algorithm1::step() {
 					if (!sensorInformation.isWall[index]) {
 						direction = static_cast<Direction>(index);
 						lastDirection = direction;
+						storeDataForReturnTrip(direction);
 						break;
 					}
 				}
@@ -61,6 +66,5 @@ Direction Algorithm1::step() {
 	}
 
 	--stepsLeft;
-	storeDataForReturnTrip(direction);
 	return direction;
 }

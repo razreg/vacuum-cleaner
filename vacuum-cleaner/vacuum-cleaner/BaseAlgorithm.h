@@ -32,6 +32,7 @@ protected:
 		vector<int> perm = { 0, 2, 1, 3 };
 		directionsPermutation = move(perm);
 		stepsLeft = numeric_limits<size_t>::max();
+		lastDirection = Direction::Stay;
 	};
 
 public:
@@ -59,7 +60,7 @@ public:
 
 	virtual bool isReturnTripFeasable(size_t moves) const {
 		return moves <= stepsLeft && // There are enough steps
-			!battery.empty() && battery.getCurrValue() >= moves * battery.getConsumptionRate(); // The battery will suffice
+			battery.getCurrValue() >= moves * battery.getConsumptionRate(); // The battery will suffice
 	};
 
 	// updates the vector used to return back to docking station

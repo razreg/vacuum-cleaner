@@ -99,20 +99,17 @@ bool parseArgs(int argc, char** argv, string& configPath, string& housesPath, st
 	bool valid = true;
 	for (int i = 1; valid && i < argc; ++i) {
 		if ((string(argv[i])).compare("-config") == 0) {
-			valid = argc > i + 1;
-			if (valid) {
+			if ((valid = argc > i + 1)) {
 				configPath = argv[i + 1];
 			}
 		}
 		else if ((string(argv[i])).compare("-house_path") == 0) {
-			valid = argc > i + 1;
-			if (valid) {
+			if ((valid = argc > i + 1)) {
 				housesPath = argv[i + 1];
 			}
 		}
 		else if ((string(argv[i])).compare("-algorithm_path") == 0) {
-			valid = argc > i + 1;
-			if (valid) {
+			if ((valid = argc > i + 1)) {
 				algorithmsPath = argv[i + 1];
 			}
 		}
@@ -204,7 +201,7 @@ void populateConfigMap(ifstream& configFileStream, map<string, int>& configMap) 
 			trimString(key);
 			if (positionOfEquals != string::npos) {
 				int value = stoi(currLine.substr((int)positionOfEquals + 1)); // possibly: invalid_argument or out_of_range
-				configMap.insert(pair<string, int>(key, max(0, value)));
+				configMap[key] = max(0, value);
 			}
 		}
 		catch (exception& e) {
