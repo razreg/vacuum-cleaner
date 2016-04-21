@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "SensorImpl.h"
+#include "Direction.h"
 #include "AbstractAlgorithm.h"
 #include "House.h"
 #include "Battery.h"

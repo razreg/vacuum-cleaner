@@ -4,6 +4,7 @@
 #include <functional>
 #include <memory>
 
+#include "Direction.h"
 #include "AbstractAlgorithm.h"
 #include "AlgorithmRegistrar.h"
 
@@ -15,9 +16,7 @@ std::unique_ptr<T> _make_unique(Args&&... args) {
 
 class AlgorithmRegistration {
 public:
-	AlgorithmRegistration(std::function<unique_ptr<AbstractAlgorithm>()> algorithmFactory) {
-		AlgorithmRegistrar::getInstance().registerAlgorithm(algorithmFactory);
-	};
+	AlgorithmRegistration(std::function<unique_ptr<AbstractAlgorithm>()> algorithmFactory);
 };
 
 #define REGISTER_ALGORITHM(class_name) AlgorithmRegistration register_me_##class_name([]{return _make_unique<class_name>();});

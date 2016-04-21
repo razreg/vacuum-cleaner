@@ -1,9 +1,8 @@
 #ifndef __BASE_ALGORITHM__H_
 #define __BASE_ALGORITHM__H_
 
-#include "AbstractAlgorithm.h"
-
 #include "Direction.h"
+#include "AbstractAlgorithm.h"
 #include "Battery.h"
 #include "Common.h"
 

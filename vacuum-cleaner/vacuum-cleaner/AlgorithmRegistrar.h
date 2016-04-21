@@ -6,6 +6,7 @@
 #include <memory>
 #include <dlfcn.h>
 
+#include "Direction.h"
 #include "AbstractAlgorithm.h"
 #include "Common.h"
 

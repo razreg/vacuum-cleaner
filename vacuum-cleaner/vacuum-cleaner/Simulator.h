@@ -5,6 +5,7 @@
 
 #include "Results.h"
 #include "Robot.h"
+#include "Direction.h"
 #include "AbstractAlgorithm.h"
 #include "House.h"
 #include "Position.h"

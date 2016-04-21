@@ -113,9 +113,6 @@ bool parseArgs(int argc, char** argv, string& configPath, string& housesPath, st
 				algorithmsPath = argv[i + 1];
 			}
 		}
-		else if (i % 2 == 1) {
-			valid = false;
-		}
 	}
 	return valid;
 }
