@@ -20,11 +20,11 @@ Direction ManhattenAlgorithm::step() {
 	// if the robot can return after next step or can't return now - keep cleaning
 	// 4 is a precaution to allow getting back to docking even if there are walls in the way
 	if (stepsToBypassWall > 0 || isReturnTripFeasable(abs(xPos) + abs(yPos) + 2 + MAX_BYPASS)
-		|| !isReturnTripFeasable(abs(xPos) + abs(yPos) + MAX_BYPASS)) {
+		|| !isReturnTripFeasable(abs(xPos) + abs(yPos) + stepsToBypassWall)) {
 		int stayIndex = static_cast<int>(Direction::Stay);
 		if (inDockingStation()) {
 			// stay in docking station until battery is full and don't travel if can't come back in time
-			if (battery.full() && isReturnTripFeasable(abs(xPos) + abs(yPos) + 2 + MAX_BYPASS)) {
+			if (battery.full() && isReturnTripFeasable(abs(xPos) + abs(yPos) + 2)) {
 				int i = 0;
 				do {
 					directionCounter = (directionCounter + 1) % stayIndex;
@@ -32,13 +32,11 @@ Direction ManhattenAlgorithm::step() {
 				if (!sensorInformation.isWall[directionCounter]) {
 					direction = static_cast<Direction>(directionCounter);
 					lastDirection = direction;
-					storeDataForReturnTrip(direction);
 				}
 			}
 		}
 		else if (isReadyToMoveOn(sensorInformation)) {
 			direction = keepCleaningOutOfDocking(sensorInformation);
-			storeDataForReturnTrip(direction);
 		}
 	}
 	else if (!inDockingStation()) { // robot must return now to get to docking
@@ -54,6 +52,7 @@ Direction ManhattenAlgorithm::step() {
 	if (stepsToBypassWall > 0) {
 		--stepsToBypassWall;
 	}
+	storeDataForReturnTrip(direction);
 	return direction;
 }
 
