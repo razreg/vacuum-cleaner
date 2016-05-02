@@ -25,6 +25,7 @@ class Robot {
 	SensorImpl sensor;
 	Battery battery;
 	Position position;
+	Direction prevStep;
 	bool illegalStepPerformed = false;
 	bool batteryDead = false;
 	bool finished = false;
@@ -69,6 +70,7 @@ public:
 
 	void restart() {
 		battery.setCurrValue(battery.getCapacity());
+		prevStep = Direction::Stay;
 		illegalStepPerformed = false;
 		batteryDead = false;
 		finished = false;

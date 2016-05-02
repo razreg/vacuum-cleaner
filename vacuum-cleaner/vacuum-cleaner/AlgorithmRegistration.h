@@ -1,24 +1,16 @@
-#ifndef __ALGORITHM_REGISTRATION__H_
+﻿#ifndef __ALGORITHM_REGISTRATION__H_
 #define __ALGORITHM_REGISTRATION__H_
 
 #include <functional>
 #include <memory>
-
-#include "Direction.h"
-#include "AbstractAlgorithm.h"
-#include "AlgorithmRegistrar.h"
-
-// because we currently need to use c++11 (c++14 isn't supported on nova with current g++ version)
-template<typename T, typename... Args>
-std::unique_ptr<T> _make_unique(Args&&... args) {
-	return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
+#include "Direction.h" // TODO is this ok? was not here originally
+#include "AbstractAlgorithm.h" // TODO is this ok? was not here originally
 
 class AlgorithmRegistration {
 public:
-	AlgorithmRegistration(std::function<unique_ptr<AbstractAlgorithm>()> algorithmFactory);
+	AlgorithmRegistration(std::function<std::unique_ptr<AbstractAlgorithm>()>);
 };
 
-#define REGISTER_ALGORITHM(class_name) AlgorithmRegistration register_me_##class_name([]{return _make_unique<class_name>();});
+#define REGISTER_ALGORITHM(class_name) AlgorithmRegistration register_me_##class_name([]{return make_unique<class_name>();});
 
 #endif // __ALGORITHM_REGISTRATION__H_

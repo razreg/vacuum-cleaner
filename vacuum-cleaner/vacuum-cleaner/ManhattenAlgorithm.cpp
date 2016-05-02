@@ -7,7 +7,7 @@
 * freedom to choose where to go.
 * When in docking station charge till full.
 */
-Direction ManhattenAlgorithm::step() {
+Direction ManhattenAlgorithm::step(Direction prevStep) {
 
 	Direction direction = Direction::Stay; // default
 	SensorInformation sensorInformation = sensor->sense();

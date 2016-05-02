@@ -102,6 +102,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AlgorithmRegistration.cpp" />
     <ClCompile Include="_305623571_A.cpp" />
     <ClCompile Include="_305623571_B.cpp" />
     <ClCompile Include="_305623571_C.cpp" />
@@ -117,6 +118,7 @@
   <ItemGroup>
     <ClInclude Include="AbstractAlgorithm.h" />
     <ClInclude Include="AbstractSensor.h" />
+    <ClInclude Include="uniqueptr.h" />
     <ClInclude Include="_305623571_A.h" />
     <ClInclude Include="_305623571_B.h" />
     <ClInclude Include="_305623571_C.h" />

@@ -121,6 +121,7 @@ void Simulator::robotFinishedCleaning(Robot& robot, int steps, int& winnerNumSte
 }
 
 void Simulator::performStep(Robot& robot, int steps, int maxSteps, int maxStepsAfterWinner, int stepsAfterWinner) {
+
 	string houseName = robot.getHouse().getName();
 	string algorithmName = robot.getAlgorithmName();
 

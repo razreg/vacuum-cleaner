@@ -14,7 +14,32 @@ void Results::print(ostream& out) const {
 	if (houseNames.empty() || algorithmNames.empty()) {
 		return;
 	}
+	map <double, string, std::greater<double>> scoreLines;
+	printHeader(out);
 
+	// store scores in map
+	for (string algorithm : algorithmNames) {
+		stringstream stream;
+		printAlgorithmCell(stream, algorithm);
+		double avg = 0.0;
+		for (string house : houseNames) {
+			int score = (*this)[algorithm].at(house).getScore();
+			avg += score;
+			printScoreCell(stream, to_string(score));
+		}
+		avg /= houseNames.size();
+		printScoreCell(stream, avg);
+		scoreLines[avg] = stream.str();
+	}
+
+	// print map order by average score desc
+	for (auto const& score : scoreLines) {
+		out << score.second << endl;
+		printHorizontalLine(out);
+	}
+}
+
+void Results::printHeader(ostream& out) const {
 	printHorizontalLine(out);
 	printAlgorithmCell(out, string(" "));
 	for (string house : houseNames) {
@@ -23,17 +48,4 @@ void Results::print(ostream& out) const {
 	printHeaderCell(out, string("AVG"));
 	out << endl;
 	printHorizontalLine(out);
-	for (string algorithm : algorithmNames) {
-		printAlgorithmCell(out, algorithm);
-		double avg = 0.0;
-		for (string house : houseNames) {
-			int score = (*this)[algorithm].at(house).getScore();
-			avg += score;
-			printScoreCell(out, to_string(score));
-		}
-		avg /= houseNames.size();
-		printScoreCell(out, avg);
-		out << endl;
-		printHorizontalLine(out);
-	}
 }

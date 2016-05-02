@@ -1,9 +1,6 @@
 #ifndef __ALGORITHM_REGISTRAR__H_
 #define __ALGORITHM_REGISTRAR__H_
 
-#include <list>
-#include <functional>
-#include <memory>
 #include <dlfcn.h>
 
 #include "Direction.h"

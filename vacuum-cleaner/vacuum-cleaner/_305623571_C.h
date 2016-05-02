@@ -2,6 +2,7 @@
 #define __ALGORITHM_3__H_
 
 #include "ManhattenAlgorithm.h"
+#include "uniqueptr.h"
 #include "AlgorithmRegistration.h"
 
 class _305623571_C : public ManhattenAlgorithm {

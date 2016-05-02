@@ -6,10 +6,13 @@ namespace fs = boost::filesystem;
 Logger logger = Logger("Main");
 AlgorithmRegistrar& registrar = AlgorithmRegistrar::getInstance();
 
+// TODO break to methods
 int main(int argc, char** argv) {
 
 	string usage =
-		"Usage: simulator [-config <config path>] [-house_path <house path>] [-algorithm_path <algorithm path>]";
+		"Usage: simulator [-config <config path>] [-house_path <house path>] "
+		"[-algorithm_path <algorithm path>] [-score_formula <score .so path>] " 
+		"[-threads <num threads>]";
 
 	list<House> houseList;
 	map<string, int> configMap;
@@ -32,8 +35,11 @@ int main(int argc, char** argv) {
 	string configPath = workingDir;
 	string housesPath = workingDir;
 	string algorithmsPath = workingDir;
+	string scoreFormula = SCORE_FORMULA_PLACEHOLDER; // TODO default
+	size_t threads = 1;
+
 	logger.debug("Parsing command line arguments");
-	bool isValid = parseArgs(argc, argv, configPath, housesPath, algorithmsPath);
+	bool isValid = parseArgs(argc, argv, configPath, housesPath, algorithmsPath, scoreFormula, threads);
 	if (!isValid) {
 		logger.fatal("Invalid arguments");
 		cout << usage << endl;
@@ -53,6 +59,14 @@ int main(int argc, char** argv) {
 	catch (exception& e) {
 		logger.fatal(e.what());
 		return INVALID_CONFIGURATION;
+	}
+
+	// Score formula
+	if (SCORE_FORMULA_PLACEHOLDER == scoreFormula) {
+		// TODO use default score formula
+	}
+	else {
+		// TODO load score formula from .so file
 	}
 
 	// Algorithms
@@ -95,22 +109,32 @@ int main(int argc, char** argv) {
 	return SUCCESS;
 }
 
-bool parseArgs(int argc, char** argv, string& configPath, string& housesPath, string& algorithmsPath) {
+bool parseArgs(int argc, char** argv, string& configPath, string& housesPath, string& algorithmsPath, 
+	string &scoreFormula, size_t& threads) {
+
 	bool valid = true;
 	for (int i = 1; valid && i < argc; ++i) {
-		if ((string(argv[i])).compare("-config") == 0) {
-			if ((valid = argc > i + 1)) {
-				configPath = argv[i + 1];
-			}
+		if (string(argv[i]) == "-config") {
+			if ((valid = argc > i + 1)) configPath = argv[i + 1];
 		}
-		else if ((string(argv[i])).compare("-house_path") == 0) {
-			if ((valid = argc > i + 1)) {
-				housesPath = argv[i + 1];
-			}
+		else if (string(argv[i]) == "-house_path") {
+			if ((valid = argc > i + 1)) housesPath = argv[i + 1];
 		}
-		else if ((string(argv[i])).compare("-algorithm_path") == 0) {
+		else if (string(argv[i]) == "-algorithm_path") {
+			if ((valid = argc > i + 1)) algorithmsPath = argv[i + 1];
+		}
+		else if (string(argv[i]) == "-score_formula") {
+			if ((valid = argc > i + 1)) scoreFormula = argv[i + 1];
+		}
+		else if (string(argv[i]) == "-threads") {
 			if ((valid = argc > i + 1)) {
-				algorithmsPath = argv[i + 1];
+				string threadsStr = argv[i + 1];
+				try {
+					threads = max(1, stoi(threadsStr));
+				}
+				catch (exception& e) {
+					threads = 1;
+				}
 			}
 		}
 	}
@@ -129,7 +153,9 @@ string getCurrentWorkingDirectory() {
 bool loadHouseList(const string& housesPath, list<House>& houseList, vector<string>& errors, string& usage) {
 
 	fs::path dir(housesPath);
-	if (!isDirectory(dir, usage)) {
+	if (!isDirectory(dir)) {
+		cout << usage << endl;
+		cout << "cannot find house files in '" << dir.string() << "'" << endl;
 		return false;
 	}
 
@@ -164,6 +190,7 @@ bool loadConfiguration(const string& configFileDir, map<string, int>& configMap,
 	fs::path path = fs::path(configFileDir) / "config.ini";
 	if (!fs::exists(path)) {
 		cout << usage << endl;
+		cout << "cannot find config.ini file in '" << path.string() << "'" << endl;
 		return false;
 	}
 
@@ -197,8 +224,16 @@ void populateConfigMap(ifstream& configFileStream, map<string, int>& configMap) 
 			string key = currLine.substr(0, (int)positionOfEquals);
 			trimString(key);
 			if (positionOfEquals != string::npos) {
-				int value = stoi(currLine.substr((int)positionOfEquals + 1)); // possibly: invalid_argument or out_of_range
-				configMap[key] = max(0, value);
+				string valueStr = currLine.substr((int)positionOfEquals + 1);
+				int value;
+				if (valueStr.empty() || find_if(valueStr.begin(),
+					valueStr.end(), [](char c) { return !isdigit(c); }) != valueStr.end()) {
+					value = -1;
+				}
+				else {
+					value = stoi(valueStr); // possibly: invalid_argument or out_of_range
+				}
+				configMap[key] = value;
 			}
 		}
 		catch (exception& e) {
@@ -209,28 +244,41 @@ void populateConfigMap(ifstream& configFileStream, map<string, int>& configMap) 
 }
 
 bool isConfigMapValid(map<string, int>& configMap) {
-
+	bool ret = true;
 	vector<string> params = { "MaxStepsAfterWinner", "BatteryCapacity",
 		"BatteryConsumptionRate", "BatteryRechargeRate" };
 	vector<string> missing;
+	vector<string> bad;
 
 	for (string& param : params) {
 		if (configMap.find(param) == configMap.end()) {
 			missing.push_back(param);
 		}
+		else if (configMap[param] < 0) {
+			bad.push_back(param);
+		}
 	}
 	if (!missing.empty()) {
 		cout << "config.ini missing " << missing.size() << " parameter(s): ";
-		for (size_t i = 0; i < missing.size(); ++i) {
-			cout << missing[i];
-			if (i < missing.size() - 1) {
-				cout << ", ";
-			}
-		}
-		cout << endl;
-		return false;
+		printStringVector(missing);
+		ret = false;
 	}
-	return true;
+	if (!bad.empty()) {
+		cout << "config.ini having bad values for " << bad.size() << " parameter(s): ";
+		printStringVector(bad);
+		ret = false;
+	}
+	return ret;
+}
+
+void printStringVector(vector<string>& vec) {
+	for (size_t i = 0; i < vec.size(); ++i) {
+		cout << vec[i];
+		if (i < vec.size() - 1) {
+			cout << ", ";
+		}
+	}
+	cout << endl;
 }
 
 void trimString(string& str) {
@@ -259,7 +307,9 @@ bool loadAlgorithms(const string& algorithmsPath, list<unique_ptr<AbstractAlgori
 	list<string>& algorithmNames, vector<string>& errors, string& usage) {
 
 	fs::path dir(algorithmsPath);
-	if (!isDirectory(dir, usage)) {
+	if (!isDirectory(dir)) {
+		cout << usage << endl;
+		cout << "cannot find algorithm files in '" << dir.string() << "'" << endl;
 		return false;
 	}
 
@@ -293,14 +343,6 @@ bool loadAlgorithms(const string& algorithmsPath, list<unique_ptr<AbstractAlgori
 	return !allLoadingFailed(algorithms, errors, usage, "algorithm", dir);
 }
 
-bool isDirectory(fs::path& dir, string& usage) {
-	if (!fs::exists(dir) || !fs::is_directory(dir)) {
-		cout << usage << endl;
-		return false;
-	}
-	return true;
-}
-
 template<typename T>
 bool allLoadingFailed(list<T>& loadedObjectsList, vector<string>& errors, string& usage, 
 	string typeName, fs::path& dir) {
@@ -308,6 +350,7 @@ bool allLoadingFailed(list<T>& loadedObjectsList, vector<string>& errors, string
 	if (loadedObjectsList.empty()) {
 		if (errors.empty()) {
 			cout << usage << endl;
+			cout << "cannot find " << typeName << " files in '" << dir.string() << "'" << endl;
 		}
 		else {
 			cout << "All " << typeName << " files in target folder '" 

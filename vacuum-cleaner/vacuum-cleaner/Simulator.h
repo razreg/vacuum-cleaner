@@ -1,8 +1,6 @@
 #ifndef __SIMULATOR__H_
 #define __SIMULATOR__H_
 
-#include <list>
-
 #include "Results.h"
 #include "Robot.h"
 #include "Direction.h"
@@ -32,14 +30,15 @@ class Simulator {
 	void robotFinishedCleaning(Robot& robot, int steps, int& winnerNumSteps, 
 		int positionInCompetition, int& robotsFinishedInRound);
 
-	void performStep(Robot& robot, int steps, int maxSteps, int maxStepsAfterWinner, int stepsAfterWinner);
+	void performStep(Robot& robot, int steps, int maxSteps, 
+		int maxStepsAfterWinner, int stepsAfterWinner);
 
 public:
 	
 	Simulator(map<string, int>& configMap, list<House>& houseList, 
 		list<unique_ptr<AbstractAlgorithm>>& algorithms, list<string>&& algorithmNames);
 
-	vector<string> execute(); // returs simulation errors
+	vector<string> execute(); // returns simulation errors
 
 };
 

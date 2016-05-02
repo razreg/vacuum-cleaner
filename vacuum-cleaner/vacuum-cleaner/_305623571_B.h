@@ -2,6 +2,7 @@
 #define __ALGORITHM_2__H_
 
 #include "ManhattenAlgorithm.h"
+#include "uniqueptr.h"
 #include "AlgorithmRegistration.h"
 
 using namespace std;

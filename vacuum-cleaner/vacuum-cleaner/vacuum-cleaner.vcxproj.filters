@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\algorithms">
+      <UniqueIdentifier>{8f434ba1-7e96-4517-a678-3c300bbc1a8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\algorithms">
+      <UniqueIdentifier>{edea03b0-1185-4625-8387-85f22e11c4ba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SensorImpl.cpp">
@@ -36,16 +42,19 @@
     <ClCompile Include="AlgorithmRegistrar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ManhattenAlgorithm.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="_305623571_A.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\algorithms</Filter>
     </ClCompile>
     <ClCompile Include="_305623571_B.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\algorithms</Filter>
     </ClCompile>
     <ClCompile Include="_305623571_C.cpp">
+      <Filter>Source Files\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="ManhattenAlgorithm.cpp">
+      <Filter>Source Files\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="AlgorithmRegistration.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -98,19 +107,22 @@
     <ClInclude Include="AlgorithmRegistration.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BaseAlgorithm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ManhattenAlgorithm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="_305623571_A.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="_305623571_C.h">
+      <Filter>Header Files\algorithms</Filter>
     </ClInclude>
     <ClInclude Include="_305623571_B.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\algorithms</Filter>
     </ClInclude>
-    <ClInclude Include="_305623571_C.h">
+    <ClInclude Include="_305623571_A.h">
+      <Filter>Header Files\algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="ManhattenAlgorithm.h">
+      <Filter>Header Files\algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseAlgorithm.h">
+      <Filter>Header Files\algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="uniqueptr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -9,7 +9,7 @@ REGISTER_ALGORITHM(_305623571_A)
  * freedom to choose where to go.
  * When in docking station charge till full.
  */
-Direction _305623571_A::step() {
+Direction _305623571_A::step(Direction prevStep) {
 
 	Direction direction = Direction::Stay; // default
 	SensorInformation sensorInformation = sensor->sense();

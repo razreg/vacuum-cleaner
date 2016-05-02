@@ -8,19 +8,19 @@ void Robot::step() {
 		battery.consume();
 	}
 
-	Direction direction = algorithm.step();
+	prevStep = algorithm.step(prevStep);
 	//if (logger.debugEnabled()) logger.debug("Algorithm chose step: " + directions[static_cast<int>(direction)]);
 
-	if (direction == Direction::East) {
+	if (prevStep == Direction::East) {
 		position.moveEast();
 	}
-	else if (direction == Direction::West) {
+	else if (prevStep == Direction::West) {
 		position.moveWest();
 	}
-	else if (direction == Direction::South) {
+	else if (prevStep == Direction::South) {
 		position.moveSouth();
 	}
-	else if (direction == Direction::North) {
+	else if (prevStep == Direction::North) {
 		position.moveNorth();
 	}
 	sensor.setPosition(position);

@@ -5,6 +5,7 @@
 #include "Score.h"
 
 #include <iomanip>
+#include <sstream>
 
 using namespace std;
 
@@ -34,6 +35,8 @@ class Results {
 		int amount = 15 + (houseNames.size() + 1) * 11;
 		out << left << setw(amount) << setfill('-') << "" << endl;
 	};
+
+	void printHeader(ostream& out) const;
 
 public:
 

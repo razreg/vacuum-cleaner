@@ -49,7 +49,7 @@ public:
 		configured = true;
 	};
 
-	virtual Direction step() override = 0;
+	virtual Direction step(Direction prevStep) override = 0;
 
 	virtual void aboutToFinish(int stepsTillFinishing) override {
 		stepsLeft = stepsTillFinishing > 0 ? stepsTillFinishing : 0;

@@ -31,7 +31,7 @@ protected:
 
 public:
 
-	virtual Direction step() override;
+	virtual Direction step(Direction prevStep) override;
 
 	virtual bool inDockingStation() const override {
 		return xPos == 0 && yPos == 0;

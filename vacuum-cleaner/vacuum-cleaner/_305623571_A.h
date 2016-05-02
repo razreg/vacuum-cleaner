@@ -2,6 +2,7 @@
 #define __ALGORITHM_1__H_
 
 #include "BaseAlgorithm.h"
+#include "uniqueptr.h"
 #include "AlgorithmRegistration.h"
 
 using namespace std;
@@ -19,7 +20,7 @@ protected:
 
 public:
 
-	virtual Direction step() override;
+	virtual Direction step(Direction prevStep) override;
 
 	virtual bool inDockingStation() const override {
 		return movesBack.empty();
