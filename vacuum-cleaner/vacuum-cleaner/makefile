@@ -38,3 +38,13 @@ ManhattenAlgorithm.o: ManhattenAlgorithm.cpp
 
 305623571_C_.so: _305623571_C.o
 	$(CC) -shared -Wl,-soname,$@ -o $@ $< AlgorithmRegistration.o ManhattenAlgorithm.o
+
+############################ ScoreFormula ##########################
+
+score_formula: score_formula.o score_formula.so
+
+score_formula.o: score_formula.cpp
+	$(CC) $(CFLAGS) -c $< -mcmodel=large
+
+score_formula.so: score_formula.o
+	$(CC) -shared -Wl,-soname,$@ -o $@ $<

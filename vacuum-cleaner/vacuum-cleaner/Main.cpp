@@ -6,7 +6,7 @@ namespace fs = boost::filesystem;
 Logger logger = Logger("Main");
 AlgorithmRegistrar& registrar = AlgorithmRegistrar::getInstance();
 
-// TODO break to methods
+// TODO break to methods and consider making main an object
 int main(int argc, char** argv) {
 
 	string usage =
@@ -16,6 +16,7 @@ int main(int argc, char** argv) {
 
 	list<House> houseList;
 	map<string, int> configMap;
+	ScoreFormula scoreFormula = NULL;
 	list<unique_ptr<AbstractAlgorithm>> algorithms;
 	list<string> algorithmNames;
 
@@ -35,18 +36,20 @@ int main(int argc, char** argv) {
 	string configPath = workingDir;
 	string housesPath = workingDir;
 	string algorithmsPath = workingDir;
-	string scoreFormula = SCORE_FORMULA_PLACEHOLDER; // TODO default
+	string scoreFormulaPath = SCORE_FORMULA_PLACEHOLDER;
 	size_t threads = 1;
 
 	logger.debug("Parsing command line arguments");
-	bool isValid = parseArgs(argc, argv, configPath, housesPath, algorithmsPath, scoreFormula, threads);
+	bool isValid = parseArgs(argc, argv, configPath, housesPath, algorithmsPath, scoreFormulaPath, threads);
 	if (!isValid) {
 		logger.fatal("Invalid arguments");
 		cout << usage << endl;
 		return INVALID_ARGUMENTS;
 	}
-	logger.debug("Using config file directory path as [" + configPath + "]");
-	logger.debug("Using house files directory path as [" + housesPath + "]");
+	if (logger.debugEnabled()) {
+		logger.debug("Using config file directory path as [" + configPath + "]");
+		logger.debug("Using house files directory path as [" + housesPath + "]");
+	}
 
 	// Configuration
 	try {
@@ -62,11 +65,19 @@ int main(int argc, char** argv) {
 	}
 
 	// Score formula
-	if (SCORE_FORMULA_PLACEHOLDER == scoreFormula) {
-		// TODO use default score formula
-	}
-	else {
-		// TODO load score formula from .so file
+	void* libHandle = nullptr;
+	if (SCORE_FORMULA_PLACEHOLDER != scoreFormulaPath) {
+		try {
+			logger.info("Loading score_formula.so from directory");
+			isValid = loadScoreFormula(scoreFormulaPath, scoreFormula, libHandle, usage);
+		}
+		catch (exception& e) {
+			logger.fatal(e.what());
+			isValid = false;
+		}
+		if (!isValid) {
+			return INVALID_SCORE_FORMULA;
+		}
 	}
 
 	// Algorithms
@@ -96,7 +107,7 @@ int main(int argc, char** argv) {
 	}
 
 	// Start simulator
-	Simulator simulator(configMap, houseList, algorithms, move(algorithmNames));
+	Simulator simulator(configMap, scoreFormula, houseList, algorithms, move(algorithmNames));
 	try {
 		simulationErrors = simulator.execute();
 	}
@@ -106,6 +117,9 @@ int main(int argc, char** argv) {
 	}
 
 	printErrors(houseErrors, algorithmErrors, simulationErrors);
+	if (libHandle != nullptr) {
+		dlclose(libHandle);
+	}
 	return SUCCESS;
 }
 
@@ -341,6 +355,38 @@ bool loadAlgorithms(const string& algorithmsPath, list<unique_ptr<AbstractAlgori
 	}
 
 	return !allLoadingFailed(algorithms, errors, usage, "algorithm", dir);
+}
+
+bool loadScoreFormula(const string& scoreFormulaPath, ScoreFormula& scoreFormula, void* libHandle, string& usage) {
+
+	fs::path base = fs::path(scoreFormulaPath);
+	fs::path path = base / "score_formula.so";
+	if (!fs::exists(path)) {
+		cout << usage << endl;
+		cout << "cannot find score_formula.so file in '" << base.string() << "'" << endl;
+		return false;
+	}
+
+	libHandle = dlopen(path.c_str(), RTLD_NOW);
+	if (libHandle == NULL) {
+		if (logger.debugEnabled()) {
+			logger.debug("Failed to load score_formula.so. Details: " + string(dlerror()));
+		}
+		cout << "score_formula.so exists in '" << path.string() 
+			<< "' but cannot be opened or is not a valid .so" << endl;
+		return false;
+	}
+	void* func = dlsym(libHandle, SCORE_FORMULA_METHOD_NAME); // TODO cast exception?
+	scoreFormula = reinterpret_cast<ScoreFormula>(reinterpret_cast<long>(func));
+	char* err;
+	if ((err = dlerror()) != NULL) {
+		logger.debug("Failed to load score_formula.so. Details: " + string(err));
+		cout << "score_formula.so is a valid.so but it does not have a valid score formula" << endl;
+		dlclose(libHandle);
+		return false;
+	}
+
+	return true;
 }
 
 template<typename T>

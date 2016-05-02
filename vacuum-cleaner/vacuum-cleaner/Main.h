@@ -15,16 +15,20 @@ const int SUCCESS = 0;
 const int INTERNAL_FAILURE = 1;
 const int INVALID_ARGUMENTS = 2;
 const int INVALID_CONFIGURATION = 3;
-const int INVALID_HOUSES = 4;
-const int INVALID_ALGORITHMS = 5;
+const int INVALID_SCORE_FORMULA = 4;
+const int INVALID_HOUSES = 5;
+const int INVALID_ALGORITHMS = 6;
 
 const string SCORE_FORMULA_PLACEHOLDER = "&%$+#@(*-6~78)i!dfa4//=";
+const char* SCORE_FORMULA_METHOD_NAME = "calc_score";
 
 string getCurrentWorkingDirectory();
 
 bool loadConfiguration(const string& configFileDir, map<string, int>& configMap, string& usage);
 
 void populateConfigMap(ifstream& configFileStream, map<string, int>& configMap);
+
+bool loadScoreFormula(const string& scoreFormulaPath, ScoreFormula& scoreFormula, void* libHandle, string& usage);
 
 bool loadHouseList(const string& housesPath, list<House>& houseList, vector<string>& errors, string& usage);
 

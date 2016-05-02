@@ -11,6 +11,7 @@ using namespace std;
 
 class Results {
 
+	ScoreFormula scoreFormula;
 	map<string, map<string, Score>> scoreMap;
 	list<string> algorithmNames;
 	vector<string> houseNames;
@@ -42,7 +43,7 @@ public:
 
 	Results() {};
 
-	Results(list<string> algorithmNames, vector<string>&& houseNames);
+	Results(list<string> algorithmNames, vector<string>&& houseNames, ScoreFormula scoreFormula);
 
 	map<string, Score>& operator [] (string str) {
 		if (scoreMap.find(str) != scoreMap.end()) {
@@ -62,7 +63,7 @@ public:
 		}
 	}
 
-	void print(ostream& out = cout) const;
+	void print(vector<string>& errors, ostream& out = cout) const;
 
 };
 

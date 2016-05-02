@@ -1,6 +1,7 @@
 #ifndef __COMMON__H_
 #define __COMMON__H_
 
+#include <dlfcn.h>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -16,6 +17,8 @@
 
 using namespace std;
 
+typedef int(*ScoreFormula)(const map<string, int>&);
+
 // configuration strings
 const string MAX_STEPS = "MaxSteps";
 const string MAX_STEPS_AFTER_WINNER = "MaxStepsAfterWinner";
@@ -26,7 +29,7 @@ const string BATTERY_RECHARGE_RATE = "BatteryRechargeRate";
 enum LogLevel { DEBUG, INFO, WARN, ERROR, FATAL, OFF };
 const string loggerLevels[] = { "DEBUG", "INFO", "WARN", "ERROR", "FATAL" };
 
-const LogLevel LOG_LEVEL = OFF;
+const LogLevel LOG_LEVEL = DEBUG;
 
 // simple logger which simply writes to cout but with nice format
 class Logger {

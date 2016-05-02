@@ -3,18 +3,63 @@
 
 using namespace std;
 
-const int DIDNT_FINISH_POSITION_IN_COMPETETION = 10;
-
 class Score {
 
-	int positionInCompetition = DIDNT_FINISH_POSITION_IN_COMPETETION;
+	ScoreFormula calcScore = NULL;
+
+	int positionInCompetition = 1;
+	int simulationSteps = 0;
 	int winnerNumSteps = 0;
 	int thisNumSteps = 0;
-	int finalSumDirtInHouse = 0;
-	bool isBackInDocking = false;
+	int sumDirtInHouse = 0;
+	int isBackInDocking = 0;
+	int dirtCollected = 0;
+
 	bool badBehavior = false;
 
 public:
+
+	Score() {};
+
+	Score(ScoreFormula scoreFormula) : calcScore(scoreFormula) {};
+
+	~Score() {};
+
+	Score(const Score& copyFromMe) : calcScore(copyFromMe.calcScore) {};
+
+	Score(Score&& moveFromMe) {
+		swap(this->calcScore, moveFromMe.calcScore);
+	};
+
+	Score& operator=(Score&& moveFromMe) {
+		if (this != &moveFromMe) {
+			swap(this->calcScore, moveFromMe.calcScore);
+			this->positionInCompetition = moveFromMe.positionInCompetition;
+			this->simulationSteps = moveFromMe.simulationSteps;
+			this->winnerNumSteps = moveFromMe.winnerNumSteps;
+			this->thisNumSteps = moveFromMe.thisNumSteps;
+			this->sumDirtInHouse = moveFromMe.sumDirtInHouse;
+			this->isBackInDocking = moveFromMe.isBackInDocking;
+			this->dirtCollected = moveFromMe.dirtCollected;
+			this->badBehavior = moveFromMe.badBehavior;
+		}
+		return *this;
+	};
+
+	Score& operator=(const Score& copyFromMe) {
+		if (this != &copyFromMe) {
+			this->calcScore = copyFromMe.calcScore;
+			this->positionInCompetition = copyFromMe.positionInCompetition;
+			this->simulationSteps = copyFromMe.simulationSteps;
+			this->winnerNumSteps = copyFromMe.winnerNumSteps;
+			this->thisNumSteps = copyFromMe.thisNumSteps;
+			this->sumDirtInHouse = copyFromMe.sumDirtInHouse;
+			this->isBackInDocking = copyFromMe.isBackInDocking;
+			this->dirtCollected = copyFromMe.dirtCollected;
+			this->badBehavior = copyFromMe.badBehavior;
+		}
+		return *this;
+	};
 
 	void setPositionInCompetition(int positionInCompetition) {
 		this->positionInCompetition = positionInCompetition;
@@ -24,20 +69,24 @@ public:
 		this->winnerNumSteps = winnerNumSteps;
 	};
 
+	void setSimulationSteps(int simulationSteps) {
+		this->simulationSteps = simulationSteps;
+	};
+
 	void setThisNumSteps(int thisNumSteps) {
 		this->thisNumSteps = thisNumSteps;
 	};
 
-	void setFinalSumDirtInHouse(int finalSumDirtInHouse) {
-		this->finalSumDirtInHouse = finalSumDirtInHouse;
+	void setSumDirtInHouse(int finalSumDirtInHouse) {
+		this->sumDirtInHouse = finalSumDirtInHouse;
 	};
 
 	void setIsBackInDocking(bool isBackInDocking) {
-		this->isBackInDocking = isBackInDocking;
+		this->isBackInDocking = isBackInDocking ? 1 : 0;
 	};
 
-	int incrementThisNumSteps() {
-		return ++(this->thisNumSteps);
+	void incrementDirtCollected() {
+		dirtCollected++;
 	};
 
 	void reportBadBehavior() {
@@ -45,11 +94,34 @@ public:
 	};
 
 	int getScore() const {
-		int score = (badBehavior) ? 0 : max(0, 2000 
-			- (positionInCompetition - 1) * 50 
-			+ (winnerNumSteps - thisNumSteps) * 10 
-			- finalSumDirtInHouse * 3 
-			+ (isBackInDocking ? 50 : -200));
+		int score;
+		if (calcScore == NULL) {
+			// default score function
+			int pos = isBackInDocking && sumDirtInHouse == 0 ? 
+				positionInCompetition : 10;
+			score = (badBehavior) ? 0 : max(0, 2000
+				- (pos - 1) * 50
+				+ (winnerNumSteps - thisNumSteps) * 10
+				- sumDirtInHouse * 3
+				+ (isBackInDocking ? 50 : -200));
+		}
+		else {
+			map<string, int> scoreParams = {
+				{"actual_position_in_competition", positionInCompetition},
+				{"simulation_steps", simulationSteps},
+				{"winner_num_steps", winnerNumSteps},
+				{"this_num_steps", thisNumSteps},
+				{"sum_dirt_in_house", sumDirtInHouse},
+				{"dirt_collected", dirtCollected},
+				{"is_back_in_docking", isBackInDocking}
+			};
+			try {
+				score = (*calcScore)(scoreParams);
+			}
+			catch (exception& e) {
+				score = -1;
+			}
+		}
 		return score;
 	};
 

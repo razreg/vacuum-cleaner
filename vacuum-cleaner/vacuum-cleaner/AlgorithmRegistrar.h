@@ -1,8 +1,6 @@
 #ifndef __ALGORITHM_REGISTRAR__H_
 #define __ALGORITHM_REGISTRAR__H_
 
-#include <dlfcn.h>
-
 #include "Direction.h"
 #include "AbstractAlgorithm.h"
 #include "Common.h"

@@ -57,6 +57,9 @@
     <ClCompile Include="AlgorithmRegistration.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="score_formula.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractSensor.h">
@@ -123,6 +126,9 @@
       <Filter>Header Files\algorithms</Filter>
     </ClInclude>
     <ClInclude Include="uniqueptr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="score_formula.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

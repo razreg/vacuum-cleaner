@@ -21,7 +21,7 @@ class Simulator {
 
 	void initRobotList(list<unique_ptr<AbstractAlgorithm>>& algorithms, list<string>& algorithmNames);
 
-	void collectScores(string houseName, int winnerNumSteps);
+	void collectScores(string houseName, int simulationSteps, int winnerNumSteps);
 
 	void updateRobotListWithHouse(House& house);
 
@@ -35,7 +35,7 @@ class Simulator {
 
 public:
 	
-	Simulator(map<string, int>& configMap, list<House>& houseList, 
+	Simulator(map<string, int>& configMap, ScoreFormula scoreFormula, list<House>& houseList, 
 		list<unique_ptr<AbstractAlgorithm>>& algorithms, list<string>&& algorithmNames);
 
 	vector<string> execute(); // returns simulation errors
