@@ -41,10 +41,5 @@ ManhattenAlgorithm.o: ManhattenAlgorithm.cpp
 
 ############################ ScoreFormula ##########################
 
-score_formula: score_formula.o score_formula.so
-
-score_formula.o: score_formula.cpp
-	$(CC) $(CFLAGS) -c $< -mcmodel=large
-
-score_formula.so: score_formula.o
-	$(CC) -shared -Wl,-soname,$@ -o $@ $<
+score_formula.so: score_formula.cpp
+	$(CC) $(CFLAGS) -shared -fPIC -o score_formula.so $<

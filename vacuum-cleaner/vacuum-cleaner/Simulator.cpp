@@ -66,10 +66,15 @@ void Simulator::executeOnHouse(House& house, int maxSteps, int maxStepsAfterWinn
 	int winnerNumSteps = 0;
 	int stepsAfterWinner = -1; // so when we increment for first time, when winner is found, it will be set to zero
 	int positionInCompetition = 1;
-	while (steps < maxSteps && stepsAfterWinner < maxStepsAfterWinner) {
+	size_t robotsFinishedTotal = 0;
+	while (steps < maxSteps && stepsAfterWinner < maxStepsAfterWinner && robotsFinishedTotal < robots.size()) {
 		int robotsFinishedInRound = 0;
+		robotsFinishedTotal = 0;
 		for (Robot& robot : robots) {
-			if (!robot.performedIllegalStep() && !robot.isFinished()) {
+			if (robot.isFinished()) {
+				robotsFinishedTotal++;
+			}
+			else if (!robot.performedIllegalStep()) {
 				if (robot.getBatteryValue() == 0) {
 					// if we didn't alreay notify that the battery died
 					if (!robot.isBatteryDeadNotified()) {
@@ -83,7 +88,7 @@ void Simulator::executeOnHouse(House& house, int maxSteps, int maxStepsAfterWinn
 				}
 
 				// robot finished cleaning?
-				if (robot.getHouse().getTotalDust() == 0 && robot.inDocking()) {
+				if (robot.isFinished()) {
 					robotFinishedCleaning(robot, steps, winnerNumSteps, positionInCompetition, robotsFinishedInRound);
 				}
 				else {
@@ -94,7 +99,10 @@ void Simulator::executeOnHouse(House& house, int maxSteps, int maxStepsAfterWinn
 			}
 		}
 
-		steps++;
+		// this may only happen if the house was clean when simulation started (edge case)
+		if (robotsFinishedTotal < robots.size() || robotsFinishedInRound > 0) {
+			steps++;
+		}
 		if (winnerNumSteps > 0) {
 			stepsAfterWinner++;
 		}
@@ -120,7 +128,6 @@ void Simulator::robotFinishedCleaning(Robot& robot, int steps, int& winnerNumSte
 	results[robot.getAlgorithmName()][robot.getHouse().getName()]
 		.setPositionInCompetition(positionInCompetition);
 	robotsFinishedInRound++;
-	robot.setFinished();
 }
 
 void Simulator::performStep(Robot& robot, int steps, int maxSteps, int maxStepsAfterWinner, int stepsAfterWinner) {

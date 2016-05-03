@@ -28,7 +28,6 @@ class Robot {
 	Direction prevStep;
 	bool illegalStepPerformed = false;
 	bool batteryDead = false;
-	bool finished = false;
 
 	void configBattery(const map<string, int>& configMap) {
 		battery.setCapacity(max(0, configMap.find(BATTERY_CAPACITY)->second));
@@ -73,7 +72,6 @@ public:
 		prevStep = Direction::Stay;
 		illegalStepPerformed = false;
 		batteryDead = false;
-		finished = false;
 	};
 
 	House& getHouse() {
@@ -118,12 +116,8 @@ public:
 		return batteryDead;
 	};
 
-	bool isFinished() const {
-		return finished;
-	};
-
-	void setFinished() {
-		finished = true;
+	bool isFinished() {
+		return house.getTotalDust() == 0 && inDocking();
 	};
 
 };
