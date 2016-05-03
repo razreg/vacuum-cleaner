@@ -5,7 +5,7 @@ using namespace std;
 Logger Simulator::logger = Logger("Simulator");
 
 Simulator::Simulator(map<string, int>& configMap, ScoreFormula scoreFormula, list<House>& houseList,
-	list<unique_ptr<AbstractAlgorithm>>& algorithms, list<string>&& algorithmNames) :
+	list<unique_ptr<AbstractAlgorithm>>& algorithms, list<string>& algorithmNames) :
 	configMap(configMap), houseList(houseList), results() {
 	initRobotList(algorithms, algorithmNames);
 	vector<string> houseNames;

@@ -3,8 +3,6 @@
 
 #include <functional>
 #include <memory>
-#include "Direction.h" // TODO is this ok? was not here originally
-#include "AbstractAlgorithm.h" // TODO is this ok? was not here originally
 
 class AlgorithmRegistration {
 public:

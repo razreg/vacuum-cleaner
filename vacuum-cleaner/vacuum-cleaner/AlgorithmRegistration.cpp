@@ -1,3 +1,5 @@
+#include "Direction.h"
+#include "AbstractAlgorithm.h"
 #include "AlgorithmRegistration.h"
 #include "AlgorithmRegistrar.h"
 

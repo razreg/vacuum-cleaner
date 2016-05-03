@@ -36,7 +36,7 @@ class Simulator {
 public:
 	
 	Simulator(map<string, int>& configMap, ScoreFormula scoreFormula, list<House>& houseList, 
-		list<unique_ptr<AbstractAlgorithm>>& algorithms, list<string>&& algorithmNames);
+		list<unique_ptr<AbstractAlgorithm>>& algorithms, list<string>& algorithmNames);
 
 	vector<string> execute(); // returns simulation errors
 
