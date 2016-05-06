@@ -73,7 +73,6 @@ public:
 
 	~MainHelper() {
 		if (libHandle != NULL) {
-			cout << "dlclosing " << libHandle << endl; // TODO remove
 			dlclose(libHandle);
 		}
 	};

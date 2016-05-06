@@ -84,6 +84,9 @@ int MainHelper::setScoreFormula(string& scoreFormulaPath) {
 			return INVALID_SCORE_FORMULA;
 		}
 	}
+	else {
+		logger.info("Using default score formula");
+	}
 	return SUCCESS;
 }
 
@@ -319,12 +322,14 @@ bool MainHelper::loadScoreFormula(const string& scoreFormulaPath) {
 			<< "' but cannot be opened or is not a valid .so" << endl;
 		return false;
 	}
-	void* func = dlsym(libHandle, SCORE_FORMULA_METHOD_NAME); // TODO cast exception?
+	dlerror(); // clear dlerror
+	void* func = dlsym(libHandle, SCORE_FORMULA_METHOD_NAME);
 	scoreFormula = reinterpret_cast<ScoreFormula>(reinterpret_cast<long>(func));
 	char* err;
 	if ((err = dlerror()) != NULL) {
 		logger.debug("Failed to load score_formula.so. Details: " + string(err));
 		cout << "score_formula.so is a valid.so but it does not have a valid score formula" << endl;
+		libHandle = NULL; // do not dlclose if dlsym failed
 		return false;
 	}
 
