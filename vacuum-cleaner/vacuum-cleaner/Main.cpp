@@ -316,7 +316,6 @@ bool MainHelper::loadScoreFormula(const string& scoreFormulaPath) {
 	if ((err = dlerror()) != NULL) {
 		logger.debug("Failed to load score_formula.so. Details: " + string(err));
 		cout << "score_formula.so is a valid.so but it does not have a valid score formula" << endl;
-		libHandle = NULL; // do not dlclose if dlsym failed
 		return false;
 	}
 
