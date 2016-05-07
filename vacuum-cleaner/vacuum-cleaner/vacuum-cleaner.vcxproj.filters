@@ -63,6 +63,9 @@
     <ClCompile Include="Common.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AstarAlgorithm.cpp">
+      <Filter>Source Files\algorithms</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractSensor.h">
@@ -133,6 +136,9 @@
     </ClInclude>
     <ClInclude Include="score_formula.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AstarAlgorithm.h">
+      <Filter>Header Files\algorithms</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
