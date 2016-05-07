@@ -1,12 +1,12 @@
 #include "Simulator.h"
 
 Logger Simulator::logger = Logger("Simulator");
-atomic<size_t> Simulator::housePathIndex(0);
 
 Simulator::Simulator(map<string, int>& configMap, ScoreFormula scoreFormula, 
 	vector<fs::path>& housePathVector, AlgorithmRegistrar& registrar, vector<string>& algorithmErrors) :
 	configMap(configMap), housePathVector(housePathVector), registrar(registrar), 
-	algorithmErrors(algorithmErrors), results() {
+	algorithmErrors(algorithmErrors), results(), housePathIndex(0) {
+	
 	maxStepsAfterWinner = configMap.find(MAX_STEPS_AFTER_WINNER)->second;
 	vector<string> houseNames;
 	for (fs::path& housePath : housePathVector) {
@@ -16,7 +16,11 @@ Simulator::Simulator(map<string, int>& configMap, ScoreFormula scoreFormula,
 }
 
 void Simulator::execute(size_t numThreads) {
-	size_t actualNumThreads = min(housePathVector.size(), numThreads);
+	size_t numHouses = housePathVector.size();
+	size_t actualNumThreads = min(numHouses, numThreads);
+	logger.info("Running simulation with " + to_string(actualNumThreads) + " threads" + 
+		(numHouses < numThreads ? " (" + to_string(numThreads) + 
+			" requested but only " + to_string(numHouses) + " house files were found)": ""));
 	vector<unique_ptr<thread>> threads(actualNumThreads);
 	for (auto& thread_ptr : threads) {
 		thread_ptr = make_unique<thread>(&Simulator::executeThread, this);
@@ -42,6 +46,7 @@ void Simulator::initRobotList(list<Robot>& robots, list<unique_ptr<AbstractAlgor
 void Simulator::collectScores(list<Robot>& robots, string houseName, int simulationSteps, int winnerNumSteps) {
 	for (Robot& robot : robots) {
 		string algorithmName = robot.getAlgorithmName();
+		lock_guard<mutex> lockResults(resultsMutex);
 		results[algorithmName][houseName].setIsBackInDocking(robot.inDocking());
 		results[algorithmName][houseName].setSimulationSteps(simulationSteps);
 		results[algorithmName][houseName].setWinnerNumSteps(winnerNumSteps);
@@ -63,6 +68,11 @@ void Simulator::updateRobotListWithHouse(list<Robot>& robots, House& house) {
 
 void Simulator::executeThread() {
 
+	logger.debug("Thread started");
+	
+	size_t houseCount = 0;
+	size_t failedHouseCount = 0;
+
 	list<unique_ptr<AbstractAlgorithm>> algorithms = registrar.getAlgorithms();
 
 	list<Robot> robots;
@@ -72,15 +82,21 @@ void Simulator::executeThread() {
 	while ((idx = housePathIndex.fetch_add(1)) < housePathVector.size()) {
 		House house;
 		fs::path filePath = housePathVector[idx];
+		houseCount++;
 		bool isValid = loadHouse(filePath, house);
 		if (!isValid) {
+			failedHouseCount++;
+			lock_guard<mutex> lockResults(resultsMutex);
 			results.removeHouse(filePath.stem().string());
 			continue;
-		}
+		} 
 		updateRobotListWithHouse(robots, house);
 		logger.info("Simulation started on house [" + house.getName() + "]");
 		executeOnHouse(robots, house);
 	}
+
+	logger.info("Thread closing after running on " + to_string(houseCount) + " house(s)" + 
+		(failedHouseCount > 0 ? " (" + to_string(failedHouseCount) + " invalid)" : ""));
 }
 
 void Simulator::executeOnHouse(list<Robot>& robots, House& house) {
@@ -105,6 +121,7 @@ void Simulator::executeOnHouse(list<Robot>& robots, House& house) {
 						robot.setBatteryDeadNotified();
 						logger.info("Robot using algorithm [" + robot.getAlgorithmName() + "] has dead battery");
 					}
+					lock_guard<mutex> lockResults(resultsMutex);
 					results[robot.getAlgorithmName()][house.getName()].setThisNumSteps(steps + 1); // increment steps but stay
 				}
 				else {
@@ -117,6 +134,7 @@ void Simulator::executeOnHouse(list<Robot>& robots, House& house) {
 				}
 				else {
 					// this is the actual position
+					lock_guard<mutex> lockResults(resultsMutex);
 					results[robot.getAlgorithmName()][house.getName()]
 						.setPositionInCompetition(positionInCompetition);
 				}
@@ -149,6 +167,7 @@ void Simulator::robotFinishedCleaning(Robot& robot, int steps, int& winnerNumSte
 		winnerNumSteps = steps + 1;
 	}
 	// update position in competition
+	lock_guard<mutex> lockResults(resultsMutex);
 	results[robot.getAlgorithmName()][robot.getHouse().getName()]
 		.setPositionInCompetition(positionInCompetition);
 	robotsFinishedInRound++;
@@ -172,16 +191,21 @@ void Simulator::performStep(Robot& robot, int steps, int maxSteps, int maxStepsA
 		logger.warn("Algorithm [" + robot.getAlgorithmName() +
 			"] has performed an illegal step. Robot in position="
 			+ (string)robot.getPosition());
+		lock_guard<mutex> lockResults(resultsMutex);
 		results[algorithmName][houseName].reportBadBehavior();
 		robot.reportBadBehavior();
+
+		lock_guard<mutex> lockErrors(errorMutex);
 		simulationErrors.push_back("Algorithm " + robot.getAlgorithmName() + " when running on House " 
 			+ houseName + " went on a wall in step " + to_string(steps + 1));
 	}
 
 	// perform one cleaning step
 	if (robot.getHouse().clean(robot.getPosition())) {
+		lock_guard<mutex> lockResults(resultsMutex);
 		results[algorithmName][houseName].incrementDirtCollected();
 	} 
+	lock_guard<mutex> lockResults(resultsMutex);
 	results[algorithmName][houseName].setThisNumSteps(steps + 1);
 }
 
@@ -197,6 +221,7 @@ bool Simulator::loadHouse(fs::path filePath, House& house) {
 	}
 	catch (exception& e) {
 		logger.debug("House is invalid");
+		lock_guard<mutex> lockErrors(errorMutex);
 		houseErrors.push_back(e.what());
 		return false;
 	}

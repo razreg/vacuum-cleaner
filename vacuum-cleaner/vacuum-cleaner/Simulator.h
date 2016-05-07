@@ -15,17 +15,22 @@ namespace fs = boost::filesystem;
 
 class Simulator {
 
-	static Logger logger;
-	static atomic<size_t> housePathIndex;
+	static Logger logger; // internal mutex - thread-safe
 
-	map<string, int>& configMap;
-	int maxStepsAfterWinner;
-	vector<fs::path>& housePathVector;
-	AlgorithmRegistrar& registrar;
-	vector<string> simulationErrors;
-	vector<string> houseErrors;
-	vector<string>& algorithmErrors;
-	Results results;
+	map<string, int>& configMap; // never updated in simulator - thread-safe
+	int maxStepsAfterWinner; // never updated in threads - thread-safe
+	vector<fs::path>& housePathVector; // accessed with housePathIndex - thread-safe
+	AlgorithmRegistrar& registrar; // never updated in simulator - thread-safe
+
+	vector<string> simulationErrors; // updates in threads only when errorMutex is locked - thread-safe
+	vector<string> houseErrors; // updates in threads only when errorMutex is locked - thread-safe
+	vector<string>& algorithmErrors; // never updated in simulator - thread-safe
+	Results results; // updates in threads only when resultsMutex is locked - thread-safe
+
+	// thread-safety devices
+	atomic<size_t> housePathIndex;
+	mutex errorMutex;
+	mutex resultsMutex;
 
 	void initRobotList(list<Robot>& robots, list<unique_ptr<AbstractAlgorithm>>& algorithms);
 

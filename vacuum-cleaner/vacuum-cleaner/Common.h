@@ -41,7 +41,7 @@ const LogLevel LOG_LEVEL = INFO;
 // simple logger which simply writes to cout but with nice format
 class Logger {
 
-	static mutex print_lock; // every log printout must acquire this mutex first
+	static mutex printLock; // every log printout must acquire this mutex first
 
 	char caller[13];
 	time_t rawTime;
@@ -58,7 +58,7 @@ class Logger {
 	void log(const string& msg, LogLevel level) {
 		try {
 			if (level >= LOG_LEVEL) {
-				lock_guard<mutex> lock(print_lock);
+				lock_guard<mutex> lock(printLock);
 				cout << getCurrentDateTime() << "\t"
 					<< loggerLevels[level] << "\t"
 					<< "t-" << this_thread::get_id() << "\t"

@@ -1,3 +1,3 @@
 #include "Common.h"
 
-mutex Logger::print_lock;
+mutex Logger::printLock;
