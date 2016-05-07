@@ -198,6 +198,7 @@ void MainHelper::populateConfigMap(ifstream& configFileStream) {
 			trimString(key);
 			if (positionOfEquals != string::npos) {
 				string valueStr = currLine.substr((int)positionOfEquals + 1);
+				trimString(valueStr);
 				int value;
 				if (valueStr.empty() || find_if(valueStr.begin(),
 					valueStr.end(), [](char c) { return !isdigit(c); }) != valueStr.end()) {
