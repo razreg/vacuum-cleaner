@@ -94,7 +94,7 @@ void House::readHouseMatrix(ifstream& houseFileStream, vector<vector<char>>& mat
 	string currLine;
 	size_t i = 0;
 	while (i < nRows && getline(houseFileStream, currLine)) {
-		if (logger.debugEnabled()) logger.debug("Current line read [" + currLine + "]");
+		// if (logger.debugEnabled()) logger.debug("Current line read [" + currLine + "]");
 		vector<char> row;
 		for (size_t j = 0; j < nCols; ++j) {
 			row.push_back((j < currLine.length()) ? currLine.at(j) : ' '); // if there is no char j then store space

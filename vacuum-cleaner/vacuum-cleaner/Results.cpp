@@ -1,9 +1,11 @@
 #include "Results.h"
 
+Logger Results::logger = Logger("Results");
+
 Results::Results(list<string> algorithmNames, vector<string>&& houseNames, ScoreFormula scoreFormula) :
 	algorithmNames(algorithmNames), houseNames(houseNames) {
-	for (string algorithm : this->algorithmNames) {
-		for (string house : this->houseNames) {
+	for (string& algorithm : this->algorithmNames) {
+		for (string& house : this->houseNames) {
 			scoreMap[algorithm][house] = Score(scoreFormula);
 		}
 	}
@@ -64,4 +66,15 @@ void Results::printHeader(ostream& out) const {
 	printHeaderCell(out, string("AVG"));
 	out << endl;
 	printHorizontalLine(out);
+}
+
+void Results::removeHouse(string houseName) {
+	if (logger.debugEnabled()) logger.debug("removing invalid house from results: " + houseName);
+	for (string& algorithm : this->algorithmNames) {
+		scoreMap[algorithm].erase(houseName);
+	}
+	vector<string>::iterator it;
+	if ((it = find(houseNames.begin(), houseNames.end(), houseName)) != houseNames.end()) {
+		houseNames.erase(it);
+	}
 }

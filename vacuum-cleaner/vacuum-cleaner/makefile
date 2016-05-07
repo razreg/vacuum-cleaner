@@ -11,7 +11,7 @@ clean:
 
 OLIST = Main.o House.o SensorImpl.o Robot.o Results.o AlgorithmRegistrar.o Simulator.o
 
-simulator: $(OLIST)
+simulator: Common.o $(OLIST)
 	$(CC) $^ -rdynamic -o $@ $(LIBS)
 
 $(OLIST): %.o: %.cpp
@@ -21,25 +21,30 @@ $(OLIST): %.o: %.cpp
 
 ALGOS = AlgorithmRegistration.o _305623571_A.o _305623571_B.o _305623571_C.o
 ALGLIBS = 305623571_A_.so 305623571_B_.so 305623571_C_.so
+MISC = ManhattenAlgorithm.o
 
-algorithms: ManhattenAlgorithm.o $(ALGOS) $(ALGLIBS)
+algorithms: Common.o algorithms_after_simulator
 
-$(ALGOS): %.o: %.cpp
-	$(CC) $(CFLAGS) -c $< -mcmodel=large
+algorithms_after_simulator: $(MISC) $(ALGOS) $(ALGLIBS)
 
-ManhattenAlgorithm.o: ManhattenAlgorithm.cpp
+$(MISC) $(ALGOS): %.o: %.cpp
 	$(CC) $(CFLAGS) -c $< -mcmodel=large
 
 305623571_A_.so: _305623571_A.o
-	$(CC) -shared -Wl,-soname,$@ -o $@ $< AlgorithmRegistration.o
+	$(CC) -shared -Wl,-soname,$@ -o $@ $< Common.o AlgorithmRegistration.o
 
 305623571_B_.so: _305623571_B.o
-	$(CC) -shared -Wl,-soname,$@ -o $@ $< AlgorithmRegistration.o ManhattenAlgorithm.o
+	$(CC) -shared -Wl,-soname,$@ -o $@ $< Common.o AlgorithmRegistration.o $(MISC)
 
 305623571_C_.so: _305623571_C.o
-	$(CC) -shared -Wl,-soname,$@ -o $@ $< AlgorithmRegistration.o ManhattenAlgorithm.o
+	$(CC) -shared -Wl,-soname,$@ -o $@ $< Common.o AlgorithmRegistration.o $(MISC)
 
 ############################ ScoreFormula ##########################
 
 score_formula.so: score_formula.cpp
 	$(CC) $(CFLAGS) -shared -fPIC -o score_formula.so $<
+
+############################### Common #############################
+
+Common.o: Common.cpp
+	$(CC) $(CFLAGS) -c $< -mcmodel=large

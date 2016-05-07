@@ -1,35 +1,36 @@
 #include "Simulator.h"
 
-using namespace std;
-
 Logger Simulator::logger = Logger("Simulator");
+atomic<size_t> Simulator::housePathIndex(0);
 
-Simulator::Simulator(map<string, int>& configMap, ScoreFormula scoreFormula, list<House>& houseList,
-	list<unique_ptr<AbstractAlgorithm>>& algorithms, list<string>& algorithmNames) :
-	configMap(configMap), houseList(houseList), results() {
-	initRobotList(algorithms, algorithmNames);
+Simulator::Simulator(map<string, int>& configMap, ScoreFormula scoreFormula, 
+	vector<fs::path>& housePathVector, AlgorithmRegistrar& registrar, vector<string>& algorithmErrors) :
+	configMap(configMap), housePathVector(housePathVector), registrar(registrar), 
+	algorithmErrors(algorithmErrors), results() {
+	maxStepsAfterWinner = configMap.find(MAX_STEPS_AFTER_WINNER)->second;
 	vector<string> houseNames;
-	for (House& house : houseList) {
-		houseNames.push_back(house.getName());
+	for (fs::path& housePath : housePathVector) {
+		houseNames.push_back(housePath.stem().string());
 	}
-	results = Results(algorithmNames, move(houseNames), scoreFormula);
+	results = Results(registrar.getAlgorithmNames(), move(houseNames), scoreFormula);
 }
 
-vector<string> Simulator::execute() {
-
-	int maxStepsAfterWinner = configMap.find(MAX_STEPS_AFTER_WINNER)->second;
-
-	for (House& house : houseList) {
-		logger.info("Simulation started for house [" + house.getName() + "]");
-		updateRobotListWithHouse(house);
-		// run algorithms in "Round Robin" fashion
-		executeOnHouse(house, house.getMaxSteps(), maxStepsAfterWinner);
+void Simulator::execute(size_t numThreads) {
+	size_t actualNumThreads = min(housePathVector.size(), numThreads);
+	vector<unique_ptr<thread>> threads(actualNumThreads);
+	for (auto& thread_ptr : threads) {
+		thread_ptr = make_unique<thread>(&Simulator::executeThread, this);
 	}
-	results.print(errors);
-	return errors;
+	for (auto& thread_ptr : threads) {
+		thread_ptr->join();
+	}
+	results.print(simulationErrors);
+	printErrors();
 }
 
-void Simulator::initRobotList(list<unique_ptr<AbstractAlgorithm>>& algorithms, list<string>& algorithmNames) {
+void Simulator::initRobotList(list<Robot>& robots, list<unique_ptr<AbstractAlgorithm>>& algorithms) {
+	
+	list<string> algorithmNames = registrar.getAlgorithmNames();
 	logger.debug("Initializing robot list");
 	auto namesIter = algorithmNames.begin();
 	for (auto iter = algorithms.begin(); 
@@ -38,7 +39,7 @@ void Simulator::initRobotList(list<unique_ptr<AbstractAlgorithm>>& algorithms, l
 	}
 }
 
-void Simulator::collectScores(string houseName, int simulationSteps, int winnerNumSteps) {
+void Simulator::collectScores(list<Robot>& robots, string houseName, int simulationSteps, int winnerNumSteps) {
 	for (Robot& robot : robots) {
 		string algorithmName = robot.getAlgorithmName();
 		results[algorithmName][houseName].setIsBackInDocking(robot.inDocking());
@@ -52,7 +53,7 @@ void Simulator::collectScores(string houseName, int simulationSteps, int winnerN
 	}
 }
 
-void Simulator::updateRobotListWithHouse(House& house) {
+void Simulator::updateRobotListWithHouse(list<Robot>& robots, House& house) {
 	logger.debug("Defining house [" + house.getName() + "] for robot list");
 	for (Robot& robot : robots) {
 		robot.restart();
@@ -60,8 +61,31 @@ void Simulator::updateRobotListWithHouse(House& house) {
 	}
 }
 
-void Simulator::executeOnHouse(House& house, int maxSteps, int maxStepsAfterWinner) {
-	
+void Simulator::executeThread() {
+
+	list<unique_ptr<AbstractAlgorithm>> algorithms = registrar.getAlgorithms();
+
+	list<Robot> robots;
+	initRobotList(robots, algorithms);
+
+	size_t idx;
+	while ((idx = housePathIndex.fetch_add(1)) < housePathVector.size()) {
+		House house;
+		fs::path filePath = housePathVector[idx];
+		bool isValid = loadHouse(filePath, house);
+		if (!isValid) {
+			results.removeHouse(filePath.stem().string());
+			continue;
+		}
+		updateRobotListWithHouse(robots, house);
+		logger.info("Simulation started on house [" + house.getName() + "]");
+		executeOnHouse(robots, house);
+	}
+}
+
+void Simulator::executeOnHouse(list<Robot>& robots, House& house) {
+
+	int maxSteps = house.getMaxSteps();
 	int steps = 0;
 	int winnerNumSteps = 0;
 	int stepsAfterWinner = -1; // so when we increment for first time, when winner is found, it will be set to zero
@@ -112,7 +136,7 @@ void Simulator::executeOnHouse(House& house, int maxSteps, int maxStepsAfterWinn
 	if (winnerNumSteps == 0) {
 		winnerNumSteps = steps;
 	}
-	collectScores(house.getName(), steps, winnerNumSteps);
+	collectScores(robots, house.getName(), steps, winnerNumSteps);
 	logger.info("Simulation completed for house [" + house.getName() + "]");
 }
 
@@ -150,7 +174,7 @@ void Simulator::performStep(Robot& robot, int steps, int maxSteps, int maxStepsA
 			+ (string)robot.getPosition());
 		results[algorithmName][houseName].reportBadBehavior();
 		robot.reportBadBehavior();
-		errors.push_back("Algorithm " + robot.getAlgorithmName() + " when running on House " 
+		simulationErrors.push_back("Algorithm " + robot.getAlgorithmName() + " when running on House " 
 			+ houseName + " went on a wall in step " + to_string(steps + 1));
 	}
 
@@ -159,4 +183,39 @@ void Simulator::performStep(Robot& robot, int steps, int maxSteps, int maxStepsA
 		results[algorithmName][houseName].incrementDirtCollected();
 	} 
 	results[algorithmName][houseName].setThisNumSteps(steps + 1);
+}
+
+bool Simulator::loadHouse(fs::path filePath, House& house) {
+	try {
+		house = House::deseriallize(filePath);
+		logger.debug("Validating house");
+		logger.debug("Validating house walls");
+		house.validateWalls();
+		logger.debug("Validating the existence of exactly one docking station");
+		house.validateDocking();
+		logger.debug("House is valid");
+	}
+	catch (exception& e) {
+		logger.debug("House is invalid");
+		houseErrors.push_back(e.what());
+		return false;
+	}
+	return true;
+}
+
+void Simulator::printErrors() {
+	if (results.areAllHousesInvalid()) {
+		cout << "All house files in target folder '"
+			<< housePathVector.front().parent_path().string() 
+			<< "' cannot be opened or are invalid:" << endl;
+		for (string& err : houseErrors) cout << err << endl;
+		return;
+	}
+	if (!houseErrors.empty() || !algorithmErrors.empty() || !simulationErrors.empty()) {
+		cout << endl;
+		cout << "Errors:" << endl;
+	}
+	for (string& err : houseErrors) cout << err << endl;
+	for (string& err : algorithmErrors) cout << err << endl;
+	for (string& err : simulationErrors) cout << err << endl;
 }

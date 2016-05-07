@@ -7,13 +7,20 @@
 #include <vector>
 #include <map>
 #include <cstring> // strncpy
-#include <algorithm> // min, max
+#include <algorithm> // min, max, find
 #include <fstream> // files
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <list>
 #include <functional>
 #include <memory>
+
+// threads
+#include <thread>
+#include <mutex>
+#include <atomic>
+
+#include "uniqueptr.h"
 
 using namespace std;
 
@@ -29,10 +36,12 @@ const string BATTERY_RECHARGE_RATE = "BatteryRechargeRate";
 enum LogLevel { DEBUG, INFO, WARN, ERROR, FATAL, OFF };
 const string loggerLevels[] = { "DEBUG", "INFO", "WARN", "ERROR", "FATAL" };
 
-const LogLevel LOG_LEVEL = DEBUG;
+const LogLevel LOG_LEVEL = INFO;
 
 // simple logger which simply writes to cout but with nice format
 class Logger {
+
+	static mutex print_lock; // every log printout must acquire this mutex first
 
 	char caller[13];
 	time_t rawTime;
@@ -49,8 +58,10 @@ class Logger {
 	void log(const string& msg, LogLevel level) {
 		try {
 			if (level >= LOG_LEVEL) {
+				lock_guard<mutex> lock(print_lock);
 				cout << getCurrentDateTime() << "\t"
 					<< loggerLevels[level] << "\t"
+					<< "t-" << this_thread::get_id() << "\t"
 					<< caller << " "
 					<< msg << endl;
 			}

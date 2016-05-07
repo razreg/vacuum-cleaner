@@ -8,24 +8,36 @@
 #include "House.h"
 #include "Position.h"
 #include "Common.h"
+#include "AlgorithmRegistrar.h"
+
+using namespace std;
+namespace fs = boost::filesystem;
 
 class Simulator {
 
 	static Logger logger;
+	static atomic<size_t> housePathIndex;
 
 	map<string, int>& configMap;
-	list<House>& houseList;
-	list<Robot> robots;
+	int maxStepsAfterWinner;
+	vector<fs::path>& housePathVector;
+	AlgorithmRegistrar& registrar;
+	vector<string> simulationErrors;
+	vector<string> houseErrors;
+	vector<string>& algorithmErrors;
 	Results results;
-	vector<string> errors;
 
-	void initRobotList(list<unique_ptr<AbstractAlgorithm>>& algorithms, list<string>& algorithmNames);
+	void initRobotList(list<Robot>& robots, list<unique_ptr<AbstractAlgorithm>>& algorithms);
 
-	void collectScores(string houseName, int simulationSteps, int winnerNumSteps);
+	void collectScores(list<Robot>& robots, string houseName, int simulationSteps, int winnerNumSteps);
 
-	void updateRobotListWithHouse(House& house);
+	void updateRobotListWithHouse(list<Robot>& robots, House& house);
 
-	void executeOnHouse(House& house, int maxSteps, int maxStepsAfterWinner);
+	void executeThread();
+
+	bool loadHouse(fs::path filePath, House& house);
+
+	void executeOnHouse(list<Robot>& robots, House& house);
 
 	void robotFinishedCleaning(Robot& robot, int steps, int& winnerNumSteps, 
 		int positionInCompetition, int& robotsFinishedInRound);
@@ -33,12 +45,14 @@ class Simulator {
 	void performStep(Robot& robot, int steps, int maxSteps, 
 		int maxStepsAfterWinner, int stepsAfterWinner);
 
+	void printErrors();
+
 public:
 	
-	Simulator(map<string, int>& configMap, ScoreFormula scoreFormula, list<House>& houseList, 
-		list<unique_ptr<AbstractAlgorithm>>& algorithms, list<string>& algorithmNames);
+	Simulator(map<string, int>& configMap, ScoreFormula scoreFormula, 
+		vector<fs::path>& housePathVector, AlgorithmRegistrar& registrar, vector<string>& algorithmErrors);
 
-	vector<string> execute(); // returns simulation errors
+	void execute(size_t numThreads);
 
 };
 

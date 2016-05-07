@@ -46,10 +46,9 @@ int main(int argc, char** argv) {
 		(returnCode = mainHelper.setConfiguration(configPath)) == SUCCESS && 
 		(returnCode = mainHelper.setScoreFormula(scoreFormulaPath)) == SUCCESS &&
 		(returnCode = mainHelper.setAlgorithms(algorithmsPath)) == SUCCESS &&
-		(returnCode = mainHelper.setHouses(housesPath)) == SUCCESS &&
+		(returnCode = mainHelper.setHousePaths(housesPath)) == SUCCESS &&
 		(returnCode = mainHelper.runSimulator()) == SUCCESS;
 	
-	if (isValid) mainHelper.printErrors();
 	return returnCode;
 }
 
@@ -106,11 +105,11 @@ int MainHelper::setAlgorithms(string& algorithmsPath) {
 	return SUCCESS;
 }
 
-int MainHelper::setHouses(string& housesPath) {
+int MainHelper::setHousePaths(string& housesPath) {
 	bool isValid;
 	try {
 		logger.debug("Loading houses from directory");
-		isValid = loadHouseList(housesPath);
+		isValid = getHousePaths(housesPath);
 		if (!isValid) {
 			return INVALID_HOUSES;
 		}
@@ -123,9 +122,9 @@ int MainHelper::setHouses(string& housesPath) {
 }
 
 int MainHelper::runSimulator() {
-	Simulator simulator(configMap, scoreFormula, houseList, algorithms, algorithmNames);
+	Simulator simulator(configMap, scoreFormula, housePathVector, registrar, algorithmErrors);
 	try {
-		simulationErrors = simulator.execute();
+		simulator.execute(threads);
 	}
 	catch (exception& e) {
 		logger.fatal(e.what());
@@ -134,7 +133,7 @@ int MainHelper::runSimulator() {
 	return SUCCESS;
 }
 
-bool MainHelper::loadHouseList(const string& housesPath) {
+bool MainHelper::getHousePaths(const string& housesPath) {
 
 	fs::path dir(housesPath);
 	if (!isDirectory(dir)) {
@@ -145,27 +144,18 @@ bool MainHelper::loadHouseList(const string& housesPath) {
 
 	fs::directory_iterator end_iter;
 	for (fs::directory_iterator dir_iter(dir); dir_iter != end_iter; ++dir_iter) {
-		if (fs::is_regular_file(dir_iter->status())) {
-			if (dir_iter->path().has_extension() && dir_iter->path().extension() == ".house") {
-				try {
-					House house = House::deseriallize(dir_iter->path());
-					logger.debug("Validating house");
-					if (logger.debugEnabled()) logger.debug("Validating house walls");
-					house.validateWalls();
-					if (logger.debugEnabled()) logger.debug("Validating the existence of exactly one docking station");
-					house.validateDocking();
-					logger.debug("House is valid");
-					houseList.push_back(move(house));
-				}
-				catch (exception& e) {
-					houseErrors.push_back(e.what());
-				}
-			}
+		if (fs::is_regular_file(dir_iter->status()) && 
+			dir_iter->path().has_extension() && 
+			dir_iter->path().extension() == ".house") {
+			housePathVector.push_back(dir_iter->path());
 		}
 	}
-
-	houseList.sort([](const House& a, const House& b) {return a.getName() < b.getName(); });
-	return !allLoadingFailed(houseList, houseErrors, "house", dir);
+	if (housePathVector.empty()) {
+		cout << usage << endl;
+		cout << "cannot find house files in '" << dir.string() << "'" << endl;
+		return false;
+	}
+	return true;
 }
 
 bool MainHelper::loadConfiguration(const string& configFileDir) {
@@ -254,16 +244,6 @@ bool MainHelper::isConfigMapValid() {
 	return ret;
 }
 
-void MainHelper::printErrors() {
-	if (!houseErrors.empty() || !algorithmErrors.empty() || !simulationErrors.empty()) {
-		cout << endl;
-		cout << "Errors:" << endl;
-	}
-	for (string& err : houseErrors) cout << err << endl;
-	for (string& err : algorithmErrors) cout << err << endl;
-	for (string& err : simulationErrors) cout << err << endl;
-}
-
 bool MainHelper::loadAlgorithms(const string& algorithmsPath) {
 
 	fs::path dir(algorithmsPath);
@@ -295,12 +275,19 @@ bool MainHelper::loadAlgorithms(const string& algorithmsPath) {
 		}
 	}
 
-	if (registrar.size() != 0) {
-		algorithms = registrar.getAlgorithms();
-		algorithmNames = registrar.getAlgorithmNames();
+	if (registrar.size() == 0) {
+		if (algorithmErrors.empty()) {
+			cout << usage << endl;
+			cout << "cannot find algorithm files in '" << dir.string() << "'" << endl;
+		}
+		else {
+			cout << "All algorithm files in target folder '"
+				<< dir.string() << "' cannot be opened or are invalid:" << endl;
+			for (string& err : algorithmErrors) cout << err << endl;
+		}
+		return false;
 	}
-
-	return !allLoadingFailed(algorithms, algorithmErrors, "algorithm", dir);
+	return true;
 }
 
 bool MainHelper::loadScoreFormula(const string& scoreFormulaPath) {
@@ -334,27 +321,6 @@ bool MainHelper::loadScoreFormula(const string& scoreFormulaPath) {
 	}
 
 	return true;
-}
-
-template<typename T>
-bool MainHelper::allLoadingFailed(list<T>& loadedObjectsList, vector<string>& errors, 
-	string typeName, fs::path& dir) {
-
-	if (loadedObjectsList.empty()) {
-		if (errors.empty()) {
-			cout << usage << endl;
-			cout << "cannot find " << typeName << " files in '" << dir.string() << "'" << endl;
-		}
-		else {
-			cout << "All " << typeName << " files in target folder '" 
-				<< dir.string() << "' cannot be opened or are invalid:" << endl;
-			for (string& err : errors) {
-				cout << err << endl;
-			}
-		}
-		return true;
-	}
-	return false;
 }
 
 bool parseArgs(int argc, char** argv, string& configPath, string& housesPath, string& algorithmsPath,

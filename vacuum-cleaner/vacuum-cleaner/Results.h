@@ -11,6 +11,8 @@ using namespace std;
 
 class Results {
 
+	static Logger logger;
+
 	ScoreFormula scoreFormula;
 	map<string, map<string, Score>> scoreMap;
 	list<string> algorithmNames;
@@ -64,6 +66,12 @@ public:
 	}
 
 	void print(vector<string>& errors, ostream& out = cout) const;
+
+	void removeHouse(string houseName);
+
+	bool areAllHousesInvalid() {
+		return houseNames.empty();
+	};
 
 };
 

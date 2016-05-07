@@ -50,24 +50,16 @@ class MainHelper {
 	static AlgorithmRegistrar& registrar;
 
 	void* libHandle = NULL;
-	list<House> houseList;
+	vector<fs::path> housePathVector;
 	map<string, int> configMap;
 	ScoreFormula scoreFormula = NULL;
-	list<unique_ptr<AbstractAlgorithm>> algorithms;
-	list<string> algorithmNames;
 	size_t threads;
 
 	vector<string> algorithmErrors;
-	vector<string> houseErrors;
-	vector<string> simulationErrors;
 
 	bool isConfigMapValid();
 
 	void populateConfigMap(ifstream& configFileStream);
-
-	template<typename T>
-	bool allLoadingFailed(list<T>& loadedObjectsList, vector<string>& errors,
-		string typeName, fs::path& dir);
 
 public:
 
@@ -83,9 +75,7 @@ public:
 
 	bool loadAlgorithms(const string& algorithmsPath);
 
-	bool loadHouseList(const string& housesPath);
-
-	void printErrors();
+	bool getHousePaths(const string& housesPath);
 
 	void setThreads(int threads) {
 		this->threads = threads;
@@ -97,7 +87,7 @@ public:
 
 	int setAlgorithms(string& algorithmsPath);
 
-	int setHouses(string& housesPath);
+	int setHousePaths(string& housesPath);
 
 	int runSimulator();
 
