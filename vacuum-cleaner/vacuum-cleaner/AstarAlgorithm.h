@@ -13,8 +13,7 @@ using namespace std;
 
 const char BLACK = 'B';
 const char DOCK = 'D';
-const char WALL = 'A';
-const int ADD_FOR_GREY = 30; // add this amount whenever you want to signal that this cell is "grey"
+const char WALL = 'W';
 
 const int NORTH_IDX = static_cast<int>(Direction::North);
 const int EAST_IDX = static_cast<int>(Direction::East);
@@ -26,7 +25,7 @@ class AstarAlgorithm : public AbstractAlgorithm {
 	class Node {
 	public:
 		Position position;
-		Node* parent = nullptr;
+		Node* parent = nullptr; // TODO shared_ptr?
 		int realCost = 0;
 		int heuristicCost = 0;
 
@@ -38,70 +37,61 @@ class AstarAlgorithm : public AbstractAlgorithm {
 
 	class PoolObject {
 	public:
-		bool inFringe;
+		bool inFringe = false;
 		Node node;
 	};
 
 	class DataPool {
 		vector<PoolObject> poolObjects;
-		size_t top = 0;
 	public:
-		DataPool(size_t capacity) {
-			poolObjects = vector<PoolObject>(capacity);
-			for (size_t i = 0; i < capacity; ++i)
-				poolObjects[i].node = Node(Position(), 0, 0, nullptr);
-		};
 
 		void add(Position position, Node* parent, int realCost, int heuristicCost) {
 			size_t idx = 0;
-			while (idx < top) {
+			while (idx < poolObjects.size()) {
 				if (poolObjects[idx].node.position == position) {
 					if (realCost + heuristicCost < poolObjects[idx].node.realCost + poolObjects[idx].node.heuristicCost) {
-						break;
+						updateNode(poolObjects[idx].node, position, parent, realCost, heuristicCost);
 					}
-					else {
-						return;
-					}
+					return;
 				}
 				idx++;
 			}
-
-			Node node = poolObjects[idx].node;
+			poolObjects.emplace_back();
 			poolObjects[idx].inFringe = true;
+			updateNode(poolObjects[idx].node, position, parent, realCost, heuristicCost);
+		};
+
+		void updateNode(Node& node, Position& position, Node* parent, int realCost, int heuristicCost) {
 			node.position = position;
 			node.realCost = realCost;
 			node.heuristicCost = heuristicCost;
 			node.parent = parent;
-			top++;
 		};
 
 		void clear() {
-			for (size_t i = 0; i < top; ++i) {
-				poolObjects[i].inFringe = false;
-			}
-			top = 0;
+			poolObjects.clear();
 		};
 
 		Node* getBestNode() {
-			if (top == 0) {
+			if (poolObjects.empty()) {
+				cout << __LINE__ << endl;
 				return nullptr;
 			}
 			int bestIdx = -1;
-			int cost = 999999; // TODO replace with MAX_INT
+			int cost = 999999999; // TODO replace with MAX_INT
 			Node* node;
 
-			for (int i = 0; i < (int)top; ++i) {
+			for (size_t i = 0; i < poolObjects.size(); ++i) {
 				node = &poolObjects[i].node;
 				if (poolObjects[i].inFringe && ((node->heuristicCost + node->realCost) < cost)) {
 					bestIdx = i;
 					cost = node->realCost + node->heuristicCost;
 				}
 			}
-
 			if (bestIdx == -1) {
+				cout << __LINE__ << endl;
 				return nullptr;
 			}
-
 			poolObjects[bestIdx].inFringe = false;
 			return &poolObjects[bestIdx].node;
 		};
@@ -113,12 +103,10 @@ class AstarAlgorithm : public AbstractAlgorithm {
 	size_t maxHouseSize;
 	vector<vector<char>> houseMatrix;
 	Position currPos;
-	Position possiblePos;
-	size_t greyCount = 0; // TODO make sure it is updated
 	DataPool fringe;
 
 	bool configured = false;
-	bool phase1Running = false;
+	bool phase1Running = true;
 	Node* goingToGrey;
 
 	void restartAlgorithm() {
@@ -127,6 +115,7 @@ class AstarAlgorithm : public AbstractAlgorithm {
 		}
 		stepsLeft = numeric_limits<size_t>::max();
 		initHouseMatrix();
+		phase1Running = true;
 	};
 
 	void initHouseMatrix() {
@@ -140,7 +129,7 @@ class AstarAlgorithm : public AbstractAlgorithm {
 		}
 		size_t center = (maxHouseSize + 1) / 2;
 		currPos = Position(center, center);
-		updateMatrix(currPos, DOCK + ADD_FOR_GREY);
+		updateMatrix(currPos, DOCK);
 	};
 
 	void updateMatrix(Position& pos, char val) {
@@ -149,10 +138,6 @@ class AstarAlgorithm : public AbstractAlgorithm {
 
 	char getMatrixValue(Position& pos) {
 		return houseMatrix[pos.getY()][pos.getX()];
-	};
-
-	bool isGrey(char c) {
-		return c >= '0' + ADD_FOR_GREY;
 	};
 
 	void updateWalls(SensorInformation& sensorInformation) {
@@ -172,26 +157,35 @@ class AstarAlgorithm : public AbstractAlgorithm {
 
 	Direction chooseSimpleDirection() {
 		return
-			houseMatrix[currPos.getY() - 1][currPos.getX()] != WALL ? Direction::North :
-			houseMatrix[currPos.getY() + 1][currPos.getX()] != WALL ? Direction::South :
-			houseMatrix[currPos.getY()][currPos.getX() + 1] != WALL ? Direction::East :
-			houseMatrix[currPos.getY()][currPos.getX() - 1] != WALL ? Direction::West :
+			houseMatrix[currPos.getY() - 1][currPos.getX()] == BLACK ? Direction::North :
+			houseMatrix[currPos.getY() + 1][currPos.getX()] == BLACK ? Direction::South :
+			houseMatrix[currPos.getY()][currPos.getX() + 1] == BLACK ? Direction::East :
+			houseMatrix[currPos.getY()][currPos.getX() - 1] == BLACK ? Direction::West :
 			Direction::Stay;
 	};
 
 	void updateDirtLevel(SensorInformation& sensorInformation) {
-		bool isCurrPosGrey = isGrey(getMatrixValue(currPos));
 		if (!inDockingStation()) {
 			int dirtLevel = sensorInformation.dirtLevel;
-			houseMatrix[currPos.getY()][currPos.getX()] = '0' + dirtLevel + isCurrPosGrey ? ADD_FOR_GREY : 0;
+			houseMatrix[currPos.getY()][currPos.getX()] = '0' + dirtLevel;
 		}
 	};
 
 	bool greyExists() {
-		return greyCount > 0;
+		for (size_t row = 0; row < maxHouseSize; ++row) {
+			for (size_t col = 0; col < maxHouseSize; ++col) {
+				Position temp = Position(col, row);
+				if (houseMatrix[row][col] != WALL && blackNeighborExists(temp) && !allBlack(temp)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	};
 
 	Direction phase1Iteration(SensorInformation& sensorInformation) {
+
+		cout << "phase1Iteration" << endl;
 
 		bool followPath = false;
 
@@ -199,32 +193,20 @@ class AstarAlgorithm : public AbstractAlgorithm {
 		updateWalls(sensorInformation);
 		updateDirtLevel(sensorInformation);
 
-		// if all neighbors are white, set currPos to white
-		if (isGrey(houseMatrix[currPos.getY()][currPos.getX()]) &&
-			!(currPos.getY() > 0 && (houseMatrix[currPos.getY() - 1][currPos.getX()] == BLACK || isGrey(houseMatrix[currPos.getY() - 1][currPos.getX()])))
-			&& !(currPos.getY() + 1 < maxHouseSize && (houseMatrix[currPos.getY() + 1][currPos.getX()] == BLACK || isGrey(houseMatrix[currPos.getY() + 1][currPos.getX()])))
-			&& !(currPos.getX() > 0 && (houseMatrix[currPos.getY()][currPos.getX() - 1] == BLACK || isGrey(houseMatrix[currPos.getY()][currPos.getX() - 1])))
-			&& !(currPos.getX() + 1 < maxHouseSize && (houseMatrix[currPos.getY()][currPos.getX() + 1] == BLACK || isGrey(houseMatrix[currPos.getY()][currPos.getX() + 1])))){
-			houseMatrix[currPos.getY()][currPos.getX()] -= ADD_FOR_GREY;
-		}
-
 		if (goingToGrey == nullptr) {
-			if (isGrey(getMatrixValue(currPos))) {
+			if (blackNeighborExists(currPos)) {
 				Direction direction = chooseSimpleDirection();
-				possiblePos = currPos;
 				return direction;
 			}
+			else if (greyExists()) {
+				// A* to search for nearest grey
+				getPathToGrey();
+				followPath = true;
+			}
 			else {
-				if (greyExists()) {
-					// A* to search for nearest grey
-					getPathToGrey();
-					followPath = true;
-				}
-				else {
-					// finished phase1
-					// TOOD copy contents of the houseMatrix to a smaller matrix
-					phase1Running = false;
-				}
+				// finished phase1
+				// TOOD copy contents of the houseMatrix to a smaller matrix
+				phase1Running = false;
 			}
 		}
 		else {
@@ -235,8 +217,6 @@ class AstarAlgorithm : public AbstractAlgorithm {
 			// Following path generated by A* on some previous step
 			Position dest = goingToGrey->position;
 			goingToGrey = goingToGrey->parent;
-			possiblePos = dest;
-
 			return 
 				dest.getY() < currPos.getY() ? Direction::North : 
 				dest.getX() < currPos.getX() ? Direction::West : 
@@ -249,12 +229,30 @@ class AstarAlgorithm : public AbstractAlgorithm {
 
 	// TODO
 	Direction phase2Iteration(SensorInformation& sensorInformation) {
-		cout << "phase2Iteration" << endl;
+		cout << "phase2Iteration: stepsLeft = "<< numeric_limits<size_t>::max() - stepsLeft << endl;
 		return Direction::Stay;
 	};
 
 	size_t getDistance(Position a, Position b) {
 		return abs((int)a.getX() - (int)b.getX()) + abs((int)a.getY() - (int)b.getY());
+	};
+
+	bool blackNeighborExists(Position& pos) {
+		return 
+			(pos.getX() > 0 && houseMatrix[pos.getY()][pos.getX() - 1] == BLACK) ||
+			(pos.getX() < maxHouseSize - 1 && houseMatrix[pos.getY()][pos.getX() + 1] == BLACK) ||
+			(pos.getY() > 0 && houseMatrix[pos.getY() - 1][pos.getX()] == BLACK) ||
+			(pos.getY() < maxHouseSize - 1 && houseMatrix[pos.getY() + 1][pos.getX()] == BLACK);
+	};
+
+	bool allBlack(Position& pos) {
+		char c;
+		return 
+			((c = houseMatrix[pos.getY()][pos.getX()]) == BLACK || c == WALL) &&
+			(pos.getX() == 0 || (c = houseMatrix[pos.getY()][pos.getX() - 1]) == BLACK || c == WALL) &&
+			(pos.getX() == maxHouseSize - 1 || (c = houseMatrix[pos.getY()][pos.getX() + 1]) == BLACK || c == WALL) &&
+			(pos.getY() == 0 || (c = houseMatrix[pos.getY() - 1][pos.getX()]) == BLACK || c == WALL) &&
+			(pos.getY() == maxHouseSize - 1 || (c = houseMatrix[pos.getY() + 1][pos.getX()]) == BLACK || c == WALL);
 	};
 
 	Position getNearestGrey(Position& pos) {
@@ -263,7 +261,7 @@ class AstarAlgorithm : public AbstractAlgorithm {
 		for (size_t row = 0; row < maxHouseSize; ++row) {
 			for (size_t col = 0; col < maxHouseSize; ++col) {
 				Position temp = Position(col, row);
-				if (isGrey(getMatrixValue(temp))) {
+				if (blackNeighborExists(temp)) {
 					size_t newDistance = getDistance(pos, temp);
 					if (distance > newDistance) {
 						distance = newDistance;
@@ -273,53 +271,47 @@ class AstarAlgorithm : public AbstractAlgorithm {
 			}
 		}
 		return nearest;
-	}
+	};
 
 	void getPathToGrey() {
 
 		fringe.clear();
 		fringe.add(currPos, nullptr, 0, getDistance(currPos, getNearestGrey(currPos)));
-
 		Node* bestNode = fringe.getBestNode(); // TODO what if bestNode == nullptr ?
 		Position pos = bestNode->position;
 		Position childPos;
 
-		// TODO change to == BLACK ?
-		while (!(pos.getY() > 0 && isGrey(houseMatrix[pos.getY() - 1][pos.getX()])) 
-			&& !(pos.getY()+1 < maxHouseSize && isGrey(houseMatrix[pos.getY() + 1][pos.getX()]))
-			&& !(pos.getX() > 0 && isGrey(houseMatrix[pos.getY()][pos.getX() - 1])) 
-			&& !(pos.getX()+1 < maxHouseSize && isGrey(houseMatrix[pos.getY()][pos.getX() + 1]))) {
-
-			//adding neighbour tiles to fringe if they are not walls
+		while (!blackNeighborExists(pos)) {
 			addBlackToFringe(pos, pos.getX() > 0, pos.getX() - 1, pos.getY(), bestNode);
 			addBlackToFringe(pos, pos.getX() < maxHouseSize - 1, pos.getX() + 1, pos.getY(), bestNode);
 			addBlackToFringe(pos, pos.getY() < maxHouseSize - 1, pos.getX(), pos.getY() + 1, bestNode);
 			addBlackToFringe(pos, pos.getY() > 0, pos.getX(), pos.getY() - 1, bestNode);
-
 			bestNode = fringe.getBestNode();
 			pos = bestNode->position;
 		}
 
 		// reverse path
 		Node* temp1 = bestNode;
-		Node* temp2 = bestNode->parent;
-		Node* temp3;
+		if (bestNode->parent != nullptr) {
+			Node* temp2 = bestNode->parent;
+			Node* temp3;
 
-		while (temp2->parent != nullptr) {
-			temp3 = temp2->parent;
+			while (temp2->parent != nullptr) {
+				temp3 = temp2->parent;
+				temp2->parent = temp1;
+				temp1 = temp2;
+				temp2 = temp3;
+			}
 			temp2->parent = temp1;
-			temp1 = temp2;
-			temp2 = temp3;
+			bestNode->parent = nullptr;
 		}
-		temp2->parent = temp1;
-		bestNode->parent = nullptr;
 
 		goingToGrey = temp1;
 	};
 
 	void addBlackToFringe(Position pos, bool pred, size_t x, size_t y, Node* bestNode) {
 		if (pred) {
-			if (houseMatrix[y][x] == BLACK) {
+			if (houseMatrix[y][x] != WALL) {
 				Position childPos(x, y);
 				fringe.add(childPos, bestNode, bestNode->realCost + 1, getDistance(childPos, getNearestGrey(childPos)));
 			}
@@ -327,13 +319,10 @@ class AstarAlgorithm : public AbstractAlgorithm {
 	};
 
 	bool inDockingStation() {
-		return houseMatrix[currPos.getY()][currPos.getX()] == DOCK ||
-			houseMatrix[currPos.getY()][currPos.getX()] == DOCK + ADD_FOR_GREY;
+		return houseMatrix[currPos.getY()][currPos.getX()] == DOCK;
 	};
 
 public:
-
-	AstarAlgorithm() : fringe(maxHouseSize * maxHouseSize) {};
 
 	virtual void setSensor(const AbstractSensor& sensor) override {
 		this->sensor = &sensor;
@@ -346,12 +335,14 @@ public:
 		battery.setConsumptionRate(max(0, config.find(BATTERY_CONSUMPTION_RATE)->second));
 		battery.setRechargeRate(max(0, config.find(BATTERY_RECHARGE_RATE)->second));
 		if (battery.getConsumptionRate() < 1) {
-			maxHouseSize = 200; // TODO move to constant
+			maxHouseSize = 400; // TODO move to constant
 		}
 		else {
 			maxHouseSize = battery.getCapacity() / battery.getConsumptionRate();
 			maxHouseSize += 1 - maxHouseSize % 2; // make odd so docking station would be in the center
+			// TODO make sure it's not too big
 		}
+		maxHouseSize = 40; // TODO remove
 		initHouseMatrix();
 		configured = true;
 	};
@@ -359,8 +350,32 @@ public:
 	// TODO get back to docking
 	virtual Direction step(Direction prevStep) override {
 
+		// TODO remove
+		if (stepsLeft < 2) {
+			for (size_t row = 0; row < maxHouseSize; ++row) {
+				for (size_t col = 0; col < maxHouseSize; ++col) {
+					cout << houseMatrix[row][col];
+				}
+				cout << endl;
+			}
+			cout << endl;
+			size_t count = 0;
+			for (size_t row = 0; row < maxHouseSize; ++row) {
+				for (size_t col = 0; col < maxHouseSize; ++col) {
+					Position temp = Position(col, row);
+					if (houseMatrix[row][col] != WALL && blackNeighborExists(temp) && !allBlack(temp)) {
+						count++;
+					}
+				}
+			}
+			cout << "Greys: " << count << endl;
+		}
+
+		
+
 		// update currPos with prevStep
 		currPos.moveDirection(prevStep);
+		cout << "(" << currPos.getX() << "," << currPos.getY() << ")" << endl;
 
 		// get sensor information
 		Direction direction = Direction::Stay; // default
