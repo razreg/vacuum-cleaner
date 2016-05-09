@@ -3,6 +3,8 @@
 
 using namespace std;
 
+#include "Direction.h"
+
 class Position {
 
 	size_t X;
@@ -61,6 +63,15 @@ public:
 			Y--;
 		}
 		return *this;
+	};
+
+	Position& moveDirection(Direction direction) {
+		return
+			direction == Direction::North ? moveNorth() :
+			direction == Direction::South ? moveSouth() :
+			direction == Direction::West ? moveWest() :
+			direction == Direction::East ? moveEast() :
+			*this;
 	};
 
 	size_t getX() const {

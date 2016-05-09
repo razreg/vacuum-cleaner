@@ -19,8 +19,8 @@ $(OLIST): %.o: %.cpp
 
 ############################ Algorithms ############################
 
-ALGOS = AlgorithmRegistration.o _305623571_A.o _305623571_B.o _305623571_C.o
-ALGLIBS = 305623571_A_.so 305623571_B_.so 305623571_C_.so
+ALGOS = AlgorithmRegistration.o _305623571_A.o _305623571_B.o _305623571_C.o AstarAlgorithm.o
+ALGLIBS = 305623571_A_.so 305623571_B_.so 305623571_C_.so AstarAlgorithm.so
 MISC = ManhattenAlgorithm.o
 
 algorithms: Common.o algorithms_after_simulator
@@ -29,6 +29,9 @@ algorithms_after_simulator: $(MISC) $(ALGOS) $(ALGLIBS)
 
 $(MISC) $(ALGOS): %.o: %.cpp
 	$(CC) $(CFLAGS) -c $< -mcmodel=large
+
+AstarAlgorithm.so: AstarAlgorithm.o
+	$(CC) -shared -Wl,-soname,$@ -o $@ $< Common.o AlgorithmRegistration.o
 
 305623571_A_.so: _305623571_A.o
 	$(CC) -shared -Wl,-soname,$@ -o $@ $< Common.o AlgorithmRegistration.o
