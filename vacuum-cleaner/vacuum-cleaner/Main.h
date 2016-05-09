@@ -34,7 +34,10 @@ bool parseArgs(int argc, char** argv, string& configPath, string& housesPath, st
 
 void trimString(string& str) {
 	size_t first = str.find_first_not_of(' ');
-	size_t last = str.find_last_not_of(' ');
+	size_t lastS = str.find_last_not_of(' ');
+	size_t lastR = str.find_last_not_of('\r');
+	size_t lastN = str.find_last_not_of('\n');
+	size_t last = min(lastS, min(lastR, lastN));
 	str = str.substr(first, (last - first + 1));
 }
 
