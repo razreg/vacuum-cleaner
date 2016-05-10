@@ -15,7 +15,7 @@ const char BLACK = 'B';
 const char DOCK = 'D';
 const char WALL = 'W';
 
-const size_t HOUSE_SIZE_UPPER_BOUND = 501;
+const size_t HOUSE_SIZE_UPPER_BOUND = 201; // TODO decide on bound
 
 const int NORTH_IDX = static_cast<int>(Direction::North);
 const int EAST_IDX = static_cast<int>(Direction::East);
@@ -27,20 +27,20 @@ class AstarAlgorithm : public AbstractAlgorithm {
 	class Node {
 	public:
 		Position position;
-		Node* parent = nullptr; // TODO shared_ptr?
+		shared_ptr<Node> parent = nullptr;
 		int realCost = 0;
 		int heuristicCost = 0;
 
 		Node() {};
 
-		Node(Position position, int realCost, int heuristicCost, Node* parentNode) :
+		Node(Position position, int realCost, int heuristicCost, shared_ptr<Node> parentNode) :
 			position(position), parent(parentNode), realCost(realCost), heuristicCost(heuristicCost) {};
 	};
 
 	class PoolObject {
 	public:
 		bool inFringe = false;
-		Node node;
+		shared_ptr<Node> node;
 	};
 
 	class DataPool {
@@ -55,11 +55,11 @@ class AstarAlgorithm : public AbstractAlgorithm {
 			return poolObjects.size();
 		};
 
-		void add(Position position, Node* parent, int realCost, int heuristicCost) {
+		void add(Position position, shared_ptr<Node> parent, int realCost, int heuristicCost) {
 			size_t idx = 0;
 			while (idx < poolObjects.size()) {
-				if (poolObjects[idx].node.position == position) {
-					if (realCost + heuristicCost < poolObjects[idx].node.realCost + poolObjects[idx].node.heuristicCost) {
+				if (poolObjects[idx].node->position == position) {
+					if (realCost + heuristicCost < poolObjects[idx].node->realCost + poolObjects[idx].node->heuristicCost) {
 						updateNode(poolObjects[idx].node, position, parent, realCost, heuristicCost);
 					}
 					return;
@@ -68,31 +68,29 @@ class AstarAlgorithm : public AbstractAlgorithm {
 			}
 			poolObjects.push_back(PoolObject());
 			poolObjects[idx].inFringe = true;
+			poolObjects[idx].node = make_shared<Node>();
 			updateNode(poolObjects[idx].node, position, parent, realCost, heuristicCost);
 		};
 
-		void updateNode(Node& node, Position& position, Node* parent, int realCost, int heuristicCost) {
-			node.position = position;
-			node.realCost = realCost;
-			node.heuristicCost = heuristicCost;
-			node.parent = parent;
+		void updateNode(shared_ptr<Node> node, Position& position, shared_ptr<Node> parent, int realCost, int heuristicCost) {
+			node->position = position;
+			node->realCost = realCost;
+			node->heuristicCost = heuristicCost;
+			node->parent = parent;
 		};
 
 		void clear() {
 			poolObjects.clear();
 		};
 
-		Node* getBestNode() {
-			if (poolObjects.empty()) {
-				cout << __LINE__ << endl;
-				return nullptr;
-			}
+		shared_ptr<Node> getBestNode() {
+
 			int bestIdx = -1;
-			int cost = 999999999; // TODO replace with MAX_INT
-			Node* node;
+			int cost = numeric_limits<int>::max();
+			shared_ptr<Node> node;
 
 			for (size_t i = 0; i < poolObjects.size(); ++i) {
-				node = &poolObjects[i].node;
+				node = poolObjects[i].node;
 				if (poolObjects[i].inFringe && ((node->heuristicCost + node->realCost) < cost)) {
 					bestIdx = i;
 					cost = node->realCost + node->heuristicCost;
@@ -101,9 +99,8 @@ class AstarAlgorithm : public AbstractAlgorithm {
 			if (bestIdx == -1) {
 				return nullptr;
 			}
-			cout << "best cost: " << cost << endl;
 			poolObjects[bestIdx].inFringe = false;
-			return &poolObjects[bestIdx].node;
+			return poolObjects[bestIdx].node;
 		};
 	};
 
@@ -120,9 +117,9 @@ class AstarAlgorithm : public AbstractAlgorithm {
 
 	bool configured = false;
 	bool mappingPhase = true;
-	Node* goingToGrey = nullptr;
-	Node* goingToDock = nullptr;
-	Node* goingToDust = nullptr;
+	list<shared_ptr<Node>> goingToGrey;
+	list<shared_ptr<Node>> goingToDock;
+	list<shared_ptr<Node>> goingToDust;
 
 	void restartAlgorithm() {
 		if (configured) {
@@ -131,6 +128,9 @@ class AstarAlgorithm : public AbstractAlgorithm {
 		stepsLeft = numeric_limits<size_t>::max();
 		initHouseMatrix();
 		mappingPhase = true;
+		mappingDataPool.clear();
+		dockingDataPool.clear();
+		dustDataPool.clear();
 	};
 
 	void initHouseMatrix() {
@@ -157,18 +157,18 @@ class AstarAlgorithm : public AbstractAlgorithm {
 	};
 
 	void updateWalls(SensorInformation& sensorInformation) {
-		if (sensorInformation.isWall[NORTH_IDX]) {
+		if (sensorInformation.isWall[NORTH_IDX] && currPos.getY() > 0) {
 			houseMatrix[currPos.getY() - 1][currPos.getX()] = WALL;
 		}
-		if (sensorInformation.isWall[SOUTH_IDX]) {
+		if (sensorInformation.isWall[SOUTH_IDX] && currPos.getY() < maxHouseSize - 1) {
 			houseMatrix[currPos.getY() + 1][currPos.getX()] = WALL;
 		}
-		if (sensorInformation.isWall[EAST_IDX]) {
+		if (sensorInformation.isWall[EAST_IDX] && currPos.getX() < maxHouseSize - 1) {
 			houseMatrix[currPos.getY()][currPos.getX() + 1] = WALL;
 		}
-		if (sensorInformation.isWall[WEST_IDX]) {
+		if (sensorInformation.isWall[WEST_IDX] && currPos.getX() > 0) {
 			houseMatrix[currPos.getY()][currPos.getX() - 1] = WALL;
-		}
+		} 
 	};
 
 	Direction chooseSimpleDirectionToBlack() {
@@ -235,7 +235,9 @@ class AstarAlgorithm : public AbstractAlgorithm {
 
 		bool followPathToGrey = false;
 		bool followPathToDocking = false;
-
+		goingToDock.clear();
+		goingToDust.clear();
+		goingToGrey.clear();
 		// update houseMatrix according to sensorInformation
 		updateWalls(sensorInformation);
 		updateDirtLevel(sensorInformation);
@@ -243,39 +245,26 @@ class AstarAlgorithm : public AbstractAlgorithm {
 		if (!mappingPhase && houseIsClean()) {
 			followPathToDocking = true; // we can finish now
 		}
-		cout << __LINE__ << endl; // TODO remove
 		// check if we have enough steps to go back to docking
 		size_t pathLength = getPathToDocking();
-		cout << __LINE__ << endl; // TODO remove
 		if (isReturnTripFeasable(pathLength) && !isReturnTripFeasable(pathLength + 2)) {
-			cout << __LINE__ << endl; // TODO remove
 			followPathToDocking = true;
 		}
-		cout << __LINE__ << endl; // TODO remove
-		if (followPathToDocking && goingToDock != nullptr) {
-			cout << __LINE__ << endl; // TODO remove
-			Position dest = goingToDock->position;
-			cout << __LINE__ << endl; // TODO remove
-			goingToDock = goingToDock->parent;
-			cout << __LINE__ << endl; // TODO remove
+		if (followPathToDocking && !goingToDock.empty()) {
+			Position dest = goingToDock.back()->position;
+			goingToDock.pop_back();
 			direction = getStepFromPath(dest);
-			cout << __LINE__ << endl; // TODO remove
 		}
 		else if (sensorInformation.dirtLevel == 0)  { // keep cleaning if there's dust
-			cout << __LINE__ << endl; // TODO remove
 			if (mappingPhase) {
 				// we can keep mapping
-				if (goingToGrey == nullptr) {
-					cout << __LINE__ << endl; // TODO remove
+				if (goingToGrey.empty()) {
 					if (blackNeighborExists(currPos)) {
-						cout << __LINE__ << endl; // TODO remove
 						direction = chooseSimpleDirectionToBlack();
 					}
 					else if (greyExists()) {
-						cout << __LINE__ << endl; // TODO remove
 						// A* to search for nearest grey
 						getPathToGrey();
-						cout << __LINE__ << endl; // TODO remove
 						followPathToGrey = true;
 					}
 					else {
@@ -283,35 +272,27 @@ class AstarAlgorithm : public AbstractAlgorithm {
 					}
 				}
 				else {
-					followPathToGrey = true; // TODO what happens if prevStep is not what we selected
+					followPathToGrey = true;
 				}
-				cout << __LINE__ << endl; // TODO remove
 				if (followPathToGrey) {
-					cout << __LINE__ << endl; // TODO remove
-					Position dest = goingToGrey->position;
-					cout << __LINE__ << endl; // TODO remove
-					goingToGrey = goingToGrey->parent;
-					cout << __LINE__ << endl; // TODO remove
+					Position dest = goingToGrey.back()->position;
+					goingToGrey.pop_back();
 					direction = getStepFromPath(dest);
-					cout << __LINE__ << endl; // TODO remove
 				}
 			}
 			else {
-				cout << __LINE__ << endl; // TODO remove
 				// we can clean now that mapping is done
 				getPathToDust();
-				if (goingToDust == nullptr) {
-					cout << __LINE__ << endl; // TODO remove
+				if (goingToDust.empty()) {
 					direction = chooseSimpleDirection();
 				}
 				else {
-					Position dest = goingToDust->position;
-					goingToDust = goingToDust->parent;
+					Position dest = goingToDust.back()->position;
+					goingToDust.pop_back();
 					direction = getStepFromPath(dest);
 				}
 			}
 		}
-		cout << __LINE__ << endl; // TODO remove
 		return direction;
 	};
 
@@ -377,49 +358,49 @@ class AstarAlgorithm : public AbstractAlgorithm {
 
 		mappingDataPool.clear();
 		mappingDataPool.add(currPos, nullptr, 0, getDistance(currPos, getNearestGrey(currPos)));
-		if (mappingDataPool.empty()) {
+		shared_ptr<Node> bestNode = mappingDataPool.getBestNode();
+		if (bestNode == nullptr) {
 			return;
 		}
-		Node* bestNode = mappingDataPool.getBestNode(); // TODO what if bestNode == nullptr ?
 		Position pos = bestNode->position;
 		Position childPos;
-
 		while (!blackNeighborExists(pos)) {
 			addNeighborToMappingDataPool(pos, pos.getX() > 0, Position(pos.getX() - 1, pos.getY()), bestNode);
 			addNeighborToMappingDataPool(pos, pos.getX() < maxHouseSize - 1, Position(pos.getX() + 1, pos.getY()), bestNode);
 			addNeighborToMappingDataPool(pos, pos.getY() < maxHouseSize - 1, Position(pos.getX(), pos.getY() + 1), bestNode);
 			addNeighborToMappingDataPool(pos, pos.getY() > 0, Position(pos.getX(), pos.getY() - 1), bestNode);
 			bestNode = mappingDataPool.getBestNode();
+			if (bestNode == nullptr) {
+				return;
+			}
 			pos = bestNode->position;
 		}
-
 		// reverse path
-		Node* temp1 = bestNode;
+		shared_ptr<Node> temp1 = bestNode;
 		if (bestNode->parent != nullptr) {
-			Node* temp2 = bestNode->parent;
-			Node* temp3;
+			shared_ptr<Node> temp2 = bestNode->parent;
+			shared_ptr<Node> temp3;
 
 			while (temp2->parent != nullptr) {
 				temp3 = temp2->parent;
 				temp2->parent = temp1;
 				temp1 = temp2;
-				temp2 = temp3; // TODO isn't this line redundant?
+				temp2 = temp3;
 			}
 			temp2->parent = temp1;
 			bestNode->parent = nullptr;
 		}
-
-		goingToGrey = temp1;
+		goingToGrey.push_back(temp1);
 	};
 
 	void getPathToDust() {
 
 		dustDataPool.clear();
 		dustDataPool.add(currPos, nullptr, 0, getDistance(currPos, getNearestDust(currPos)));
-		if (dustDataPool.empty()) {
+		shared_ptr<Node> bestNode = dustDataPool.getBestNode();
+		if (bestNode == nullptr) {
 			return;
 		}
-		Node* bestNode = dustDataPool.getBestNode(); // TODO what if bestNode == nullptr ?
 		Position pos = bestNode->position;
 		Position childPos;
 
@@ -430,40 +411,39 @@ class AstarAlgorithm : public AbstractAlgorithm {
 			addNeighborToDustDataPool(pos, pos.getY() < maxHouseSize - 1, Position(pos.getX(), pos.getY() + 1), bestNode);
 			addNeighborToDustDataPool(pos, pos.getY() > 0, Position(pos.getX(), pos.getY() - 1), bestNode);
 			bestNode = dustDataPool.getBestNode();
+			if (bestNode == nullptr) {
+				return;
+			}
 			pos = bestNode->position;
 		}
 
 		// reverse path
-		Node* temp1 = bestNode;
+		shared_ptr<Node> temp1 = bestNode;
 		if (bestNode->parent != nullptr) {
-			Node* temp2 = bestNode->parent;
-			Node* temp3;
+			shared_ptr<Node> temp2 = bestNode->parent;
+			shared_ptr<Node> temp3;
 
 			while (temp2->parent != nullptr) {
 				temp3 = temp2->parent;
 				temp2->parent = temp1;
 				temp1 = temp2;
-				temp2 = temp3; // TODO isn't this line redundant?
+				temp2 = temp3;
 			}
 			temp2->parent = temp1;
 			bestNode->parent = nullptr;
 		}
 
-		goingToDust = temp1;
+		goingToDust.push_back(temp1);
 	};
 
 	size_t getPathToDocking() {
-
 		dockingDataPool.clear();
 		dockingDataPool.add(currPos, nullptr, 0, getDistance(currPos, docking));
-		if (dockingDataPool.empty()) {
-			return 0;
+		shared_ptr<Node> bestNode = dockingDataPool.getBestNode();
+		if (bestNode == nullptr) {
+			return numeric_limits<size_t>::max();
 		}
-		cout << __LINE__ << endl; // TODO remove
-		Node* bestNode = dockingDataPool.getBestNode(); // TODO what if bestNode == nullptr ?
-		cout << __LINE__ << endl; // TODO remove
 		Position pos = bestNode->position;
-		cout << __LINE__ << endl; // TODO remove
 		Position childPos;
 		
 		while (pos != docking) {
@@ -472,35 +452,33 @@ class AstarAlgorithm : public AbstractAlgorithm {
 			addNeighborToDockingDataPool(pos, pos.getY() < maxHouseSize - 1, Position(pos.getX(), pos.getY() + 1), bestNode);
 			addNeighborToDockingDataPool(pos, pos.getY() > 0, Position(pos.getX(), pos.getY() - 1), bestNode);
 			bestNode = dockingDataPool.getBestNode();
+			if (bestNode == nullptr) {
+				return numeric_limits<size_t>::max();
+			}
 			pos = bestNode->position;
-			cout << "dockingDataPool.size() == " << dockingDataPool.size() << endl;
 		}
-		cout << __LINE__ << endl; // TODO remove
 		// reverse path
 		size_t pathLength = 1;
-		Node* temp1 = bestNode;
-		cout << __LINE__ << endl; // TODO remove
+		shared_ptr<Node> temp1 = bestNode;
 		if (bestNode->parent != nullptr) {
-			cout << __LINE__ << endl; // TODO remove
-			Node* temp2 = bestNode->parent;
-			Node* temp3;
-			cout << __LINE__ << endl; // TODO remove
+			shared_ptr<Node> temp2 = bestNode->parent;
+			shared_ptr<Node> temp3;
 			while (temp2->parent != nullptr) {
 				temp3 = temp2->parent;
 				temp2->parent = temp1;
 				temp1 = temp2;
-				temp2 = temp3; // TODO isn't this line redundant?
+				temp2 = temp3;
 				pathLength++;
 			}
 			temp2->parent = temp1;
 			bestNode->parent = nullptr;
 		}
 
-		goingToDock = temp1;
+		goingToDock.push_back(temp1);
 		return pathLength;
 	};
 
-	void addNeighborToMappingDataPool(Position pos, bool pred, Position childPos, Node* bestNode) {
+	void addNeighborToMappingDataPool(Position pos, bool pred, Position childPos, shared_ptr<Node> bestNode) {
 		if (pred) {
 			if (houseMatrix[childPos.getY()][childPos.getX()] != WALL) {
 				mappingDataPool.add(childPos, bestNode, bestNode->realCost + 1, getDistance(childPos, getNearestGrey(childPos)));
@@ -508,7 +486,7 @@ class AstarAlgorithm : public AbstractAlgorithm {
 		}
 	};
 
-	void addNeighborToDockingDataPool(Position pos, bool pred, Position childPos, Node* bestNode) {
+	void addNeighborToDockingDataPool(Position pos, bool pred, Position childPos, shared_ptr<Node> bestNode) {
 		if (pred) {
 			if (houseMatrix[childPos.getY()][childPos.getX()] != WALL) {
 				dockingDataPool.add(childPos, bestNode, bestNode->realCost + 1, getDistance(childPos, docking));
@@ -516,7 +494,7 @@ class AstarAlgorithm : public AbstractAlgorithm {
 		}
 	};
 
-	void addNeighborToDustDataPool(Position pos, bool pred, Position childPos, Node* bestNode) {
+	void addNeighborToDustDataPool(Position pos, bool pred, Position childPos, shared_ptr<Node> bestNode) {
 		if (pred) {
 			if (houseMatrix[childPos.getY()][childPos.getX()] != WALL) {
 				dustDataPool.add(childPos, bestNode, bestNode->realCost + 1, getDistance(childPos, getNearestDust(childPos)));
@@ -550,7 +528,6 @@ public:
 			maxHouseSize = battery.getCapacity() / battery.getConsumptionRate();
 			maxHouseSize += 1 - maxHouseSize % 2; // make odd so docking station would be in the center
 		}
-		maxHouseSize = 41; // TODO remove
 		maxHouseSize = min(maxHouseSize, HOUSE_SIZE_UPPER_BOUND);
 		initHouseMatrix();
 		configured = true;
@@ -558,30 +535,8 @@ public:
 
 	virtual Direction step(Direction prevStep) override {
 
-		// TODO remove
-		if (stepsLeft < 2) {
-			for (size_t row = 0; row < maxHouseSize; ++row) {
-				for (size_t col = 0; col < maxHouseSize; ++col) {
-					cout << houseMatrix[row][col];
-				}
-				cout << endl;
-			}
-			cout << endl;
-			size_t count = 0;
-			for (size_t row = 0; row < maxHouseSize; ++row) {
-				for (size_t col = 0; col < maxHouseSize; ++col) {
-					Position temp = Position(col, row);
-					if (houseMatrix[row][col] != WALL && blackNeighborExists(temp) && !allBlack(temp)) {
-						count++;
-					}
-				}
-			}
-			cout << "Greys: " << count << endl;
-		}
-
 		// update currPos with prevStep
 		currPos.moveDirection(prevStep);
-		cout << "(" << currPos.getX() << "," << currPos.getY() << ")" << endl; // TODO remove
 
 		// get sensor information
 		Direction direction = Direction::Stay; // default

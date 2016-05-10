@@ -1,6 +1,8 @@
 #ifndef __SCORE__H_
 #define __SCORE__H_
 
+#include "Common.h"
+
 using namespace std;
 
 class Score {
@@ -104,6 +106,13 @@ public:
 				+ (winnerNumSteps - thisNumSteps) * 10
 				- sumDirtInHouse * 3
 				+ (isBackInDocking ? 50 : -200));
+			/*
+			std::cout << endl << "Score: " << "(" << badBehavior << ") ? 0 : max(0, 2000 - ("
+				<< (isBackInDocking && sumDirtInHouse == 0 ? positionInCompetition : 10)
+				<< " - 1) * 50 + (" << winnerNumSteps << " - "
+				<< thisNumSteps << ") * 10 - " << sumDirtInHouse << " * 3 + ("
+				<< isBackInDocking << " ? 50 : -200)) == " << score << endl << endl;
+				*/
 		}
 		else {
 			map<string, int> scoreParams = {

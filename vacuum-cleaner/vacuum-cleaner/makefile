@@ -1,6 +1,6 @@
 CC = g++
 LIBS = -ldl -lboost_thread -lboost_filesystem -lboost_system
-CFLAGS = -std=c++11 -O2 -Wall -pedantic -pthread
+CFLAGS = -std=c++11 -O2 -Wall -pedantic -pthread # remove -g
 
 all: simulator algorithms
 
@@ -19,8 +19,8 @@ $(OLIST): %.o: %.cpp
 
 ############################ Algorithms ############################
 
-ALGOS = AlgorithmRegistration.o AstarAlgorithm.o # _305623571_A.o _305623571_B.o _305623571_C.o
-ALGLIBS = AstarAlgorithm.so # 305623571_A_.so 305623571_B_.so 305623571_C_.so
+ALGOS = AlgorithmRegistration.o AstarAlgorithm.o _305623571_A.o _305623571_B.o _305623571_C.o
+ALGLIBS = AstarAlgorithm.so 305623571_A_.so 305623571_B_.so 305623571_C_.so
 MISC = ManhattenAlgorithm.o
 
 algorithms: Common.o algorithms_after_simulator
