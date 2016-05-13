@@ -67,6 +67,7 @@ class MainHelper {
 public:
 
 	~MainHelper() {
+		registrar.clear(); // required in case an algorithm was mitakenly loaded as a score_formula
 		if (libHandle != NULL) {
 			dlclose(libHandle);
 		}
