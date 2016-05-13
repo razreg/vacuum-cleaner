@@ -191,8 +191,10 @@ void Simulator::performStep(Robot& robot, int steps, int maxSteps, int maxStepsA
 		logger.warn("Algorithm [" + robot.getAlgorithmName() +
 			"] has performed an illegal step. Robot in position="
 			+ (string)robot.getPosition());
-		lock_guard<mutex> lockResults(resultsMutex);
-		results[algorithmName][houseName].reportBadBehavior();
+		{
+			lock_guard<mutex> lockResults(resultsMutex);
+			results[algorithmName][houseName].reportBadBehavior();
+		}
 		robot.reportBadBehavior();
 
 		lock_guard<mutex> lockErrors(errorMutex);

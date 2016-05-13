@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
 	MainHelper mainHelper;
 	int returnCode = SUCCESS;
 
-	// set paths
+	// set paths 
 	string workingDir;
 	try {
 		workingDir = getCurrentWorkingDirectory();
@@ -300,7 +300,7 @@ bool MainHelper::loadScoreFormula(const string& scoreFormulaPath) {
 		cout << "cannot find score_formula.so file in '" << base.string() << "'" << endl;
 		return false;
 	}
-
+	
 	libHandle = dlopen(path.c_str(), RTLD_NOW);
 	if (libHandle == NULL) {
 		if (logger.debugEnabled()) {

@@ -7,11 +7,22 @@
 
 class AlgorithmRegistrar {
 
+	class LibHandle {
+		void* handle;
+	public:
+		LibHandle(void* handle) : handle(handle) {};
+		~LibHandle() {
+			if (handle != NULL) dlclose(handle);
+		};
+		LibHandle(const LibHandle&) = delete;
+		LibHandle& operator=(const LibHandle&) = delete;
+	};
+
 	static Logger logger;
 
-	list<void*> dlibs;
-	list<string> algorithmNames;
 	list<function<unique_ptr<AbstractAlgorithm>()>> algorithmFactories;
+	list<LibHandle> dlibs;
+	list<string> algorithmNames;
 	
 	void registerAlgorithm(function<unique_ptr<AbstractAlgorithm>()> algorithmFactory) {
 		instance.algorithmFactories.push_back(algorithmFactory);
@@ -26,15 +37,17 @@ class AlgorithmRegistrar {
 
 	static AlgorithmRegistrar instance;
 
-	AlgorithmRegistrar() {}; // Now no one can instantiate from outside of this class (Singleton)
+	AlgorithmRegistrar() {}; // No one can instantiate from outside of this class (Singleton)
+
+	~AlgorithmRegistrar() {
+		algorithmFactories.clear(); // must happen before dlibs are destroyed.
+	};
 
 public:
 
 	friend class AlgorithmRegistration;
 	
 	enum { ALGORITHM_REGISTERED_SUCCESSFULY = 0, FILE_CANNOT_BE_LOADED = -1, NO_ALGORITHM_REGISTERED = -2 };
-	
-	~AlgorithmRegistrar();
 
 	AlgorithmRegistrar(const AlgorithmRegistrar&) = delete;
 
@@ -61,6 +74,11 @@ public:
 	static AlgorithmRegistrar& getInstance() {
 		return instance;
 	}
+
+	void clear() {
+		algorithmNames.clear();
+		algorithmFactories.clear();
+	};
 };
 
 #endif // __ALGORITHM_REGISTRAR__H_

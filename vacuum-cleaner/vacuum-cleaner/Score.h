@@ -95,11 +95,14 @@ public:
 
 	int getScore() const {
 		int score;
+		if (badBehavior) {
+			return 0;
+		}
 		if (calcScore == NULL) {
 			// default score function
 			int pos = isBackInDocking && sumDirtInHouse == 0 ? 
 				positionInCompetition : 10;
-			score = (badBehavior) ? 0 : max(0, 2000
+			score = max(0, 2000
 				- (pos - 1) * 50
 				+ (winnerNumSteps - thisNumSteps) * 10
 				- sumDirtInHouse * 3
