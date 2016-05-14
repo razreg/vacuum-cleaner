@@ -7,7 +7,6 @@
 #include "Position.h"
 #include "Common.h"
 #include "uniqueptr.h"
-#include "AlgorithmRegistration.h"
 
 using namespace std;
 
@@ -15,7 +14,7 @@ const char BLACK = 'B';
 const char DOCK = 'D';
 const char WALL = 'W';
 
-const size_t HOUSE_SIZE_UPPER_BOUND = 201; // TODO decide on bound
+const size_t HOUSE_SIZE_UPPER_BOUND = 241; // TODO decide on bound
 
 const int NORTH_IDX = static_cast<int>(Direction::North);
 const int EAST_IDX = static_cast<int>(Direction::East);
@@ -84,8 +83,6 @@ class AstarAlgorithm : public AbstractAlgorithm {
 	list<shared_ptr<Node>> goingToDock;
 	list<shared_ptr<Node>> goingToDust;
 
-	void restartAlgorithm();
-
 	void initHouseMatrix();
 
 	void updateMatrix(Position& pos, char val) {
@@ -97,10 +94,6 @@ class AstarAlgorithm : public AbstractAlgorithm {
 	};
 
 	void updateWalls(SensorInformation& sensorInformation);
-
-	Direction chooseSimpleDirectionToBlack();
-
-	Direction chooseSimpleDirection() const;
 
 	void updateDirtLevel(SensorInformation& sensorInformation);
 
@@ -140,10 +133,30 @@ class AstarAlgorithm : public AbstractAlgorithm {
 		return houseMatrix[currPos.getY()][currPos.getX()] == DOCK;
 	};
 
-	bool isReturnTripFeasable(size_t pathLength) {
-		return pathLength <= stepsLeft && // There are enough steps
-			battery.getCurrValue() >= pathLength * battery.getConsumptionRate(); // The battery will suffice
+protected:
+
+	Position& getCurrPos() {
+		return currPos;
 	};
+
+	vector<vector<char>>& getHouseMatrix() {
+		return houseMatrix;
+	};
+
+	size_t getMaxHouseSize() {
+		return maxHouseSize;
+	};
+
+	virtual bool isReturnTripFeasable(size_t pathLength) {
+		return pathLength < stepsLeft && // There are enough steps
+			battery.getCurrValue() > pathLength * battery.getConsumptionRate(); // The battery will suffice
+	};
+
+	virtual void restartAlgorithm();
+
+	virtual Direction chooseSimpleDirectionToBlack() = 0;
+
+	virtual Direction chooseSimpleDirection() = 0;
 
 public:
 
@@ -158,6 +171,11 @@ public:
 
 	virtual void aboutToFinish(int stepsTillFinishing) override {
 		stepsLeft = stepsTillFinishing > 0 ? stepsTillFinishing : 0;
+	};
+
+	// should the algorithm keep mapping/moving on or stay?
+	virtual bool keepMoving(SensorInformation& sensorInformation) const {
+		return sensorInformation.dirtLevel == 0; // keep cleaning if there's dust
 	};
 
 };

@@ -1,45 +1,25 @@
 #ifndef __ALGORITHM_1__H_
 #define __ALGORITHM_1__H_
 
-#include "BaseAlgorithm.h"
+#include "AstarAlgorithm.h"
 #include "uniqueptr.h"
 #include "AlgorithmRegistration.h"
 
 using namespace std;
 
-class _305623571_A : public BaseAlgorithm {
-
-	vector<Direction> movesBack;
+class _305623571_A : public AstarAlgorithm {
 
 protected:
 
-	virtual void restartAlgorithm() override {
-		BaseAlgorithm::restartAlgorithm();
-		movesBack.clear();
-	};
+	virtual Direction chooseSimpleDirectionToBlack() override;
+
+	virtual Direction chooseSimpleDirection() override;
 
 public:
 
-	virtual Direction step(Direction prevStep) override;
-
-	virtual bool inDockingStation() const override {
-		return movesBack.empty();
+	virtual bool keepMoving(SensorInformation& sensorInformation) const override {
+		return sensorInformation.dirtLevel == 0; // keep cleaning if there's dust
 	};
-
-	// updates the vector used to return back to docking station
-	virtual void storeDataForReturnTrip(Direction direction) override {
-		if (direction == Direction::Stay) {
-			return;
-		}
-		movesBack.push_back(
-			direction == Direction::North ? Direction::South :
-			direction == Direction::South ? Direction::North :
-			direction == Direction::East ? Direction::West :
-			direction == Direction::West ? Direction::East :
-			Direction::Stay
-		);
-	};
-
 };
 
 #endif // __ALGORITHM_1__H_

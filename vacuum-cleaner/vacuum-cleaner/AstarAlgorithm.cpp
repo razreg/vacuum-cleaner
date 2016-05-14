@@ -1,7 +1,5 @@
 #include "AstarAlgorithm.h"
 
-REGISTER_ALGORITHM(AstarAlgorithm)
-
 Direction AstarAlgorithm::step(Direction prevStep) {
 
 	// update currPos with prevStep
@@ -16,7 +14,6 @@ Direction AstarAlgorithm::step(Direction prevStep) {
 		battery.consume();
 	}
 
-	// TODO another algorithm should avoid staying in one place when in phase1
 	direction = algorithmIteration(sensorInformation);
 
 	// charge battery
@@ -29,7 +26,6 @@ Direction AstarAlgorithm::step(Direction prevStep) {
 }
 
 Direction AstarAlgorithm::algorithmIteration(SensorInformation& sensorInformation) {
-
 	Direction direction = Direction::Stay;
 
 	bool followPathToGrey = false;
@@ -54,7 +50,7 @@ Direction AstarAlgorithm::algorithmIteration(SensorInformation& sensorInformatio
 		goingToDock.pop_back();
 		direction = getStepFromPath(dest);
 	}
-	else if (sensorInformation.dirtLevel == 0) { // keep cleaning if there's dust
+	else if (keepMoving(sensorInformation)) {
 		if (mappingPhase) {
 			// we can keep mapping
 			if (goingToGrey.empty()) {
@@ -424,24 +420,6 @@ void AstarAlgorithm::updateDirtLevel(SensorInformation& sensorInformation) {
 		int dirtLevel = sensorInformation.dirtLevel;
 		houseMatrix[currPos.getY()][currPos.getX()] = '0' + dirtLevel;
 	}
-}
-
-Direction AstarAlgorithm::chooseSimpleDirection() const {
-	return
-		houseMatrix[currPos.getY() - 1][currPos.getX()] != WALL ? Direction::North :
-		houseMatrix[currPos.getY() + 1][currPos.getX()] != WALL ? Direction::South :
-		houseMatrix[currPos.getY()][currPos.getX() + 1] != WALL ? Direction::East :
-		houseMatrix[currPos.getY()][currPos.getX() - 1] != WALL ? Direction::West :
-		Direction::Stay;
-}
-
-Direction AstarAlgorithm::chooseSimpleDirectionToBlack() {
-	return
-		houseMatrix[currPos.getY() - 1][currPos.getX()] == BLACK ? Direction::North :
-		houseMatrix[currPos.getY() + 1][currPos.getX()] == BLACK ? Direction::South :
-		houseMatrix[currPos.getY()][currPos.getX() + 1] == BLACK ? Direction::East :
-		houseMatrix[currPos.getY()][currPos.getX() - 1] == BLACK ? Direction::West :
-		Direction::Stay;
 }
 
 void AstarAlgorithm::restartAlgorithm() {

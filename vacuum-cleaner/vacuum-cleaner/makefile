@@ -1,53 +1,35 @@
-CC = g++
-LIBS = -ldl -lboost_thread -lboost_filesystem -lboost_system
-CFLAGS = -std=c++11 -O2 -Wall -pedantic -pthread # remove -g
+# object files
+obj = Main.o Common.o House.o SensorImpl.o Robot.o Results.o AlgorithmRegistrar.o AlgorithmRegistration.o Simulator.o
 
-all: simulator algorithms
+# shared object files
+so_obj = 305623571_C_.so 305623571_B_.so 305623571_A_.so
+so_dep_obj = AstarAlgorithm.o
+
+target = simulator
+
+# flags
+SHARED_FLAGS = -O2 -Wall -pthread -std=c++11 -pedantic -g
+CC_FLAGS = -c $(SHARED_FLAGS)
+SO_FLAGS = $(SHARED_FLAGS) -shared -fPIC -mcmodel=large
+LD_FLAGS = -lm -lboost_system -lboost_filesystem -ldl
+CC = g++
+
+.DEFAULT_GOAL := $(target)
+.PHONY: all clean
+
+all: clean $(target)
+
+$(target): $(obj) $(so_obj)
+	$(CC) -rdynamic -o $@ $(obj) $(LD_FLAGS)
+
+$(so_obj): %_.so: _%.cpp $(so_dep_obj)
+	$(CC) $(SO_FLAGS) $^ -o $@
+
+$(obj): %.o: %.cpp
+	$(CC) $(CC_FLAGS) $< -o $@
+	
+$(so_dep_obj): %.o: %.cpp
+	$(CC) $(CC_FLAGS) -fPIC $< -o $@
 
 clean:
-	-rm -f *.o *.so *.gch simulator
-
-############################ Simulation ############################
-
-OLIST = Main.o House.o SensorImpl.o Robot.o Results.o AlgorithmRegistrar.o Simulator.o
-
-simulator: Common.o $(OLIST)
-	$(CC) $^ -rdynamic -o $@ $(LIBS)
-
-$(OLIST): %.o: %.cpp
-	$(CC) $(CFLAGS) -c $<
-
-############################ Algorithms ############################
-
-ALGOS = AlgorithmRegistration.o AstarAlgorithm.o _305623571_A.o _305623571_B.o _305623571_C.o
-ALGLIBS = AstarAlgorithm.so 305623571_A_.so 305623571_B_.so 305623571_C_.so
-MISC = ManhattenAlgorithm.o
-
-algorithms: Common.o algorithms_after_simulator
-
-algorithms_after_simulator: $(MISC) $(ALGOS) $(ALGLIBS)
-
-$(MISC) $(ALGOS): %.o: %.cpp
-	$(CC) $(CFLAGS) -c $< -mcmodel=large
-
-AstarAlgorithm.so: AstarAlgorithm.o
-	$(CC) -shared -Wl,-soname,$@ -o $@ $< Common.o AlgorithmRegistration.o
-
-305623571_A_.so: _305623571_A.o
-	$(CC) -shared -Wl,-soname,$@ -o $@ $< Common.o AlgorithmRegistration.o
-
-305623571_B_.so: _305623571_B.o
-	$(CC) -shared -Wl,-soname,$@ -o $@ $< Common.o AlgorithmRegistration.o $(MISC)
-
-305623571_C_.so: _305623571_C.o
-	$(CC) -shared -Wl,-soname,$@ -o $@ $< Common.o AlgorithmRegistration.o $(MISC)
-
-############################ ScoreFormula ##########################
-
-score_formula.so: score_formula.cpp
-	$(CC) $(CFLAGS) -shared -fPIC -o score_formula.so $<
-
-############################### Common #############################
-
-Common.o: Common.cpp
-	$(CC) $(CFLAGS) -c $< -mcmodel=large
+	rm -f $(obj) $(so_obj) $(so_dep_obj) $(target)

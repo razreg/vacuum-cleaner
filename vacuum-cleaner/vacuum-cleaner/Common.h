@@ -26,6 +26,9 @@ using namespace std;
 
 typedef int(*ScoreFormula)(const map<string, int>&);
 
+// utility functions
+void trimString(string& str);
+
 // configuration strings
 const string MAX_STEPS = "MaxSteps";
 const string MAX_STEPS_AFTER_WINNER = "MaxStepsAfterWinner";

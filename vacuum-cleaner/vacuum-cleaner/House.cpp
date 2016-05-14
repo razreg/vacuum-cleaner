@@ -38,6 +38,7 @@ House House::deseriallize(fs::path filePath) {
 		else {
 			if (!(failedToParsefile = !getline(houseFileStream, houseName).good())) {
 				if (logger.debugEnabled()) {
+					trimString(houseName);
 					logger.debug("House name/description=[" + houseName + "]");
 				}
 				

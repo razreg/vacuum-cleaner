@@ -163,7 +163,7 @@ bool MainHelper::loadConfiguration(const string& configFileDir) {
 	fs::path path = fs::path(configFileDir) / "config.ini";
 	if (!fs::exists(path)) {
 		cout << usage << endl;
-		cout << "cannot find config.ini file in '" << path.string() << "'" << endl;
+		cout << "cannot find config.ini file in '" << fs::path(configFileDir).string() << "'" << endl;
 		return false;
 	}
 
@@ -191,7 +191,10 @@ bool MainHelper::loadConfiguration(const string& configFileDir) {
 void MainHelper::populateConfigMap(ifstream& configFileStream) {
 	string currLine;
 	while (getline(configFileStream, currLine)) {
-		if (logger.debugEnabled()) logger.debug("Read line from config file: " + currLine);
+		if (logger.debugEnabled()) {
+			trimString(currLine);
+			logger.debug("Read line from config file: " + currLine);
+		}
 		try {
 			size_t positionOfEquals = currLine.find("=");
 			string key = currLine.substr(0, (int)positionOfEquals);
@@ -199,6 +202,7 @@ void MainHelper::populateConfigMap(ifstream& configFileStream) {
 			if (positionOfEquals != string::npos) {
 				string valueStr = currLine.substr((int)positionOfEquals + 1);
 				trimString(valueStr);
+				cout << "[" << valueStr << "]" << endl; // TODO remove
 				int value;
 				if (valueStr.empty() || find_if(valueStr.begin(),
 					valueStr.end(), [](char c) { return !isdigit(c); }) != valueStr.end()) {

@@ -1,16 +1,24 @@
 #ifndef __ALGORITHM_2__H_
 #define __ALGORITHM_2__H_
 
-#include "ManhattenAlgorithm.h"
+#include "AstarAlgorithm.h"
 #include "uniqueptr.h"
 #include "AlgorithmRegistration.h"
 
 using namespace std;
 
-class _305623571_B : public ManhattenAlgorithm {
+class _305623571_B : public AstarAlgorithm {
+
 protected:
-	virtual bool isReadyToMoveOn(SensorInformation& sensorInformation) const override {
-		return sensorInformation.dirtLevel == 0;
+
+	virtual Direction chooseSimpleDirectionToBlack() override;
+
+	virtual Direction chooseSimpleDirection() override;
+
+public:
+
+	virtual bool keepMoving(SensorInformation& sensorInformation) const override {
+		return true; // hyperactive
 	};
 };
 

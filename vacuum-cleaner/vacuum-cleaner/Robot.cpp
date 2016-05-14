@@ -9,7 +9,7 @@ void Robot::step() {
 	}
 
 	prevStep = algorithm.step(prevStep);
-	//if (logger.debugEnabled()) logger.debug("Algorithm chose step: " + directions[static_cast<int>(direction)]);
+	//if (logger.debugEnabled()) logger.debug("Algorithm chose step: " + directions[static_cast<int>(prevStep)]);
 
 	if (prevStep == Direction::East) {
 		position.moveEast();

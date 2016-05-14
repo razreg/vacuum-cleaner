@@ -28,7 +28,7 @@ class AlgorithmRegistrar {
 		instance.algorithmFactories.push_back(algorithmFactory);
 	};
 	
-	void setNameForLastAlgorithm(const string& algorithmName) {
+	void setNameForLastAlgorithm(const string& algorithmName) { 
 		if (algorithmFactories.size() - 1 != algorithmNames.size()) {
 			throw runtime_error("Corrupted algorithm list - the amounts of algorithm factories and algorithm names don't match");
 		}
