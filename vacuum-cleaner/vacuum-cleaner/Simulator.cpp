@@ -12,6 +12,7 @@ Simulator::Simulator(map<string, int>& configMap, ScoreFormula scoreFormula,
 	for (fs::path& housePath : housePathVector) {
 		houseNames.push_back(housePath.stem().string());
 	}
+	sort(houseNames.begin(), houseNames.end());
 	results = Results(registrar.getAlgorithmNames(), move(houseNames), scoreFormula);
 }
 
@@ -50,11 +51,10 @@ void Simulator::collectScores(list<Robot>& robots, string houseName, int simulat
 		results[algorithmName][houseName].setIsBackInDocking(robot.inDocking());
 		results[algorithmName][houseName].setSimulationSteps(simulationSteps);
 		results[algorithmName][houseName].setWinnerNumSteps(winnerNumSteps);
-		results[algorithmName][houseName].setSumDirtInHouse(robot.getHouse().getTotalDust());
-		if (logger.debugEnabled()) {
+		/*if (logger.debugEnabled()) {
 			logger.debug("House final state for algorithm [" + robot.getAlgorithmName() + "]:\n"
 				+ (string)robot.getHouse());
-		}
+		}*/
 	}
 }
 
@@ -107,6 +107,13 @@ void Simulator::executeOnHouse(list<Robot>& robots, House& house) {
 	int stepsAfterWinner = -1; // so when we increment for first time, when winner is found, it will be set to zero
 	int positionInCompetition = 1;
 	size_t robotsFinishedTotal = 0;
+
+	size_t initialSumDirtInHouse = house.getTotalDust();
+	for (Robot& robot : robots) {
+		results[robot.getAlgorithmName()][house.getName()]
+			.setSumDirtInHouse(initialSumDirtInHouse);
+	}
+
 	while (steps < maxSteps && stepsAfterWinner < maxStepsAfterWinner && robotsFinishedTotal < robots.size()) {
 		int robotsFinishedInRound = 0;
 		robotsFinishedTotal = 0;

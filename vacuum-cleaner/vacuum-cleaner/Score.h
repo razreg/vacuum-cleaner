@@ -102,20 +102,13 @@ public:
 		}
 		if (calcScore == NULL) {
 			// default score function
-			int pos = isBackInDocking && sumDirtInHouse == 0 ? 
+			int pos = isBackInDocking && sumDirtInHouse == dirtCollected ? 
 				positionInCompetition : 10;
 			score = max(0, 2000
 				- (pos - 1) * 50
 				+ (winnerNumSteps - thisNumSteps) * 10
-				- sumDirtInHouse * 3
+				- (sumDirtInHouse - dirtCollected) * 3
 				+ (isBackInDocking ? 50 : -200));
-			/*
-			std::cout << endl << "Score: " << "(" << badBehavior << ") ? 0 : max(0, 2000 - ("
-				<< (isBackInDocking && sumDirtInHouse == 0 ? positionInCompetition : 10)
-				<< " - 1) * 50 + (" << winnerNumSteps << " - "
-				<< thisNumSteps << ") * 10 - " << sumDirtInHouse << " * 3 + ("
-				<< isBackInDocking << " ? 50 : -200)) == " << score << endl << endl;
-				*/
 		}
 		else {
 			map<string, int> scoreParams = {
@@ -123,7 +116,7 @@ public:
 				{"simulation_steps", simulationSteps},
 				{"winner_num_steps", winnerNumSteps},
 				{"this_num_steps", thisNumSteps},
-				{"sum_dirt_in_house", sumDirtInHouse}, // TODO sum_dirt_in_house should be the initial dust amount!!!
+				{"sum_dirt_in_house", sumDirtInHouse},
 				{"dirt_collected", dirtCollected},
 				{"is_back_in_docking", isBackInDocking}
 			};
