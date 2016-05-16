@@ -202,7 +202,6 @@ void MainHelper::populateConfigMap(ifstream& configFileStream) {
 			if (positionOfEquals != string::npos) {
 				string valueStr = currLine.substr((int)positionOfEquals + 1);
 				trimString(valueStr);
-				cout << "[" << valueStr << "]" << endl; // TODO remove
 				int value;
 				if (valueStr.empty() || find_if(valueStr.begin(),
 					valueStr.end(), [](char c) { return !isdigit(c); }) != valueStr.end()) {

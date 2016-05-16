@@ -14,7 +14,7 @@ Direction AstarAlgorithm::step(Direction prevStep) {
 		battery.consume();
 	}
 
-	direction = algorithmIteration(sensorInformation);
+	direction = algorithmIteration(sensorInformation, expectedPrevStep != prevStep);
 
 	// charge battery
 	if (inDockingStation()) {
@@ -22,17 +22,21 @@ Direction AstarAlgorithm::step(Direction prevStep) {
 	}
 
 	--stepsLeft;
+	expectedPrevStep = direction;
 	return direction;
 }
 
-Direction AstarAlgorithm::algorithmIteration(SensorInformation& sensorInformation) {
+Direction AstarAlgorithm::algorithmIteration(SensorInformation& sensorInformation, bool restart) {
 	Direction direction = Direction::Stay;
 
-	bool followPathToGrey = false;
-	bool followPathToDocking = false;
-	goingToDock.clear();
-	goingToDust.clear();
-	goingToGrey.clear();
+	if (restart) {
+		followPathToDocking = false;
+		followPathToGrey = false;
+		goingToDust = nullptr;
+		goingToGrey = nullptr;
+		goingToDock = nullptr;
+	}
+
 	// update houseMatrix according to sensorInformation
 	updateWalls(sensorInformation);
 	updateDirtLevel(sensorInformation);
@@ -41,52 +45,66 @@ Direction AstarAlgorithm::algorithmIteration(SensorInformation& sensorInformatio
 		followPathToDocking = true; // we can finish now
 	}
 	// check if we have enough steps to go back to docking
-	size_t pathLength = getPathToDocking();
-	if (isReturnTripFeasable(pathLength) && !isReturnTripFeasable(pathLength + 2)) {
-		followPathToDocking = true;
-	}
-	if (followPathToDocking && !goingToDock.empty()) {
-		Position dest = goingToDock.back()->position;
-		goingToDock.pop_back();
-		direction = getStepFromPath(dest);
-	}
-	else if (keepMoving(sensorInformation)) {
-		if (mappingPhase) {
-			// we can keep mapping
-			if (goingToGrey.empty()) {
-				if (blackNeighborExists(currPos)) {
-					direction = chooseSimpleDirectionToBlack();
-				}
-				else if (greyExists()) {
-					// A* to search for nearest grey
-					getPathToGrey();
-					followPathToGrey = true;
-				}
-				else {
-					mappingPhase = false; // finished mapping
-				}
-			}
-			else {
-				followPathToGrey = true;
-			}
-			if (followPathToGrey) {
-				Position dest = goingToGrey.back()->position;
-				goingToGrey.pop_back();
-				direction = getStepFromPath(dest);
-			}
+	if (!followPathToDocking || goingToDock == nullptr) {
+		if (isReturnTripFeasable(heuristicCostToDocking)) {
+			followPathToDocking = false;
 		}
 		else {
-			// we can clean now that mapping is done
-			getPathToDust();
-			if (goingToDust.empty()) {
-				direction = chooseSimpleDirection();
+			size_t pathLength = getPathToDocking();
+			heuristicCostToDocking = pathLength;
+			followPathToDocking = isReturnTripFeasable(pathLength) && !isReturnTripFeasable(pathLength + 2);
+		}
+		if (!followPathToDocking && keepMoving(sensorInformation)) {
+			goingToDock = nullptr; // we're going to make a move so next time need to calculate way to dock again
+			if (mappingPhase) {
+				// we can keep mapping
+				if (goingToGrey == nullptr) {
+					if (blackNeighborExists(currPos)) {
+						direction = chooseSimpleDirectionToBlack();
+					}
+					else if (greyExists()) {
+						// A* to search for nearest grey
+						getPathToGrey();
+						followPathToGrey = true;
+					}
+					else {
+						mappingPhase = false; // finished mapping
+						followPathToGrey = false;
+						goingToGrey = nullptr;
+					}
+				}
+				else {
+					followPathToGrey = true;
+				}
+				if (followPathToGrey && goingToGrey != nullptr) {
+					Position dest = goingToGrey->position;
+					goingToGrey = goingToGrey->parent;
+					direction = getStepFromPath(dest);
+				}
 			}
 			else {
-				Position dest = goingToDust.back()->position;
-				goingToDust.pop_back();
-				direction = getStepFromPath(dest);
+				// clean the house
+				if (goingToDust == nullptr) {
+					getPathToDust();
+					if (goingToDust == nullptr) {
+						direction = chooseSimpleDirection();
+					}
+				}
+				if (goingToDust != nullptr) {
+					Position dest = goingToDust->position;
+					goingToDust = goingToDust->parent;
+					direction = getStepFromPath(dest);
+				}
 			}
+			heuristicCostToDocking++;
 		}
+	}
+	if (followPathToDocking && goingToDock != nullptr) {
+		goingToDust = nullptr;
+		goingToGrey = nullptr;
+		Position dest = goingToDock->position;
+		goingToDock = goingToDock->parent;
+		direction = getStepFromPath(dest);
 	}
 	return direction;
 }
@@ -253,7 +271,7 @@ Position AstarAlgorithm::getNearestDust(Position& pos) const {
 }
 
 void AstarAlgorithm::getPathToGrey() {
-
+	goingToGrey = nullptr;
 	mappingDataPool.clear();
 	mappingDataPool.add(currPos, nullptr, 0, getDistance(currPos, getNearestGrey(currPos)));
 	shared_ptr<Node> bestNode = mappingDataPool.getBestNode();
@@ -278,7 +296,6 @@ void AstarAlgorithm::getPathToGrey() {
 	if (bestNode->parent != nullptr) {
 		shared_ptr<Node> temp2 = bestNode->parent;
 		shared_ptr<Node> temp3;
-
 		while (temp2->parent != nullptr) {
 			temp3 = temp2->parent;
 			temp2->parent = temp1;
@@ -288,11 +305,11 @@ void AstarAlgorithm::getPathToGrey() {
 		temp2->parent = temp1;
 		bestNode->parent = nullptr;
 	}
-	goingToGrey.push_back(temp1);
+	goingToGrey = temp1;
 }
 
 void AstarAlgorithm::getPathToDust() {
-
+	goingToDust = nullptr;
 	dustDataPool.clear();
 	dustDataPool.add(currPos, nullptr, 0, getDistance(currPos, getNearestDust(currPos)));
 	shared_ptr<Node> bestNode = dustDataPool.getBestNode();
@@ -320,7 +337,6 @@ void AstarAlgorithm::getPathToDust() {
 	if (bestNode->parent != nullptr) {
 		shared_ptr<Node> temp2 = bestNode->parent;
 		shared_ptr<Node> temp3;
-
 		while (temp2->parent != nullptr) {
 			temp3 = temp2->parent;
 			temp2->parent = temp1;
@@ -330,11 +346,11 @@ void AstarAlgorithm::getPathToDust() {
 		temp2->parent = temp1;
 		bestNode->parent = nullptr;
 	}
-
-	goingToDust.push_back(temp1);
+	goingToDust = temp1;
 }
 
 size_t AstarAlgorithm::getPathToDocking() {
+	goingToDock = nullptr;
 	dockingDataPool.clear();
 	dockingDataPool.add(currPos, nullptr, 0, getDistance(currPos, docking));
 	shared_ptr<Node> bestNode = dockingDataPool.getBestNode();
@@ -371,8 +387,7 @@ size_t AstarAlgorithm::getPathToDocking() {
 		temp2->parent = temp1;
 		bestNode->parent = nullptr;
 	}
-
-	goingToDock.push_back(temp1);
+	goingToDock = temp1;
 	return pathLength;
 }
 
@@ -394,7 +409,7 @@ void AstarAlgorithm::addNeighborToDustDataPool(Position pos, bool pred, Position
 
 void AstarAlgorithm::addNeighborToDockingDataPool(Position pos, bool pred, Position childPos, shared_ptr<Node> bestNode) {
 	if (pred) {
-		if (houseMatrix[childPos.getY()][childPos.getX()] != WALL) {
+		if (houseMatrix[childPos.getY()][childPos.getX()] != WALL && houseMatrix[childPos.getY()][childPos.getX()] != BLACK) {
 			dockingDataPool.add(childPos, bestNode, bestNode->realCost + 1, getDistance(childPos, docking));
 		}
 	}
@@ -427,9 +442,16 @@ void AstarAlgorithm::restartAlgorithm() {
 		battery.setCurrValue(battery.getCapacity());
 	}
 	stepsLeft = numeric_limits<size_t>::max();
+	heuristicCostToDocking = numeric_limits<size_t>::max() - 100000;
 	initHouseMatrix();
 	mappingPhase = true;
 	mappingDataPool.clear();
 	dockingDataPool.clear();
 	dustDataPool.clear();
+	expectedPrevStep = Direction::Stay;
+	followPathToDocking = false;
+	followPathToGrey = false;
+	goingToDock = nullptr;
+	goingToDust = nullptr;
+	goingToGrey = nullptr;
 }

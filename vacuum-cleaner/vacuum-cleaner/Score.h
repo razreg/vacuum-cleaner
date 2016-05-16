@@ -123,7 +123,7 @@ public:
 				{"simulation_steps", simulationSteps},
 				{"winner_num_steps", winnerNumSteps},
 				{"this_num_steps", thisNumSteps},
-				{"sum_dirt_in_house", sumDirtInHouse},
+				{"sum_dirt_in_house", sumDirtInHouse}, // TODO sum_dirt_in_house should be the initial dust amount!!!
 				{"dirt_collected", dirtCollected},
 				{"is_back_in_docking", isBackInDocking}
 			};

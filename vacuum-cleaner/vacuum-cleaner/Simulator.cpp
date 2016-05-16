@@ -51,10 +51,10 @@ void Simulator::collectScores(list<Robot>& robots, string houseName, int simulat
 		results[algorithmName][houseName].setSimulationSteps(simulationSteps);
 		results[algorithmName][houseName].setWinnerNumSteps(winnerNumSteps);
 		results[algorithmName][houseName].setSumDirtInHouse(robot.getHouse().getTotalDust());
-		/*if (logger.debugEnabled()) {
+		if (logger.debugEnabled()) {
 			logger.debug("House final state for algorithm [" + robot.getAlgorithmName() + "]:\n"
 				+ (string)robot.getHouse());
-		}*/
+		}
 	}
 }
 

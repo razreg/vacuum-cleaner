@@ -73,15 +73,19 @@ class AstarAlgorithm : public AbstractAlgorithm {
 	vector<vector<char>> houseMatrix;
 	Position currPos;
 	Position docking;
+	Direction expectedPrevStep = Direction::Stay;
 	DataPool mappingDataPool; // used to map the house
 	DataPool dockingDataPool; // used to return to docking station
 	DataPool dustDataPool; // used to clean after mapping
 
+	size_t heuristicCostToDocking = numeric_limits<size_t>::max() - 100000;
+	bool followPathToGrey = false;
+	bool followPathToDocking = false;
 	bool configured = false;
 	bool mappingPhase = true;
-	list<shared_ptr<Node>> goingToGrey;
-	list<shared_ptr<Node>> goingToDock;
-	list<shared_ptr<Node>> goingToDust;
+	shared_ptr<Node> goingToGrey = nullptr;
+	shared_ptr<Node> goingToDock = nullptr;
+	shared_ptr<Node> goingToDust = nullptr;
 
 	void initHouseMatrix();
 
@@ -103,7 +107,7 @@ class AstarAlgorithm : public AbstractAlgorithm {
 
 	Direction getStepFromPath(Position& dest) const;
 
-	Direction algorithmIteration(SensorInformation& sensorInformation);
+	Direction algorithmIteration(SensorInformation& sensorInformation, bool restart);
 
 	size_t getDistance(Position a, Position b) const {
 		return abs((int)a.getX() - (int)b.getX()) + abs((int)a.getY() - (int)b.getY());
