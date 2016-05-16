@@ -15,6 +15,7 @@ const char DOCK = 'D';
 const char WALL = 'W';
 
 const size_t HOUSE_SIZE_UPPER_BOUND = 241; // TODO decide on bound
+const size_t NUMERIC_UPPER_BOUND = numeric_limits<size_t>::max() / 2 - 1;
 
 const int NORTH_IDX = static_cast<int>(Direction::North);
 const int EAST_IDX = static_cast<int>(Direction::East);
@@ -74,11 +75,16 @@ class AstarAlgorithm : public AbstractAlgorithm {
 	Position currPos;
 	Position docking;
 	Direction expectedPrevStep = Direction::Stay;
+
+	// mapping information for A*
 	DataPool mappingDataPool; // used to map the house
 	DataPool dockingDataPool; // used to return to docking station
 	DataPool dustDataPool; // used to clean after mapping
 
-	size_t heuristicCostToDocking = numeric_limits<size_t>::max() - 100000;
+	// used to understand if we need to compute the path to the docking station or dust
+	size_t heuristicCostToDocking = NUMERIC_UPPER_BOUND;
+
+	// paths and what to do next
 	bool followPathToGrey = false;
 	bool followPathToDocking = false;
 	bool configured = false;
@@ -121,7 +127,7 @@ class AstarAlgorithm : public AbstractAlgorithm {
 
 	Position getNearestDust(Position& pos) const;
 
-	void getPathToGrey();
+	size_t getPathToGrey();
 
 	void getPathToDust();
 
@@ -136,6 +142,8 @@ class AstarAlgorithm : public AbstractAlgorithm {
 	bool inDockingStation() {
 		return houseMatrix[currPos.getY()][currPos.getX()] == DOCK;
 	};
+
+	void restartDataForIteration();
 
 protected:
 

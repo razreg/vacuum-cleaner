@@ -22,37 +22,57 @@ Direction AstarAlgorithm::step(Direction prevStep) {
 	}
 
 	--stepsLeft;
+
+	/* // for debugging the house as seen by the algorithm
+	if (battery.getCurrValue() <= 1 || stepsLeft == 0 || (!mappingPhase && houseIsClean())) {
+		cout << endl << "House mapped by algorithm:" << endl << endl;
+		for (size_t i = 0; i < houseMatrix.size(); ++i) {
+			for (size_t j = 0; j < houseMatrix[i].size(); ++j) {
+				cout << (houseMatrix[i][j] == '0' ? ' ' : houseMatrix[i][j]);
+			}
+			cout << endl;
+		}
+		cout << endl;
+	} */
+
 	expectedPrevStep = direction;
 	return direction;
 }
 
 Direction AstarAlgorithm::algorithmIteration(SensorInformation& sensorInformation, bool restart) {
+	
 	Direction direction = Direction::Stay;
-
 	if (restart) {
-		followPathToDocking = false;
-		followPathToGrey = false;
-		goingToDust = nullptr;
-		goingToGrey = nullptr;
-		goingToDock = nullptr;
+		restartDataForIteration();
+		heuristicCostToDocking = NUMERIC_UPPER_BOUND;
 	}
 
 	// update houseMatrix according to sensorInformation
 	updateWalls(sensorInformation);
 	updateDirtLevel(sensorInformation);
 
+	// if charging, stay unless unnecessary
+	if (inDockingStation() && battery.getCurrValue() < battery.getCapacity() 
+		&& battery.getCurrValue() <= stepsLeft * battery.getConsumptionRate()) {
+		restartDataForIteration();
+		return direction; // stay
+	}
+
 	if (!mappingPhase && houseIsClean()) {
+		if (inDockingStation()) {
+			return direction; // stay
+		}
 		followPathToDocking = true; // we can finish now
 	}
 	// check if we have enough steps to go back to docking
 	if (!followPathToDocking || goingToDock == nullptr) {
-		if (isReturnTripFeasable(heuristicCostToDocking)) {
+		if (isReturnTripFeasable(heuristicCostToDocking + 2)) {
 			followPathToDocking = false;
 		}
 		else {
-			size_t pathLength = getPathToDocking();
-			heuristicCostToDocking = pathLength;
-			followPathToDocking = isReturnTripFeasable(pathLength) && !isReturnTripFeasable(pathLength + 2);
+			heuristicCostToDocking = getPathToDocking();
+			followPathToDocking = isReturnTripFeasable(heuristicCostToDocking)
+				&& !isReturnTripFeasable(heuristicCostToDocking + 2);
 		}
 		if (!followPathToDocking && keepMoving(sensorInformation)) {
 			goingToDock = nullptr; // we're going to make a move so next time need to calculate way to dock again
@@ -64,8 +84,16 @@ Direction AstarAlgorithm::algorithmIteration(SensorInformation& sensorInformatio
 					}
 					else if (greyExists()) {
 						// A* to search for nearest grey
-						getPathToGrey();
-						followPathToGrey = true;
+						size_t costToGrey = getPathToGrey();
+						if (inDockingStation() && !isReturnTripFeasable((costToGrey + 1) * 2)) {
+							// the next black is too far from the docking station
+							mappingPhase = false;
+							followPathToGrey = false;
+							goingToGrey = nullptr;
+						}
+						else {
+							followPathToGrey = true;
+						}
 					}
 					else {
 						mappingPhase = false; // finished mapping
@@ -105,8 +133,17 @@ Direction AstarAlgorithm::algorithmIteration(SensorInformation& sensorInformatio
 		Position dest = goingToDock->position;
 		goingToDock = goingToDock->parent;
 		direction = getStepFromPath(dest);
+		heuristicCostToDocking--;
 	}
 	return direction;
+}
+
+void AstarAlgorithm::restartDataForIteration() {
+	followPathToDocking = false;
+	followPathToGrey = false;
+	goingToDust = nullptr;
+	goingToGrey = nullptr;
+	goingToDock = nullptr;
 }
 
 void AstarAlgorithm::DataPool::updateNode(shared_ptr<Node> node, Position& position, 
@@ -188,7 +225,8 @@ bool AstarAlgorithm::greyExists() const {
 	for (size_t row = 0; row < maxHouseSize; ++row) {
 		for (size_t col = 0; col < maxHouseSize; ++col) {
 			Position temp = Position(col, row);
-			if (houseMatrix[row][col] != WALL && blackNeighborExists(temp) && !allBlack(temp)) {
+			if (houseMatrix[row][col] != BLACK && houseMatrix[row][col] != WALL 
+				&& blackNeighborExists(temp)) {
 				return true;
 			}
 		}
@@ -235,12 +273,12 @@ Direction AstarAlgorithm::getStepFromPath(Position& dest) const {
 }
 
 Position AstarAlgorithm::getNearestGrey(Position& pos) const {
-	size_t distance = numeric_limits<size_t>::max();
+	size_t distance = NUMERIC_UPPER_BOUND;
 	Position nearest = pos;
 	for (size_t row = 0; row < maxHouseSize; ++row) {
 		for (size_t col = 0; col < maxHouseSize; ++col) {
 			Position temp = Position(col, row);
-			if (blackNeighborExists(temp)) {
+			if (houseMatrix[row][col] != BLACK && blackNeighborExists(temp)) {
 				size_t newDistance = getDistance(pos, temp);
 				if (distance > newDistance) {
 					distance = newDistance;
@@ -253,7 +291,7 @@ Position AstarAlgorithm::getNearestGrey(Position& pos) const {
 }
 
 Position AstarAlgorithm::getNearestDust(Position& pos) const {
-	size_t distance = numeric_limits<size_t>::max();
+	size_t distance = NUMERIC_UPPER_BOUND;
 	Position nearest = pos;
 	for (size_t row = 0; row < maxHouseSize; ++row) {
 		for (size_t col = 0; col < maxHouseSize; ++col) {
@@ -270,13 +308,13 @@ Position AstarAlgorithm::getNearestDust(Position& pos) const {
 	return nearest;
 }
 
-void AstarAlgorithm::getPathToGrey() {
+size_t AstarAlgorithm::getPathToGrey() {
 	goingToGrey = nullptr;
 	mappingDataPool.clear();
 	mappingDataPool.add(currPos, nullptr, 0, getDistance(currPos, getNearestGrey(currPos)));
 	shared_ptr<Node> bestNode = mappingDataPool.getBestNode();
 	if (bestNode == nullptr) {
-		return;
+		return NUMERIC_UPPER_BOUND;
 	}
 	Position pos = bestNode->position;
 	Position childPos;
@@ -287,11 +325,12 @@ void AstarAlgorithm::getPathToGrey() {
 		addNeighborToMappingDataPool(pos, pos.getY() > 0, Position(pos.getX(), pos.getY() - 1), bestNode);
 		bestNode = mappingDataPool.getBestNode();
 		if (bestNode == nullptr) {
-			return;
+			return NUMERIC_UPPER_BOUND;
 		}
 		pos = bestNode->position;
 	}
 	// reverse path
+	size_t pathLength = 1;
 	shared_ptr<Node> temp1 = bestNode;
 	if (bestNode->parent != nullptr) {
 		shared_ptr<Node> temp2 = bestNode->parent;
@@ -301,11 +340,13 @@ void AstarAlgorithm::getPathToGrey() {
 			temp2->parent = temp1;
 			temp1 = temp2;
 			temp2 = temp3;
+			pathLength++;
 		}
 		temp2->parent = temp1;
 		bestNode->parent = nullptr;
 	}
 	goingToGrey = temp1;
+	return pathLength;
 }
 
 void AstarAlgorithm::getPathToDust() {
@@ -355,7 +396,7 @@ size_t AstarAlgorithm::getPathToDocking() {
 	dockingDataPool.add(currPos, nullptr, 0, getDistance(currPos, docking));
 	shared_ptr<Node> bestNode = dockingDataPool.getBestNode();
 	if (bestNode == nullptr) {
-		return numeric_limits<size_t>::max();
+		return NUMERIC_UPPER_BOUND;
 	}
 	Position pos = bestNode->position;
 	Position childPos;
@@ -367,7 +408,7 @@ size_t AstarAlgorithm::getPathToDocking() {
 		addNeighborToDockingDataPool(pos, pos.getY() > 0, Position(pos.getX(), pos.getY() - 1), bestNode);
 		bestNode = dockingDataPool.getBestNode();
 		if (bestNode == nullptr) {
-			return numeric_limits<size_t>::max();
+			return NUMERIC_UPPER_BOUND;
 		}
 		pos = bestNode->position;
 	}
@@ -441,8 +482,8 @@ void AstarAlgorithm::restartAlgorithm() {
 	if (configured) {
 		battery.setCurrValue(battery.getCapacity());
 	}
-	stepsLeft = numeric_limits<size_t>::max();
-	heuristicCostToDocking = numeric_limits<size_t>::max() - 100000;
+	stepsLeft = NUMERIC_UPPER_BOUND;
+	heuristicCostToDocking = NUMERIC_UPPER_BOUND;
 	initHouseMatrix();
 	mappingPhase = true;
 	mappingDataPool.clear();

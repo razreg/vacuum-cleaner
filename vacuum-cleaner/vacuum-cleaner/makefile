@@ -1,8 +1,9 @@
 # object files
-obj = Main.o Common.o House.o SensorImpl.o Robot.o Results.o AlgorithmRegistrar.o AlgorithmRegistration.o Simulator.o
+obj = Main.o House.o SensorImpl.o Robot.o Results.o AlgorithmRegistrar.o AlgorithmRegistration.o Simulator.o
+common_obj = Common.o
 
 # shared object files
-so_obj = 305623571_C_.so 305623571_B_.so 305623571_A_.so
+so_obj = 305623571_A_.so 305623571_B_.so 305623571_C_.so
 so_dep_obj = AstarAlgorithm.o
 
 target = simulator
@@ -19,17 +20,20 @@ CC = g++
 
 all: clean $(target)
 
-$(target): $(obj) $(so_obj)
-	$(CC) -rdynamic -o $@ $(obj) $(LD_FLAGS)
+$(target): $(obj) $(common_obj) $(so_obj)
+	$(CC) -rdynamic -o $@ $(obj) $(common_obj) $(LD_FLAGS)
 
-$(so_obj): %_.so: _%.cpp $(so_dep_obj)
+$(so_obj): %_.so: _%.cpp $(so_dep_obj) $(common_obj)
 	$(CC) $(SO_FLAGS) $^ -o $@
 
 $(obj): %.o: %.cpp
 	$(CC) $(CC_FLAGS) $< -o $@
-	
+
+$(common_obj): %.o: %.cpp
+	$(CC) $(CC_FLAGS) -fPIC $< -o $@
+
 $(so_dep_obj): %.o: %.cpp
 	$(CC) $(CC_FLAGS) -fPIC $< -o $@
 
 clean:
-	rm -f $(obj) $(so_obj) $(so_dep_obj) $(target)
+	rm -f $(obj) $(common_obj) $(so_obj) $(so_dep_obj) $(target)
