@@ -78,3 +78,21 @@ void Results::removeHouse(string houseName) {
 		houseNames.erase(it);
 	}
 }
+
+const map<string, Score>& Results::operator [] (string str) const {
+	if (scoreMap.find(str) != scoreMap.end()) {
+		return scoreMap.at(str);
+	}
+	else {
+		throw out_of_range("Algorithm name [" + str + "] not in results");
+	}
+}
+
+map<string, Score>& Results::operator [] (string str) {
+	if (scoreMap.find(str) != scoreMap.end()) {
+		return scoreMap[str];
+	}
+	else {
+		throw out_of_range("Algorithm name [" + str + "] not in results");
+	}
+}

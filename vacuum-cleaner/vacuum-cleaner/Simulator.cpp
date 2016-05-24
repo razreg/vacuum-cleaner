@@ -19,15 +19,20 @@ Simulator::Simulator(map<string, int>& configMap, ScoreFormula scoreFormula,
 void Simulator::execute(size_t numThreads) {
 	size_t numHouses = housePathVector.size();
 	size_t actualNumThreads = min(numHouses, numThreads);
-	logger.info("Running simulation with " + to_string(actualNumThreads) + " threads" + 
+	logger.info("Running simulation with " + to_string(actualNumThreads) + " thread(s)" + 
 		(numHouses < numThreads ? " (" + to_string(numThreads) + 
 			" requested but only " + to_string(numHouses) + " house files were found)": ""));
-	vector<unique_ptr<thread>> threads(actualNumThreads);
-	for (auto& thread_ptr : threads) {
-		thread_ptr = make_unique<thread>(&Simulator::executeThread, this);
+	if (actualNumThreads > 1) {
+		vector<unique_ptr<thread>> threads(actualNumThreads);
+		for (auto& thread_ptr : threads) {
+			thread_ptr = make_unique<thread>(&Simulator::executeThread, this);
+		}
+		for (auto& thread_ptr : threads) {
+			thread_ptr->join();
+		}
 	}
-	for (auto& thread_ptr : threads) {
-		thread_ptr->join();
+	else {
+		executeThread();
 	}
 	results.print(simulationErrors);
 	printErrors();

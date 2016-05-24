@@ -1,5 +1,6 @@
 # object files
-obj = Main.o House.o SensorImpl.o Robot.o Results.o AlgorithmRegistrar.o AlgorithmRegistration.o Simulator.o
+obj = Main.o House.o SensorImpl.o Robot.o Results.o AlgorithmRegistrar.o AlgorithmRegistration.o \
+	  Simulator.o Score.o
 common_obj = Common.o
 
 # shared object files

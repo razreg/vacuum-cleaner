@@ -29,25 +29,11 @@ class Robot {
 	bool illegalStepPerformed = false;
 	bool batteryDead = false;
 
-	void configBattery(const map<string, int>& configMap) {
-		battery.setCapacity(max(0, configMap.find(BATTERY_CAPACITY)->second));
-		battery.setConsumptionRate(max(0, configMap.find(BATTERY_CONSUMPTION_RATE)->second));
-		battery.setRechargeRate(max(0, configMap.find(BATTERY_RECHARGE_RATE)->second));
-		battery.setCurrValue(battery.getCapacity());
-	};
+	void configBattery(const map<string, int>& configMap);
 
-	void updateSensorWithHouse() {
-		sensor.setHouse(this->house);
-		position = this->house.getDockingStation(); // copy constructor
-		sensor.setPosition(position);
-		algorithm.setSensor(sensor);
-	};
+	void updateSensorWithHouse();
 
-	void configure(const map<string, int>& configMap) {
-		configBattery(configMap);
-		this->algorithm.setConfiguration(configMap);
-		this->algorithm.setSensor(this->sensor);
-	}
+	void configure(const map<string, int>& configMap);
 
 public:
 
@@ -67,12 +53,7 @@ public:
 		updateSensorWithHouse();
 	};
 
-	void restart() {
-		battery.setCurrValue(battery.getCapacity());
-		prevStep = Direction::Stay;
-		illegalStepPerformed = false;
-		batteryDead = false;
-	};
+	void restart();
 
 	House& getHouse() {
 		return house;

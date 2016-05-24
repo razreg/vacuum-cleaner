@@ -7,32 +7,18 @@
 
 class _305623571_C : public AstarAlgorithm {
 
-	size_t rotatingCounter = 3;
-
-	void incRotate() {
-		rotatingCounter = (rotatingCounter + 1) % 4;
+	virtual void resetPreferNext() override {
+		setPreferNext(Direction::West);
 	};
-
-protected:
-
-	virtual void restartAlgorithm() override {
-		AstarAlgorithm::restartAlgorithm();
-		rotatingCounter = 0;
-	};
-
-	virtual Direction chooseSimpleDirectionToBlack() override;
 
 	virtual Direction chooseSimpleDirection() override;
 
+	virtual Direction chooseSimpleDirectionToBlack() override;
+
 	virtual bool isReturnTripFeasable(size_t pathLength) override {
-		return AstarAlgorithm::isReturnTripFeasable(pathLength + 8); // conservative - don't end up with no battery!
+		return AstarAlgorithm::isReturnTripFeasable(pathLength*1.05); // somewhat conservative
 	};
-
-public:
-
-	virtual bool keepMoving(SensorInformation& sensorInformation) const override {
-		return sensorInformation.dirtLevel <= 1;
-	};
+	
 };
 
 #endif // __ALGORITHM_3__H_

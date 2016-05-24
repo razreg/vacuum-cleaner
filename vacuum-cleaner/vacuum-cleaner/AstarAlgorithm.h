@@ -14,7 +14,7 @@ const char BLACK = 'B';
 const char DOCK = 'D';
 const char WALL = 'W';
 
-const size_t HOUSE_SIZE_UPPER_BOUND = 241; // TODO decide on bound
+const size_t HOUSE_SIZE_UPPER_BOUND = 241;
 const size_t NUMERIC_UPPER_BOUND = numeric_limits<size_t>::max() / 2 - 1;
 
 const int NORTH_IDX = static_cast<int>(Direction::North);
@@ -93,6 +93,9 @@ class AstarAlgorithm : public AbstractAlgorithm {
 	shared_ptr<Node> goingToDock = nullptr;
 	shared_ptr<Node> goingToDust = nullptr;
 
+	// for choosing simple directions
+	Direction preferNext;
+
 	void initHouseMatrix();
 
 	void updateMatrix(Position& pos, char val) {
@@ -147,6 +150,8 @@ class AstarAlgorithm : public AbstractAlgorithm {
 
 protected:
 
+	Direction getOppositeDirection(Direction direction);
+
 	Position& getCurrPos() {
 		return currPos;
 	};
@@ -166,9 +171,21 @@ protected:
 
 	virtual void restartAlgorithm();
 
-	virtual Direction chooseSimpleDirectionToBlack() = 0;
+	virtual void resetPreferNext() {
+		preferNext = Direction::North;
+	}
 
-	virtual Direction chooseSimpleDirection() = 0;
+	void setPreferNext(Direction dir) {
+		preferNext = dir;
+	};
+
+	Direction getPreferNext() {
+		return preferNext;
+	};
+
+	virtual Direction chooseSimpleDirectionToBlack();
+
+	virtual Direction chooseSimpleDirection();
 
 public:
 

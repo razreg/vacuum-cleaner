@@ -28,12 +28,7 @@ class AlgorithmRegistrar {
 		instance.algorithmFactories.push_back(algorithmFactory);
 	};
 	
-	void setNameForLastAlgorithm(const string& algorithmName) { 
-		if (algorithmFactories.size() - 1 != algorithmNames.size()) {
-			throw runtime_error("Corrupted algorithm list - the amounts of algorithm factories and algorithm names don't match");
-		}
-		algorithmNames.push_back(algorithmName);
-	};
+	void setNameForLastAlgorithm(const string& algorithmName);
 
 	static AlgorithmRegistrar instance;
 
@@ -55,25 +50,19 @@ public:
 
 	int loadAlgorithm(const string& path, const string& so_file_name_without_so_suffix);
 
-	list<unique_ptr<AbstractAlgorithm>> getAlgorithms() const {
-		list<unique_ptr<AbstractAlgorithm>> algorithms;
-		for (auto algorithmFactoryFunc : algorithmFactories) {
-			algorithms.push_back(algorithmFactoryFunc());
-		}
-		return algorithms;
-	}
+	list<unique_ptr<AbstractAlgorithm>> getAlgorithms() const;
 
 	const list<string>& getAlgorithmNames() const {
 		return algorithmNames;
-	}
+	};
 
 	size_t size() const {
 		return algorithmFactories.size();
-	}
+	};
 
 	static AlgorithmRegistrar& getInstance() {
 		return instance;
-	}
+	};
 
 	void clear() {
 		algorithmNames.clear();

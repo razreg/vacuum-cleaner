@@ -47,23 +47,9 @@ public:
 
 	Results(list<string> algorithmNames, vector<string>&& houseNames, ScoreFormula scoreFormula);
 
-	map<string, Score>& operator [] (string str) {
-		if (scoreMap.find(str) != scoreMap.end()) {
-			return scoreMap[str];
-		}
-		else {
-			throw out_of_range("Algorithm name [" + str + "] not in results");
-		}
-	}
+	map<string, Score>& operator [] (string str);
 
-	const map<string, Score>& operator [] (string str) const {
-		if (scoreMap.find(str) != scoreMap.end()) {
-			return scoreMap.at(str);
-		}
-		else {
-			throw out_of_range("Algorithm name [" + str + "] not in results");
-		}
-	}
+	const map<string, Score>& operator [] (string str) const;
 
 	void print(vector<string>& errors, ostream& out = cout) const;
 

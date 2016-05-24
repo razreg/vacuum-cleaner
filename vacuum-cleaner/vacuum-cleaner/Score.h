@@ -33,35 +33,9 @@ public:
 		swap(this->calcScore, moveFromMe.calcScore);
 	};
 
-	Score& operator=(Score&& moveFromMe) {
-		if (this != &moveFromMe) {
-			swap(this->calcScore, moveFromMe.calcScore);
-			this->positionInCompetition = moveFromMe.positionInCompetition;
-			this->simulationSteps = moveFromMe.simulationSteps;
-			this->winnerNumSteps = moveFromMe.winnerNumSteps;
-			this->thisNumSteps = moveFromMe.thisNumSteps;
-			this->sumDirtInHouse = moveFromMe.sumDirtInHouse;
-			this->isBackInDocking = moveFromMe.isBackInDocking;
-			this->dirtCollected = moveFromMe.dirtCollected;
-			this->badBehavior = moveFromMe.badBehavior;
-		}
-		return *this;
-	};
+	Score& operator=(Score&& moveFromMe);
 
-	Score& operator=(const Score& copyFromMe) {
-		if (this != &copyFromMe) {
-			this->calcScore = copyFromMe.calcScore;
-			this->positionInCompetition = copyFromMe.positionInCompetition;
-			this->simulationSteps = copyFromMe.simulationSteps;
-			this->winnerNumSteps = copyFromMe.winnerNumSteps;
-			this->thisNumSteps = copyFromMe.thisNumSteps;
-			this->sumDirtInHouse = copyFromMe.sumDirtInHouse;
-			this->isBackInDocking = copyFromMe.isBackInDocking;
-			this->dirtCollected = copyFromMe.dirtCollected;
-			this->badBehavior = copyFromMe.badBehavior;
-		}
-		return *this;
-	};
+	Score& operator=(const Score& copyFromMe);
 
 	void setPositionInCompetition(int positionInCompetition) {
 		this->positionInCompetition = positionInCompetition;
@@ -91,44 +65,15 @@ public:
 		dirtCollected++;
 	};
 
+	void setDirtCollected(int dirtCollected) {
+		this->dirtCollected = dirtCollected;
+	};
+
 	void reportBadBehavior() {
 		badBehavior = true;
 	};
 
-	int getScore() const {
-		int score;
-		if (badBehavior) {
-			return 0;
-		}
-		if (calcScore == NULL) {
-			// default score function
-			int pos = isBackInDocking && sumDirtInHouse == dirtCollected ? 
-				positionInCompetition : 10;
-			score = max(0, 2000
-				- (pos - 1) * 50
-				+ (winnerNumSteps - thisNumSteps) * 10
-				- (sumDirtInHouse - dirtCollected) * 3
-				+ (isBackInDocking ? 50 : -200));
-		}
-		else {
-			map<string, int> scoreParams = {
-				{"actual_position_in_competition", positionInCompetition},
-				{"simulation_steps", simulationSteps},
-				{"winner_num_steps", winnerNumSteps},
-				{"this_num_steps", thisNumSteps},
-				{"sum_dirt_in_house", sumDirtInHouse},
-				{"dirt_collected", dirtCollected},
-				{"is_back_in_docking", isBackInDocking}
-			};
-			try {
-				score = (*calcScore)(scoreParams);
-			}
-			catch (exception& e) {
-				score = -1;
-			}
-		}
-		return score;
-	};
+	int getScore() const;
 
 };
 

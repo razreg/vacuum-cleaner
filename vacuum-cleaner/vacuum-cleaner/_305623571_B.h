@@ -10,15 +10,8 @@ using namespace std;
 class _305623571_B : public AstarAlgorithm {
 
 protected:
-
-	virtual Direction chooseSimpleDirectionToBlack() override;
-
-	virtual Direction chooseSimpleDirection() override;
-
-public:
-
-	virtual bool keepMoving(SensorInformation& sensorInformation) const override {
-		return true; // hyperactive
+	virtual bool isReturnTripFeasable(size_t pathLength) override {
+		return AstarAlgorithm::isReturnTripFeasable(pathLength*1.1); // conservative
 	};
 };
 

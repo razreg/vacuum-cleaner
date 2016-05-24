@@ -30,3 +30,30 @@ void Robot::step() {
 		battery.charge();
 	}
 }
+
+void Robot::configBattery(const map<string, int>& configMap) {
+	battery.setCapacity(max(0, configMap.find(BATTERY_CAPACITY)->second));
+	battery.setConsumptionRate(max(0, configMap.find(BATTERY_CONSUMPTION_RATE)->second));
+	battery.setRechargeRate(max(0, configMap.find(BATTERY_RECHARGE_RATE)->second));
+	battery.setCurrValue(battery.getCapacity());
+}
+
+void Robot::updateSensorWithHouse() {
+	sensor.setHouse(this->house);
+	position = this->house.getDockingStation(); // copy constructor
+	sensor.setPosition(position);
+	algorithm.setSensor(sensor);
+}
+
+void Robot::configure(const map<string, int>& configMap) {
+	configBattery(configMap);
+	this->algorithm.setConfiguration(configMap);
+	this->algorithm.setSensor(this->sensor);
+}
+
+void Robot::restart() {
+	battery.setCurrValue(battery.getCapacity());
+	prevStep = Direction::Stay;
+	illegalStepPerformed = false;
+	batteryDead = false;
+}

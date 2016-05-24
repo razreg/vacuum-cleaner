@@ -105,14 +105,13 @@
     <ClCompile Include="AlgorithmRegistration.cpp" />
     <ClCompile Include="AstarAlgorithm.cpp" />
     <ClCompile Include="Common.cpp" />
-    <ClCompile Include="score_formula.cpp" />
+    <ClCompile Include="Score.cpp" />
     <ClCompile Include="_305623571_A.cpp" />
     <ClCompile Include="_305623571_B.cpp" />
     <ClCompile Include="_305623571_C.cpp" />
     <ClCompile Include="AlgorithmRegistrar.cpp" />
     <ClCompile Include="House.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="ManhattenAlgorithm.cpp" />
     <ClCompile Include="Results.cpp" />
     <ClCompile Include="Robot.cpp" />
     <ClCompile Include="Simulator.cpp" />
@@ -122,7 +121,6 @@
     <ClInclude Include="AbstractAlgorithm.h" />
     <ClInclude Include="AbstractSensor.h" />
     <ClInclude Include="AstarAlgorithm.h" />
-    <ClInclude Include="score_formula.h" />
     <ClInclude Include="uniqueptr.h" />
     <ClInclude Include="_305623571_A.h" />
     <ClInclude Include="_305623571_B.h" />
@@ -132,8 +130,6 @@
     <ClInclude Include="Common.h" />
     <ClInclude Include="Direction.h" />
     <ClInclude Include="AlgorithmRegistrar.h" />
-    <ClInclude Include="BaseAlgorithm.h" />
-    <ClInclude Include="ManhattenAlgorithm.h" />
     <ClInclude Include="Results.h" />
     <ClInclude Include="House.h" />
     <ClInclude Include="Main.h" />

@@ -41,33 +41,11 @@ public:
 		matrix(move(moveFromMe.matrix)), dockingStation(move(moveFromMe.dockingStation)) {
 	};
 
-	House& operator=(House&& moveFromMe) {
-		if (this != &moveFromMe) {
-			name = move(moveFromMe.name);
-			maxSteps = moveFromMe.maxSteps;
-			numRows = moveFromMe.numRows;
-			numCols = moveFromMe.numCols;
-			matrix = move(moveFromMe.matrix);
-			dockingStation = move(moveFromMe.dockingStation);
-			totalDust = -1;
-		}
-		return *this;
-	};
+	House& operator=(House&& moveFromMe);
 
 	House(const House& copyFromMe);
 
-	House& operator=(const House& copyFromMe) {
-		if (this != &copyFromMe) {
-			name = copyFromMe.name;
-			maxSteps = copyFromMe.maxSteps;
-			numRows = copyFromMe.numRows;
-			numCols = copyFromMe.numCols;
-			dockingStation = copyFromMe.dockingStation;
-			matrix = copyFromMe.matrix;
-			totalDust = -1;
-		}
-		return *this;
-	};
+	House& operator=(const House& copyFromMe);
 
 	~House() {};
 	
@@ -94,19 +72,9 @@ public:
 		return getDirtLevel(position.getX(), position.getY());
 	};
 
-	int getDirtLevel(size_t x, size_t y) const {
-		if (matrix[y][x] < '0' || matrix[y][x] > '9') {
-			return 0;
-		}
-		return matrix[y][x] - '0';
-	};
+	int getDirtLevel(size_t x, size_t y) const;
 
-	bool isWall(const Position& position) const {
-		if (isInside(position)) {
-			return toupper(matrix[position.getY()][position.getX()]) == WALL;
-		}
-		return false;
-	};
+	bool isWall(const Position& position) const;
 
 	// true iff position inside house boundaries
 	bool isInside(const Position& position) const {
@@ -121,18 +89,7 @@ public:
 	void validateDocking();
 
 	// true iff dust was vacuumed
-	bool clean(const Position& position) {
-		char* cell = &matrix[position.getY()][position.getX()];
-		if (*cell > '0' && *cell <= '9') {
-			(*cell)--;
-			totalDust--;
-			if (*cell == '0') {
-				*cell = ' ';
-			}
-			return true;
-		}
-		return false;
-	};
+	bool clean(const Position& position);
 
 	int getTotalDust();
 

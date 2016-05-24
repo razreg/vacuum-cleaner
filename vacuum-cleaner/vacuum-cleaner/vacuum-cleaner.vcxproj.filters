@@ -51,13 +51,7 @@
     <ClCompile Include="_305623571_C.cpp">
       <Filter>Source Files\algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="ManhattenAlgorithm.cpp">
-      <Filter>Source Files\algorithms</Filter>
-    </ClCompile>
     <ClCompile Include="AlgorithmRegistration.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="score_formula.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Common.cpp">
@@ -65,6 +59,9 @@
     </ClCompile>
     <ClCompile Include="AstarAlgorithm.cpp">
       <Filter>Source Files\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="Score.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -125,16 +122,7 @@
     <ClInclude Include="_305623571_A.h">
       <Filter>Header Files\algorithms</Filter>
     </ClInclude>
-    <ClInclude Include="ManhattenAlgorithm.h">
-      <Filter>Header Files\algorithms</Filter>
-    </ClInclude>
-    <ClInclude Include="BaseAlgorithm.h">
-      <Filter>Header Files\algorithms</Filter>
-    </ClInclude>
     <ClInclude Include="uniqueptr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="score_formula.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="AstarAlgorithm.h">
