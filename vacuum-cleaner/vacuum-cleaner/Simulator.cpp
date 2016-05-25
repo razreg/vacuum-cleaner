@@ -119,11 +119,13 @@ void Simulator::executeOnHouse(list<Robot>& robots, House& house) {
 			.setSumDirtInHouse(initialSumDirtInHouse);
 	}
 
-	while (steps < maxSteps && stepsAfterWinner < maxStepsAfterWinner && robotsFinishedTotal < robots.size()) {
+	while (steps < maxSteps && stepsAfterWinner < maxStepsAfterWinner 
+		&& robotsFinishedTotal < robots.size()) {
+
 		int robotsFinishedInRound = 0;
 		robotsFinishedTotal = 0;
 		for (Robot& robot : robots) {
-			if (robot.isFinished()) {
+			if (robot.isFinished() || robot.performedIllegalStep()) {
 				robotsFinishedTotal++;
 			}
 			else if (!robot.performedIllegalStep()) {

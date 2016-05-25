@@ -4,92 +4,105 @@ REGISTER_ALGORITHM(_305623571_C)
 
 Direction _305623571_C::chooseSimpleDirection() {
 
-	vector<Direction> directions;
+	unsigned int directions = 0;
 	Position& currPos = getCurrPos();
 	vector<vector<char>>& houseMatrix = getHouseMatrix();
 	Direction preferNext = getPreferNext();
 
 	if (currPos.getX() > 0 && houseMatrix[currPos.getY()][currPos.getX() - 1] != WALL) {
-		if (preferNext == Direction::West) {
+		if (preferNext == WEST) {
 			return preferNext;
 		}
-		directions.push_back(Direction::West);
+		directions |= 1;
 	}
 	if (currPos.getY() > 0 && houseMatrix[currPos.getY() - 1][currPos.getX()] != WALL) {
-		if (preferNext == Direction::North) {
+		if (preferNext == NORTH) {
 			return preferNext;
 		}
-		directions.push_back(Direction::North);
+		directions |= 2;
 	}
 	if (currPos.getY() < getMaxHouseSize() - 1 && houseMatrix[currPos.getY() + 1][currPos.getX()] != WALL) {
-		if (preferNext == Direction::South) {
+		if (preferNext == SOUTH) {
 			return preferNext;
 		}
-		directions.push_back(Direction::South);
+		directions |= 4;
 	}
 	if (currPos.getX() < getMaxHouseSize() - 1 && houseMatrix[currPos.getY()][currPos.getX() + 1] != WALL) {
-		if (preferNext == Direction::East) {
+		if (preferNext == EAST) {
 			return preferNext;
 		}
-		directions.push_back(Direction::East);
+		directions |= 8;
 	}
 
-	if (directions.empty()) {
-		return Direction::Stay;
-	}
-	Direction opp = getOppositeDirection(preferNext);
-	for (Direction& dir : directions) {
-		setPreferNext(dir);
-		preferNext = dir;
-		if (dir != opp) {
-			break;
-		}
-	}
-	return preferNext;
+	return pickPrefered(directions, preferNext);
 }
 
 Direction _305623571_C::chooseSimpleDirectionToBlack() {
 
-	vector<Direction> directions;
+	unsigned int directions = 0;
 	Position& currPos = getCurrPos();
 	vector<vector<char>>& houseMatrix = getHouseMatrix();
 	Direction preferNext = getPreferNext();
 
 	if (currPos.getX() > 0 && houseMatrix[currPos.getY()][currPos.getX() - 1] == BLACK) {
-		if (preferNext == Direction::West) {
+		if (preferNext == WEST) {
 			return preferNext;
 		}
-		directions.push_back(Direction::West);
+		directions |= 1;
 	}
 	if (currPos.getY() > 0 && houseMatrix[currPos.getY() - 1][currPos.getX()] == BLACK) {
-		if (preferNext == Direction::North) {
+		if (preferNext == NORTH) {
 			return preferNext;
 		}
-		directions.push_back(Direction::North);
+		directions |= 2;
 	}
 	if (currPos.getY() < getMaxHouseSize() - 1 && houseMatrix[currPos.getY() + 1][currPos.getX()] == BLACK) {
-		if (preferNext == Direction::South) {
+		if (preferNext == SOUTH) {
 			return preferNext;
 		}
-		directions.push_back(Direction::South);
+		directions |= 4;
 	}
 	if (currPos.getX() < getMaxHouseSize() - 1 && houseMatrix[currPos.getY()][currPos.getX() + 1] == BLACK) {
-		if (preferNext == Direction::East) {
+		if (preferNext == EAST) {
 			return preferNext;
 		}
-		directions.push_back(Direction::East);
+		directions |= 8;
 	}
 
-	if (directions.empty()) {
-		return Direction::Stay;
+	return pickPrefered(directions, preferNext);
+}
+
+Direction _305623571_C::pickPrefered(unsigned int directions, Direction& preferNext) {
+	if (directions == 0) {
+		return STAY;
 	}
-	Direction opp = getOppositeDirection(preferNext);
-	for (Direction& dir : directions) {
-		setPreferNext(dir);
-		preferNext = dir;
-		if (dir != opp) {
-			break;
-		}
+	unsigned int opp =
+		preferNext == NORTH ? 4 :
+		preferNext == SOUTH ? 2 :
+		preferNext == WEST ? 8 :
+		preferNext == EAST ? 1 : 0;
+	bool useOpp;
+	if ((useOpp = directions & opp)) {
+		directions -= opp;
 	}
+	if (directions & 1) {
+		preferNext = WEST;
+	}
+	else if (directions & 2) {
+		preferNext = NORTH;
+	}
+	else if (directions & 4) {
+		preferNext = SOUTH;
+	}
+	else if (directions & 8) {
+		preferNext = EAST;
+	}
+	else if (useOpp) {
+		preferNext = getOppositeDirection(preferNext);
+	}
+	else {
+		return STAY;
+	}
+	setPreferNext(preferNext);
 	return preferNext;
 }

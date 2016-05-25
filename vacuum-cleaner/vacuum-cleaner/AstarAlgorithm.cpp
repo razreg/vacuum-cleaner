@@ -6,7 +6,7 @@ Direction AstarAlgorithm::step(Direction prevStep) {
 	currPos.moveDirection(prevStep);
 
 	// get sensor information
-	Direction direction = Direction::Stay; // default
+	Direction direction = STAY; // default
 	SensorInformation sensorInformation = sensor->sense();
 
 	// consume battery
@@ -41,7 +41,7 @@ Direction AstarAlgorithm::step(Direction prevStep) {
 
 Direction AstarAlgorithm::algorithmIteration(SensorInformation& sensorInformation, bool restart) {
 	
-	Direction direction = Direction::Stay;
+	Direction direction = STAY;
 	if (restart) {
 		restartDataForIteration();
 		heuristicCostToDocking = NUMERIC_UPPER_BOUND;
@@ -265,11 +265,11 @@ bool AstarAlgorithm::allBlack(Position& pos) const {
 
 Direction AstarAlgorithm::getStepFromPath(Position& dest) const {
 	return
-		dest.getY() < currPos.getY() ? Direction::North :
-		dest.getX() < currPos.getX() ? Direction::West :
-		dest.getY() > currPos.getY() ? Direction::South :
-		dest.getX() > currPos.getX() ? Direction::East :
-		Direction::Stay;
+		dest.getY() < currPos.getY() ? NORTH :
+		dest.getX() < currPos.getX() ? WEST :
+		dest.getY() > currPos.getY() ? SOUTH :
+		dest.getX() > currPos.getX() ? EAST :
+		STAY;
 }
 
 Position AstarAlgorithm::getNearestGrey(Position& pos) const {
@@ -489,7 +489,7 @@ void AstarAlgorithm::restartAlgorithm() {
 	mappingDataPool.clear();
 	dockingDataPool.clear();
 	dustDataPool.clear();
-	expectedPrevStep = Direction::Stay;
+	expectedPrevStep = STAY;
 	followPathToDocking = false;
 	followPathToGrey = false;
 	goingToDock = nullptr;
@@ -500,93 +500,106 @@ void AstarAlgorithm::restartAlgorithm() {
 
 Direction AstarAlgorithm::getOppositeDirection(Direction direction) {
 	return 
-		direction == Direction::North ? Direction::South :
-		direction == Direction::South ? Direction::North :
-		direction == Direction::West ? Direction::East :
-		direction == Direction::East ? Direction::West :
-		Direction::Stay;
+		direction == NORTH ? SOUTH :
+		direction == SOUTH ? NORTH :
+		direction == WEST ? EAST :
+		direction == EAST ? WEST :
+		STAY;
 }
 
 Direction AstarAlgorithm::chooseSimpleDirection() {
 
-	vector<Direction> directions;
+	unsigned int directions = 0;
 
 	if (currPos.getY() > 0 && houseMatrix[currPos.getY() - 1][currPos.getX()] != WALL) {
-		if (preferNext == Direction::North) {
+		if (preferNext == NORTH) {
 			return preferNext;
 		}
-		directions.push_back(Direction::North);
+		directions |= 1;
 	}
 	if (currPos.getY() < getMaxHouseSize() - 1 && houseMatrix[currPos.getY() + 1][currPos.getX()] != WALL) {
-		if (preferNext == Direction::South) {
+		if (preferNext == SOUTH) {
 			return preferNext;
 		}
-		directions.push_back(Direction::South);
+		directions |= 2;
 	}
 	if (currPos.getX() < getMaxHouseSize() - 1 && houseMatrix[currPos.getY()][currPos.getX() + 1] != WALL) {
-		if (preferNext == Direction::East) {
+		if (preferNext == EAST) {
 			return preferNext;
 		}
-		directions.push_back(Direction::East);
+		directions |= 4;
 	}
 	if (currPos.getX() > 0 && houseMatrix[currPos.getY()][currPos.getX() - 1] != WALL) {
-		if (preferNext == Direction::West) {
+		if (preferNext == WEST) {
 			return preferNext;
 		}
-		directions.push_back(Direction::West);
+		directions |= 8;
 	}
 
-	if (directions.empty()) {
-		return Direction::Stay;
-	}
-	Direction opp = getOppositeDirection(preferNext);
-	for (Direction& dir : directions) {
-		preferNext = dir;
-		if (dir != opp) {
-			break;
-		}
-	}
-	return preferNext;
+	return pickPrefered(directions);
 }
 
 Direction AstarAlgorithm::chooseSimpleDirectionToBlack() {
 
-	vector<Direction> directions;
-
+	unsigned int directions = 0;
 	if (currPos.getY() > 0 && houseMatrix[currPos.getY() - 1][currPos.getX()] == BLACK) {
-		if (preferNext == Direction::North) {
+		if (preferNext == NORTH) {
 			return preferNext;
 		}
-		directions.push_back(Direction::North);
+		directions |= 1;
 	}
 	if (currPos.getY() < getMaxHouseSize() - 1 && houseMatrix[currPos.getY() + 1][currPos.getX()] == BLACK) {
-		if (preferNext == Direction::South) {
+		if (preferNext == SOUTH) {
 			return preferNext;
 		}
-		directions.push_back(Direction::South);
+		directions |= 2;
 	}
 	if (currPos.getX() < getMaxHouseSize() - 1 && houseMatrix[currPos.getY()][currPos.getX() + 1] == BLACK) {
-		if (preferNext == Direction::East) {
+		if (preferNext == EAST) {
 			return preferNext;
 		}
-		directions.push_back(Direction::East);
+		directions |= 4;
 	}
 	if (currPos.getX() > 0 && houseMatrix[currPos.getY()][currPos.getX() - 1] == BLACK) {
-		if (preferNext == Direction::West) {
+		if (preferNext == WEST) {
 			return preferNext;
 		}
-		directions.push_back(Direction::West);
+		directions |= 8;
 	}
 
-	if (directions.empty()) {
-		return Direction::Stay;
+	return pickPrefered(directions);
+}
+
+Direction AstarAlgorithm::pickPrefered(unsigned int directions) {
+	if (directions == 0) {
+		return STAY;
 	}
-	Direction opp = getOppositeDirection(preferNext);
-	for (Direction& dir : directions) {
-		preferNext = dir;
-		if (dir != opp) {
-			break;
-		}
+	unsigned int opp =
+		preferNext == NORTH ? 2 :
+		preferNext == SOUTH ? 1 :
+		preferNext == WEST ? 4 :
+		preferNext == EAST ? 8 : 0;
+	bool useOpp;
+	if ((useOpp = directions & opp)) {
+		directions -= opp;
+	}
+	if (directions & 1) {
+		preferNext = NORTH;
+	}
+	else if (directions & 2) {
+		preferNext = SOUTH;
+	}
+	else if (directions & 4) {
+		preferNext = EAST;
+	}
+	else if (directions & 8) {
+		preferNext = WEST;
+	}
+	else if (useOpp) {
+		preferNext = getOppositeDirection(preferNext);
+	}
+	else {
+		return STAY;
 	}
 	return preferNext;
 }

@@ -21,6 +21,8 @@ CC = g++
 
 all: clean $(target)
 
+score: score_formula.so
+
 $(target): $(obj) $(common_obj) $(so_obj)
 	$(CC) -rdynamic -o $@ $(obj) $(common_obj) $(LD_FLAGS)
 
@@ -35,6 +37,9 @@ $(common_obj): %.o: %.cpp
 
 $(so_dep_obj): %.o: %.cpp
 	$(CC) $(CC_FLAGS) -fPIC $< -o $@
+
+score_formula.so: score_formula.cpp
+	$(CC) $(SO_FLAGS) $^ -o $@
 
 clean:
 	rm -f $(obj) $(common_obj) $(so_obj) $(so_dep_obj) $(target)

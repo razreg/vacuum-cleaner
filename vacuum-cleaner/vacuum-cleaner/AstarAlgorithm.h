@@ -17,10 +17,16 @@ const char WALL = 'W';
 const size_t HOUSE_SIZE_UPPER_BOUND = 241;
 const size_t NUMERIC_UPPER_BOUND = numeric_limits<size_t>::max() / 2 - 1;
 
-const int NORTH_IDX = static_cast<int>(Direction::North);
-const int EAST_IDX = static_cast<int>(Direction::East);
-const int WEST_IDX = static_cast<int>(Direction::West);
-const int SOUTH_IDX = static_cast<int>(Direction::South);
+const Direction NORTH = Direction::North;
+const Direction SOUTH = Direction::South;
+const Direction WEST = Direction::West;
+const Direction EAST = Direction::East;
+const Direction STAY = Direction::Stay;
+
+const int NORTH_IDX = static_cast<int>(NORTH);
+const int EAST_IDX = static_cast<int>(EAST);
+const int WEST_IDX = static_cast<int>(WEST);
+const int SOUTH_IDX = static_cast<int>(SOUTH);
 
 class AstarAlgorithm : public AbstractAlgorithm {
 
@@ -147,6 +153,8 @@ class AstarAlgorithm : public AbstractAlgorithm {
 	};
 
 	void restartDataForIteration();
+
+	Direction pickPrefered(unsigned int directions);
 
 protected:
 
