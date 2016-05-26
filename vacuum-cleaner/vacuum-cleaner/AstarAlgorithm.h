@@ -102,6 +102,12 @@ class AstarAlgorithm : public AbstractAlgorithm {
 	// for choosing simple directions
 	Direction preferNext;
 
+	// look only on the relevant part of the matrix
+	size_t firstRowNotBlack;
+	size_t lastRowNotBlackPlusOne;
+	size_t firstColNotBlack;
+	size_t lastColNotBlackPlusOne;
+
 	void initHouseMatrix();
 
 	void updateMatrix(Position& pos, char val) {

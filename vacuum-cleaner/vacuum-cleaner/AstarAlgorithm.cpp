@@ -4,6 +4,28 @@ Direction AstarAlgorithm::step(Direction prevStep) {
 
 	// update currPos with prevStep
 	currPos.moveDirection(prevStep);
+	if (mappingPhase) {
+		if (prevStep == NORTH) {
+			if (firstRowNotBlack > 0 && firstRowNotBlack > currPos.getY()) {
+				firstRowNotBlack = currPos.getY();
+			}
+		}
+		else if (prevStep == SOUTH) {
+			if (lastRowNotBlackPlusOne < maxHouseSize && lastRowNotBlackPlusOne < currPos.getY()) {
+				lastRowNotBlackPlusOne = currPos.getY();
+			}
+		}
+		else if (prevStep == WEST) {
+			if (firstColNotBlack > 0 && firstColNotBlack > currPos.getX()) {
+				firstColNotBlack = currPos.getX();
+			}
+		}
+		else if (prevStep == EAST) {
+			if (lastColNotBlackPlusOne < maxHouseSize && lastColNotBlackPlusOne < currPos.getX()) {
+				lastColNotBlackPlusOne = currPos.getX();
+			}
+		}
+	}
 
 	// get sensor information
 	Direction direction = STAY; // default
@@ -48,7 +70,7 @@ Direction AstarAlgorithm::algorithmIteration(SensorInformation& sensorInformatio
 	}
 
 	// update houseMatrix according to sensorInformation
-	updateWalls(sensorInformation);
+	if (mappingPhase) updateWalls(sensorInformation);
 	updateDirtLevel(sensorInformation);
 
 	// if charging, stay unless unnecessary
@@ -204,26 +226,42 @@ void AstarAlgorithm::initHouseMatrix() {
 	currPos = Position(center, center);
 	updateMatrix(currPos, DOCK);
 	docking = currPos;
+	firstRowNotBlack = center;
+	lastRowNotBlackPlusOne = center + 1;
+	firstColNotBlack = center;
+	lastColNotBlackPlusOne = center + 1;
 }
 
 void AstarAlgorithm::updateWalls(SensorInformation& sensorInformation) {
 	if (sensorInformation.isWall[NORTH_IDX] && currPos.getY() > 0) {
 		houseMatrix[currPos.getY() - 1][currPos.getX()] = WALL;
+		if (firstRowNotBlack > 0 && firstRowNotBlack > currPos.getY() - 1) {
+			firstRowNotBlack = currPos.getY() - 1;
+		}
 	}
 	if (sensorInformation.isWall[SOUTH_IDX] && currPos.getY() < maxHouseSize - 1) {
 		houseMatrix[currPos.getY() + 1][currPos.getX()] = WALL;
+		if (lastRowNotBlackPlusOne < maxHouseSize && lastRowNotBlackPlusOne < currPos.getY() + 1) {
+			lastRowNotBlackPlusOne = currPos.getY() + 1;
+		}
 	}
 	if (sensorInformation.isWall[EAST_IDX] && currPos.getX() < maxHouseSize - 1) {
 		houseMatrix[currPos.getY()][currPos.getX() + 1] = WALL;
+		if (lastColNotBlackPlusOne < maxHouseSize && lastColNotBlackPlusOne < currPos.getX() + 1) {
+			lastColNotBlackPlusOne = currPos.getX() + 1;
+		}
 	}
 	if (sensorInformation.isWall[WEST_IDX] && currPos.getX() > 0) {
 		houseMatrix[currPos.getY()][currPos.getX() - 1] = WALL;
+		if (firstColNotBlack > 0 && firstColNotBlack > currPos.getX() - 1) {
+			firstColNotBlack = currPos.getX() - 1;
+		}
 	}
 }
 
 bool AstarAlgorithm::greyExists() const {
-	for (size_t row = 0; row < maxHouseSize; ++row) {
-		for (size_t col = 0; col < maxHouseSize; ++col) {
+	for (size_t row = firstRowNotBlack; row < lastRowNotBlackPlusOne; ++row) {
+		for (size_t col = firstColNotBlack; col < lastColNotBlackPlusOne; ++col) {
 			Position temp = Position(col, row);
 			if (houseMatrix[row][col] != BLACK && houseMatrix[row][col] != WALL 
 				&& blackNeighborExists(temp)) {
@@ -235,8 +273,8 @@ bool AstarAlgorithm::greyExists() const {
 }
 
 bool AstarAlgorithm::houseIsClean() const {
-	for (size_t row = 0; row < maxHouseSize; ++row) {
-		for (size_t col = 0; col < maxHouseSize; ++col) {
+	for (size_t row = firstRowNotBlack; row < lastRowNotBlackPlusOne; ++row) {
+		for (size_t col = firstColNotBlack; col < lastColNotBlackPlusOne; ++col) {
 			if ('0' < houseMatrix[row][col] && houseMatrix[row][col] <= '9') {
 				return false;
 			}
@@ -275,8 +313,8 @@ Direction AstarAlgorithm::getStepFromPath(Position& dest) const {
 Position AstarAlgorithm::getNearestGrey(Position& pos) const {
 	size_t distance = NUMERIC_UPPER_BOUND;
 	Position nearest = pos;
-	for (size_t row = 0; row < maxHouseSize; ++row) {
-		for (size_t col = 0; col < maxHouseSize; ++col) {
+	for (size_t row = firstRowNotBlack; row < lastRowNotBlackPlusOne; ++row) {
+		for (size_t col = firstColNotBlack; col < lastColNotBlackPlusOne; ++col) {
 			Position temp = Position(col, row);
 			if (houseMatrix[row][col] != BLACK && blackNeighborExists(temp)) {
 				size_t newDistance = getDistance(pos, temp);
@@ -293,8 +331,8 @@ Position AstarAlgorithm::getNearestGrey(Position& pos) const {
 Position AstarAlgorithm::getNearestDust(Position& pos) const {
 	size_t distance = NUMERIC_UPPER_BOUND;
 	Position nearest = pos;
-	for (size_t row = 0; row < maxHouseSize; ++row) {
-		for (size_t col = 0; col < maxHouseSize; ++col) {
+	for (size_t row = firstRowNotBlack; row < lastRowNotBlackPlusOne; ++row) {
+		for (size_t col = firstColNotBlack; col < lastColNotBlackPlusOne; ++col) {
 			Position temp = Position(col, row);
 			if (houseMatrix[pos.getY()][pos.getX()] <= '9' && houseMatrix[pos.getY()][pos.getX()] > '0') {
 				size_t newDistance = getDistance(pos, temp);
