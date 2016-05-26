@@ -63,6 +63,7 @@ int MainHelper::setConfiguration(string& configPath) {
 	}
 	catch (exception& e) {
 		logger.fatal(e.what());
+		cout << usage << endl;
 		return INVALID_CONFIGURATION;
 	}
 	return SUCCESS;
@@ -77,6 +78,7 @@ int MainHelper::setScoreFormula(string& scoreFormulaPath) {
 		}
 		catch (exception& e) {
 			logger.fatal(e.what());
+			cout << usage << endl;
 			isValid = false;
 		}
 		if (!isValid) {
@@ -100,6 +102,7 @@ int MainHelper::setAlgorithms(string& algorithmsPath) {
 	}
 	catch (exception& e) {
 		logger.fatal(e.what()); // see AlgorithmRegistrar::setNameForLastAlgorithm
+		cout << usage << endl;
 		return INVALID_ALGORITHMS;
 	}
 	return SUCCESS;
@@ -116,6 +119,7 @@ int MainHelper::setHousePaths(string& housesPath) {
 	}
 	catch (exception& e) {
 		logger.fatal(e.what());
+		cout << usage << endl;
 		return INVALID_HOUSES;
 	}
 	return SUCCESS;
@@ -136,56 +140,84 @@ int MainHelper::runSimulator() {
 bool MainHelper::getHousePaths(const string& housesPath) {
 
 	fs::path dir(housesPath);
-	if (!isDirectory(dir)) {
-		cout << usage << endl;
-		cout << "cannot find house files in '" << dir.string() << "'" << endl;
-		return false;
+	if (fs::exists(dir)) {
+		dir = fs::canonical(dir);
 	}
-
-	fs::directory_iterator end_iter;
-	for (fs::directory_iterator dir_iter(dir); dir_iter != end_iter; ++dir_iter) {
-		if (fs::is_regular_file(dir_iter->status()) && 
-			dir_iter->path().has_extension() && 
-			dir_iter->path().extension() == ".house") {
-			housePathVector.push_back(dir_iter->path());
+	string errNoFiles = "cannot find house files in '" + dir.string() + "'";
+	try {
+		if (!isDirectory(dir)) {
+			cout << usage << endl;
+			cout << errNoFiles << endl;
+			return false;
 		}
+
+		fs::directory_iterator end_iter;
+		for (fs::directory_iterator dir_iter(dir); dir_iter != end_iter; ++dir_iter) {
+			if (fs::is_regular_file(dir_iter->status()) &&
+				dir_iter->path().has_extension() &&
+				dir_iter->path().extension() == ".house") {
+				housePathVector.push_back(dir_iter->path());
+			}
+		}
+		if (housePathVector.empty()) {
+			cout << usage << endl;
+			cout << errNoFiles << endl;
+			return false;
+		}
+		return true;
 	}
-	if (housePathVector.empty()) {
-		cout << usage << endl;
-		cout << "cannot find house files in '" << dir.string() << "'" << endl;
+	// permission denied
+	catch (const fs::filesystem_error& e) {
+		if (e.code() == boost::system::errc::permission_denied) {
+			cout << usage << endl;
+			cout << errNoFiles << endl;
+		}
 		return false;
 	}
-	return true;
 }
 
 bool MainHelper::loadConfiguration(const string& configFileDir) {
 
-	fs::path path = fs::path(configFileDir) / "config.ini";
-	if (!fs::exists(path)) {
-		cout << usage << endl;
-		cout << "cannot find config.ini file in '" << fs::path(configFileDir).string() << "'" << endl;
-		return false;
+	fs::path base = fs::path(configFileDir);
+	if (fs::exists(base)) {
+		base = fs::canonical(base);
 	}
-
-	ifstream configFileStream(path.string());
-	string currLine;
-	if (configFileStream) {
-		populateConfigMap(configFileStream);
-		try {
-			configFileStream.close();
-		}
-		catch (exception& e) {
-			logger.error(e.what());
-		}
-		if (!isConfigMapValid()) {
+	string errNoFiles = "cannot find config.ini file in '" + base.string() + "'";
+	try {
+		fs::path path = base / "config.ini";
+		if (!fs::exists(path)) {
+			cout << usage << endl;
+			cout << errNoFiles << endl;
 			return false;
 		}
+		ifstream configFileStream(path.string());
+		string currLine;
+		if (configFileStream) {
+			populateConfigMap(configFileStream);
+			try {
+				configFileStream.close();
+			}
+			catch (exception& e) {
+				logger.error(e.what());
+			}
+			if (!isConfigMapValid()) {
+				return false;
+			}
+		}
+		else {
+			cout << "config.ini exists in '" << base.string() << "' but cannot be opened" << endl;
+			return false;
+		}
+		return true;
 	}
-	else {
-		cout << "config.ini exists in '" << path.string() << "' but cannot be opened" << endl;
+	// permission denied
+	catch (const fs::filesystem_error& e) {
+		if (e.code() == boost::system::errc::permission_denied) {
+			cout << usage << endl;
+			cout << errNoFiles << endl;
+		}
 		return false;
 	}
-	return true;
 }
 
 void MainHelper::populateConfigMap(ifstream& configFileStream) {
@@ -251,79 +283,106 @@ bool MainHelper::isConfigMapValid() {
 bool MainHelper::loadAlgorithms(const string& algorithmsPath) {
 
 	fs::path dir(algorithmsPath);
-	if (!isDirectory(dir)) {
-		cout << usage << endl;
-		cout << "cannot find algorithm files in '" << dir.string() << "'" << endl;
-		return false;
+	if (fs::exists(dir)) {
+		dir = fs::canonical(dir);
 	}
+	string errNoFiles = "cannot find algorithm files in '" + dir.string() + "'";
+	try {
+		if (!isDirectory(dir)) {
+			cout << usage << endl;
+			cout << errNoFiles << endl;
+			return false;
+		}
 
-	// load libraries into registrar
-	fs::directory_iterator end_iter;
-	for (fs::directory_iterator dir_iter(dir); dir_iter != end_iter; ++dir_iter) {
-		if (fs::is_regular_file(dir_iter->status())) {
-			if (dir_iter->path().has_extension() && dir_iter->path().extension() == ".so") {
-				if (logger.debugEnabled()) {
-					logger.debug("Loading algorithm from file [" + dir_iter->path().filename().string() + "]");
-				}
-				int result = 
-					registrar.loadAlgorithm(dir_iter->path().string(), dir_iter->path().stem().string());
-				if (result == AlgorithmRegistrar::FILE_CANNOT_BE_LOADED) {
-					algorithmErrors.push_back(dir_iter->path().filename().string() +
-						": file cannot be loaded or is not a valid .so");
-				}
-				else if (result == AlgorithmRegistrar::NO_ALGORITHM_REGISTERED) {
-					algorithmErrors.push_back(dir_iter->path().filename().string() +
-						": valid .so but no algorithm was registered after loading it");
+		// load libraries into registrar
+		fs::directory_iterator end_iter;
+		for (fs::directory_iterator dir_iter(dir); dir_iter != end_iter; ++dir_iter) {
+			if (fs::is_regular_file(dir_iter->status())) {
+				if (dir_iter->path().has_extension() && dir_iter->path().extension() == ".so") {
+					if (logger.debugEnabled()) {
+						logger.debug("Loading algorithm from file [" + dir_iter->path().filename().string() + "]");
+					}
+					int result =
+						registrar.loadAlgorithm(dir_iter->path().string(), dir_iter->path().stem().string());
+					if (result == AlgorithmRegistrar::FILE_CANNOT_BE_LOADED) {
+						algorithmErrors.push_back(dir_iter->path().filename().string() +
+							": file cannot be loaded or is not a valid .so");
+					}
+					else if (result == AlgorithmRegistrar::NO_ALGORITHM_REGISTERED) {
+						algorithmErrors.push_back(dir_iter->path().filename().string() +
+							": valid .so but no algorithm was registered after loading it");
+					}
 				}
 			}
 		}
-	}
 
-	if (registrar.size() == 0) {
-		if (algorithmErrors.empty()) {
-			cout << usage << endl;
-			cout << "cannot find algorithm files in '" << dir.string() << "'" << endl;
+		if (registrar.size() == 0) {
+			if (algorithmErrors.empty()) {
+				cout << usage << endl;
+				cout << errNoFiles << endl;
+			}
+			else {
+				cout << "All algorithm files in target folder '"
+					<< dir.string() << "' cannot be opened or are invalid:" << endl;
+				for (string& err : algorithmErrors) cout << err << endl;
+			}
+			return false;
 		}
-		else {
-			cout << "All algorithm files in target folder '"
-				<< dir.string() << "' cannot be opened or are invalid:" << endl;
-			for (string& err : algorithmErrors) cout << err << endl;
+		return true;
+	}
+	// permission denied
+	catch (const fs::filesystem_error& e) {
+		if (e.code() == boost::system::errc::permission_denied) {
+			cout << usage << endl;
+			cout << errNoFiles << endl;
 		}
 		return false;
 	}
-	return true;
 }
 
 bool MainHelper::loadScoreFormula(const string& scoreFormulaPath) {
 
 	fs::path base = fs::path(scoreFormulaPath);
-	fs::path path = base / "score_formula.so";
-	if (!fs::exists(path)) {
-		cout << usage << endl;
-		cout << "cannot find score_formula.so file in '" << base.string() << "'" << endl;
-		return false;
+	if (fs::exists(base)) {
+		base = fs::canonical(base);
 	}
-	
-	libHandle = dlopen(path.c_str(), RTLD_NOW);
-	if (libHandle == NULL) {
-		if (logger.debugEnabled()) {
-			logger.debug("Failed to load score_formula.so. Details: " + string(dlerror()));
+	string errNoFiles = "cannot find score_formula.so file in '" + base.string() + "'";
+	try {
+		fs::path path = base / "score_formula.so";
+		if (!fs::exists(path)) {
+			cout << usage << endl;
+			cout << errNoFiles << endl;
+			return false;
 		}
-		cout << "score_formula.so exists in '" << path.string() 
-			<< "' but cannot be opened or is not a valid .so" << endl;
-		return false;
-	}
-	dlerror(); // clear dlerror
-	void* func = dlsym(libHandle, SCORE_FORMULA_METHOD_NAME);
-	scoreFormula = reinterpret_cast<ScoreFormula>(reinterpret_cast<long>(func));
-	char* err;
-	if ((err = dlerror()) != NULL) {
-		logger.debug("Failed to load score_formula.so. Details: " + string(err));
-		cout << "score_formula.so is a valid.so but it does not have a valid score formula" << endl;
-		return false;
-	}
 
-	return true;
+		libHandle = dlopen(path.c_str(), RTLD_NOW);
+		if (libHandle == NULL) {
+			if (logger.debugEnabled()) {
+				logger.debug("Failed to load score_formula.so. Details: " + string(dlerror()));
+			}
+			cout << "score_formula.so exists in '" << base.string()
+				<< "' but cannot be opened or is not a valid .so" << endl;
+			return false;
+		}
+		dlerror(); // clear dlerror
+		void* func = dlsym(libHandle, SCORE_FORMULA_METHOD_NAME);
+		scoreFormula = reinterpret_cast<ScoreFormula>(reinterpret_cast<long>(func));
+		char* err;
+		if ((err = dlerror()) != NULL) {
+			logger.debug("Failed to load score_formula.so. Details: " + string(err));
+			cout << "score_formula.so is a valid .so but it does not have a valid score formula" << endl;
+			return false;
+		}
+		return true;
+	}
+	// permission denied
+	catch (const fs::filesystem_error& e) {
+		if (e.code() == boost::system::errc::permission_denied) {
+			cout << usage << endl;
+			cout << errNoFiles << endl;
+		}
+		return false;
+	}
 }
 
 bool parseArgs(int argc, char** argv, string& configPath, string& housesPath, string& algorithmsPath,
