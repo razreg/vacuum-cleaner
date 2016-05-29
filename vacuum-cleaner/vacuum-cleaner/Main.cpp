@@ -391,20 +391,20 @@ bool parseArgs(int argc, char** argv, string& configPath, string& housesPath, st
 	bool valid = true;
 	for (int i = 1; valid && i < argc; ++i) {
 		if (string(argv[i]) == "-config") {
-			if ((valid = argc > i + 1)) configPath = argv[i + 1];
+			if ((valid = argc > i + 1)) configPath = argv[++i];
 		}
 		else if (string(argv[i]) == "-house_path") {
-			if ((valid = argc > i + 1)) housesPath = argv[i + 1];
+			if ((valid = argc > i + 1)) housesPath = argv[++i];
 		}
 		else if (string(argv[i]) == "-algorithm_path") {
-			if ((valid = argc > i + 1)) algorithmsPath = argv[i + 1];
+			if ((valid = argc > i + 1)) algorithmsPath = argv[++i];
 		}
 		else if (string(argv[i]) == "-score_formula") {
-			if ((valid = argc > i + 1)) scoreFormula = argv[i + 1];
+			if ((valid = argc > i + 1)) scoreFormula = argv[++i];
 		}
 		else if (string(argv[i]) == "-threads") {
 			if ((valid = argc > i + 1)) {
-				string threadsStr = argv[i + 1];
+				string threadsStr = argv[++i];
 				try {
 					threads = max(1, stoi(threadsStr));
 				}
