@@ -2,40 +2,16 @@
 
 int calc_score(const map<string, int>& score_params) {
 
-	int positionInCompetition = -1;
-	int simulationSteps = -1;
-	int winnerNumSteps = -1;
-	int thisNumSteps = -1;
-	int sumDirtInHouse = -1;
-	int dirtCollected = -1;
-	int isBackInDocking = 0;
+	bool valid = true;
+	int positionInCompetition = getValue(score_params, "actual_position_in_competition", valid);
+	//int simulationSteps = getValue(score_params, "simulation_steps", valid);
+	int winnerNumSteps = getValue(score_params, "winner_num_steps", valid);
+	int thisNumSteps = getValue(score_params, "this_num_steps", valid);
+	int sumDirtInHouse = getValue(score_params, "sum_dirt_in_house", valid);
+	int isBackInDocking = getValue(score_params, "is_back_in_docking", valid);
+	int dirtCollected = getValue(score_params, "dirt_collected", valid);
 
-	for (auto it = score_params.cbegin(); it != score_params.cend(); it++) {
-		if (it->first == "actual_position_in_competition") {
-			positionInCompetition = it->second;
-		}
-		else if (it->first == "simulation_steps") {
-			simulationSteps = it->second;
-		}
-		else if (it->first == "winner_num_steps") {
-			winnerNumSteps = it->second;
-		}
-		else if (it->first == "this_num_steps") {
-			thisNumSteps = it->second;
-		}
-		else if (it->first == "sum_dirt_in_house") {
-			sumDirtInHouse = it->second;
-		}
-		else if (it->first == "dirt_collected") {
-			dirtCollected = it->second;
-		}
-		else if (it->first == "is_back_in_docking") {
-			isBackInDocking = it->second;
-		}
-	}
-
-	if (positionInCompetition < 0 || simulationSteps < 0 || winnerNumSteps < 0 || 
-		thisNumSteps < 0 || sumDirtInHouse < 0 || dirtCollected < 0) {
+	if (!valid) {
 		return -1;
 	}
 
@@ -46,4 +22,14 @@ int calc_score(const map<string, int>& score_params) {
 		- (sumDirtInHouse - dirtCollected) * 3
 		+ (isBackInDocking ? 50 : -200);
 	return score < 0 ? 0 : score;
+}
+
+int getValue(const map<string, int>& score_params, string paramName, bool& valid) {
+	map<string, int>::const_iterator itr;
+	if (valid && (valid = (itr = score_params.find(paramName)) != score_params.end())) {
+		return itr->second;
+	}
+	else {
+		return -1;
+	}
 }
