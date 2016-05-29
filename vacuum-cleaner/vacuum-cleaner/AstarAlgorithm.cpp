@@ -47,14 +47,14 @@ Direction AstarAlgorithm::step(Direction prevStep) {
 
 	/* // for debugging the house as seen by the algorithm
 	if (battery.getCurrValue() <= 1 || stepsLeft == 0 || (!mappingPhase && houseIsClean())) {
-		cout << endl << "House mapped by algorithm:" << endl << endl;
-		for (size_t i = 0; i < houseMatrix.size(); ++i) {
-			for (size_t j = 0; j < houseMatrix[i].size(); ++j) {
-				cout << (houseMatrix[i][j] == '0' ? ' ' : houseMatrix[i][j]);
-			}
-			cout << endl;
-		}
-		cout << endl;
+	cout << endl << "House mapped by algorithm:" << endl << endl;
+	for (size_t i = 0; i < houseMatrix.size(); ++i) {
+	for (size_t j = 0; j < houseMatrix[i].size(); ++j) {
+	cout << (houseMatrix[i][j] == '0' ? ' ' : houseMatrix[i][j]);
+	}
+	cout << endl;
+	}
+	cout << endl;
 	} */
 
 	expectedPrevStep = direction;
@@ -74,7 +74,7 @@ Direction AstarAlgorithm::algorithmIteration(SensorInformation& sensorInformatio
 	updateDirtLevel(sensorInformation);
 
 	// if charging, stay unless unnecessary
-	if (inDockingStation() && battery.getCurrValue() < battery.getCapacity() 
+	if (inDockingStation() && battery.getCurrValue() < battery.getCapacity()
 		&& battery.getCurrValue() <= stepsLeft * battery.getConsumptionRate()) {
 		restartDataForIteration();
 		return direction; // stay
@@ -175,7 +175,7 @@ void AstarAlgorithm::restartDataForIteration() {
 	goingToDock = nullptr;
 }
 
-void AstarAlgorithm::DataPool::updateNode(shared_ptr<Node> node, Position& position, 
+void AstarAlgorithm::DataPool::updateNode(shared_ptr<Node> node, Position& position,
 	shared_ptr<Node> parent, int realCost, int heuristicCost) {
 	node->position = position;
 	node->realCost = realCost;
@@ -270,7 +270,7 @@ bool AstarAlgorithm::greyExists() const {
 	for (size_t row = firstRowNotBlack; row < lastRowNotBlackPlusOne; ++row) {
 		for (size_t col = firstColNotBlack; col < lastColNotBlackPlusOne; ++col) {
 			Position temp = Position(col, row);
-			if (houseMatrix[row][col] != BLACK && houseMatrix[row][col] != WALL 
+			if (houseMatrix[row][col] != BLACK && houseMatrix[row][col] != WALL
 				&& blackNeighborExists(temp)) {
 				return true;
 			}
@@ -544,7 +544,7 @@ void AstarAlgorithm::restartAlgorithm() {
 }
 
 Direction AstarAlgorithm::getOppositeDirection(Direction direction) {
-	return 
+	return
 		direction == NORTH ? SOUTH :
 		direction == SOUTH ? NORTH :
 		direction == WEST ? EAST :
