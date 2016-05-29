@@ -61,5 +61,8 @@ void Robot::restart() {
 void Robot::setHouse(House&& house) {
 	this->house = forward<House>(house);
 	updateSensorWithHouse();
-	if (captureVideo) video.init(house.getNumRows(), house.getNumCols(), house.getName(), algorithmName);
+	if (captureVideo) {
+		video.init(this->house.getNumRows(), this->house.getNumCols(), this->house.getName(), algorithmName);
+		video.composeImage(this->house, position); // first frame - in docking station
+	}
 }

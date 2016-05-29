@@ -105,7 +105,7 @@ public:
 	};
 
 	void captureSnapshot() {
-		video.composeImage(house);
+		video.composeImage(house, position);
 	};
 
 	void saveVideo() const {

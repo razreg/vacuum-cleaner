@@ -62,7 +62,7 @@ Direction AstarAlgorithm::step(Direction prevStep) {
 }
 
 Direction AstarAlgorithm::algorithmIteration(SensorInformation& sensorInformation, bool restart) {
-	
+
 	Direction direction = STAY;
 	if (restart) {
 		restartDataForIteration();
@@ -84,7 +84,10 @@ Direction AstarAlgorithm::algorithmIteration(SensorInformation& sensorInformatio
 		if (inDockingStation()) {
 			return direction; // stay
 		}
-		followPathToDocking = true; // we can finish now
+		if (!followPathToDocking) {
+			getPathToDocking();
+			followPathToDocking = true; // we can finish now
+		}
 	}
 	// check if we have enough steps to go back to docking
 	if (!followPathToDocking || goingToDock == nullptr) {
@@ -93,8 +96,12 @@ Direction AstarAlgorithm::algorithmIteration(SensorInformation& sensorInformatio
 		}
 		else {
 			heuristicCostToDocking = getPathToDocking();
-			followPathToDocking = isReturnTripFeasable(heuristicCostToDocking)
+			bool tempFollowPathToDocking = isReturnTripFeasable(heuristicCostToDocking)
 				&& !isReturnTripFeasable(heuristicCostToDocking + 2);
+			if (!followPathToDocking && tempFollowPathToDocking) {
+				getPathToDocking();
+				followPathToDocking = true; // we can finish now
+			}
 		}
 		if (!followPathToDocking && keepMoving(sensorInformation)) {
 			goingToDock = nullptr; // we're going to make a move so next time need to calculate way to dock again

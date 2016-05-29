@@ -5,7 +5,7 @@ Logger Simulator::logger = Logger("Simulator");
 Simulator::Simulator(map<string, int>& configMap, ScoreFormula scoreFormula, vector<fs::path>& housePathVector, 
 	AlgorithmRegistrar& registrar, vector<string>& algorithmErrors, bool video) :
 	configMap(configMap), housePathVector(housePathVector), registrar(registrar), 
-	algorithmErrors(algorithmErrors), results(), housePathIndex(0), captureVideo(video) {
+	algorithmErrors(algorithmErrors), results(), housePathIndex(0), captureVideo(video) { 
 	
 	maxStepsAfterWinner = configMap.find(MAX_STEPS_AFTER_WINNER)->second;
 	vector<string> houseNames;
@@ -17,7 +17,6 @@ Simulator::Simulator(map<string, int>& configMap, ScoreFormula scoreFormula, vec
 }
 
 void Simulator::execute(size_t numThreads) {
-	// TODO delete tempFolder?
 	size_t numHouses = housePathVector.size();
 	size_t actualNumThreads = min(numHouses, numThreads);
 	logger.info("Running simulation with " + to_string(actualNumThreads) + " thread(s)" + 
@@ -208,7 +207,7 @@ void Simulator::performStep(Robot& robot, int steps, int maxSteps, int maxStepsA
 		robot.aboutToFinish(min(maxStepsAfterWinner, maxSteps - steps));
 	}
 	robot.step(); // this also updates the sensor and the battery but not the house
-	// TODO capture image
+	robot.captureSnapshot(); // TODO capture image before or after illegal step
 	if (!robot.getHouse().isInside(robot.getPosition()) ||
 		robot.getHouse().isWall(robot.getPosition())) {
 		logger.warn("Algorithm [" + robot.getAlgorithmName() +

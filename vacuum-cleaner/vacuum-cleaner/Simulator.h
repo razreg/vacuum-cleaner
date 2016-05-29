@@ -27,12 +27,13 @@ class Simulator {
 	vector<string> houseErrors; // updates in threads only when errorMutex is locked - thread-safe
 	vector<string>& algorithmErrors; // never updated in simulator - thread-safe
 	Results results; // updates in threads only when resultsMutex is locked - thread-safe
-	bool captureVideo;
 
 	// thread-safety devices
 	atomic<size_t> housePathIndex;
 	mutex errorMutex;
 	mutex resultsMutex;
+
+	bool captureVideo;
 
 	void initRobotList(list<Robot>& robots, list<unique_ptr<AbstractAlgorithm>>& algorithms);
 
