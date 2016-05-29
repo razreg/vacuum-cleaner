@@ -57,3 +57,9 @@ void Robot::restart() {
 	illegalStepPerformed = false;
 	batteryDead = false;
 }
+
+void Robot::setHouse(House&& house) {
+	this->house = forward<House>(house);
+	updateSensorWithHouse();
+	if (captureVideo) video.init(house.getNumRows(), house.getNumCols(), house.getName(), algorithmName);
+}

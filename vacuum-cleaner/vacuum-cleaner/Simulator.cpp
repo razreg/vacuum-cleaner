@@ -2,10 +2,10 @@
 
 Logger Simulator::logger = Logger("Simulator");
 
-Simulator::Simulator(map<string, int>& configMap, ScoreFormula scoreFormula, 
-	vector<fs::path>& housePathVector, AlgorithmRegistrar& registrar, vector<string>& algorithmErrors) :
+Simulator::Simulator(map<string, int>& configMap, ScoreFormula scoreFormula, vector<fs::path>& housePathVector, 
+	AlgorithmRegistrar& registrar, vector<string>& algorithmErrors, bool video) :
 	configMap(configMap), housePathVector(housePathVector), registrar(registrar), 
-	algorithmErrors(algorithmErrors), results(), housePathIndex(0) {
+	algorithmErrors(algorithmErrors), results(), housePathIndex(0), captureVideo(video) {
 	
 	maxStepsAfterWinner = configMap.find(MAX_STEPS_AFTER_WINNER)->second;
 	vector<string> houseNames;
@@ -17,6 +17,7 @@ Simulator::Simulator(map<string, int>& configMap, ScoreFormula scoreFormula,
 }
 
 void Simulator::execute(size_t numThreads) {
+	// TODO delete tempFolder?
 	size_t numHouses = housePathVector.size();
 	size_t actualNumThreads = min(numHouses, numThreads);
 	logger.info("Running simulation with " + to_string(actualNumThreads) + " thread(s)" + 
@@ -45,7 +46,7 @@ void Simulator::initRobotList(list<Robot>& robots, list<unique_ptr<AbstractAlgor
 	auto namesIter = algorithmNames.begin();
 	for (auto iter = algorithms.begin(); 
 	iter != algorithms.end() && namesIter != algorithmNames.end(); ++iter, ++namesIter) {
-		robots.emplace_back(configMap, **iter, *namesIter);
+		robots.emplace_back(configMap, **iter, *namesIter, captureVideo);
 	}
 }
 
@@ -169,7 +170,14 @@ void Simulator::executeOnHouse(list<Robot>& robots, House& house) {
 		winnerNumSteps = steps;
 	}
 	collectScores(robots, house.getName(), steps, winnerNumSteps);
+	saveVideos(robots);
 	logger.info("Simulation completed for house [" + house.getName() + "]");
+}
+
+void Simulator::saveVideos(const list<Robot>& robots) const {
+	for (const Robot& robot : robots) {
+		robot.saveVideo();
+	}
 }
 
 void Simulator::robotFinishedCleaning(Robot& robot, int steps, int& winnerNumSteps, 
@@ -200,6 +208,7 @@ void Simulator::performStep(Robot& robot, int steps, int maxSteps, int maxStepsA
 		robot.aboutToFinish(min(maxStepsAfterWinner, maxSteps - steps));
 	}
 	robot.step(); // this also updates the sensor and the battery but not the house
+	// TODO capture image
 	if (!robot.getHouse().isInside(robot.getPosition()) ||
 		robot.getHouse().isWall(robot.getPosition())) {
 		logger.warn("Algorithm [" + robot.getAlgorithmName() +

@@ -55,7 +55,7 @@ public:
 
 	void removeHouse(string houseName);
 
-	bool areAllHousesInvalid() {
+	bool areAllHousesInvalid() const {
 		return houseNames.empty();
 	};
 

@@ -9,6 +9,7 @@
 #include "Position.h"
 #include "Common.h"
 #include "AlgorithmRegistrar.h"
+#include "Video.h"
 
 using namespace std;
 namespace fs = boost::filesystem;
@@ -26,6 +27,7 @@ class Simulator {
 	vector<string> houseErrors; // updates in threads only when errorMutex is locked - thread-safe
 	vector<string>& algorithmErrors; // never updated in simulator - thread-safe
 	Results results; // updates in threads only when resultsMutex is locked - thread-safe
+	bool captureVideo;
 
 	// thread-safety devices
 	atomic<size_t> housePathIndex;
@@ -52,10 +54,12 @@ class Simulator {
 
 	void printErrors();
 
+	void saveVideos(const list<Robot>& robots) const;
+
 public:
 	
-	Simulator(map<string, int>& configMap, ScoreFormula scoreFormula, 
-		vector<fs::path>& housePathVector, AlgorithmRegistrar& registrar, vector<string>& algorithmErrors);
+	Simulator(map<string, int>& configMap, ScoreFormula scoreFormula, vector<fs::path>& housePathVector, 
+		AlgorithmRegistrar& registrar, vector<string>& algorithmErrors, bool video = false);
 
 	void execute(size_t numThreads);
 

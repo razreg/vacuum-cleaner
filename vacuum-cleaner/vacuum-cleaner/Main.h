@@ -31,7 +31,7 @@ Logger logger = Logger("Main");
 string getCurrentWorkingDirectory();
 
 bool parseArgs(int argc, char** argv, string& configPath, string& housesPath, string& algorithmsPath,
-	string &scoreFormula, size_t& threads);
+	string &scoreFormula, size_t& threads, bool& video);
 
 bool isDirectory(fs::path& dir) {
 	return fs::exists(dir) && fs::is_directory(dir);
@@ -85,7 +85,7 @@ public:
 
 	int setHousePaths(string& housesPath);
 
-	int runSimulator();
+	int runSimulator(bool video);
 
 	static string getUsage() {
 		return usage;
