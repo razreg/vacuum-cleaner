@@ -52,7 +52,7 @@ class Simulator {
 	void performStep(Robot& robot, int steps, int maxSteps, 
 		int maxStepsAfterWinner, int stepsAfterWinner);
 
-	void printErrors();
+	void printErrors() const;
 
 	void saveVideos(const list<Robot>& robots) const;
 
