@@ -244,23 +244,23 @@ bool Simulator::loadHouse(fs::path filePath, House& house) {
 	return true;
 }
 
-void Simulator::printErrors() {
+void Simulator::printErrors() const {
 	if (results.areAllHousesInvalid()) {
 		fs::path path = housePathVector.front().parent_path();
 		if (fs::exists(path)) {
 			path = fs::canonical(path);
 		}
 		cout << "All house files in target folder '"
-			<< path.string() 
+			<< path.string()
 			<< "' cannot be opened or are invalid:" << endl;
-		for (string& err : houseErrors) cout << err << endl;
+		for (const string& err : houseErrors) cout << err << endl;
 		return;
 	}
 	if (!houseErrors.empty() || !algorithmErrors.empty() || !simulationErrors.empty()) {
 		cout << endl;
 		cout << "Errors:" << endl;
 	}
-	for (string& err : houseErrors) cout << err << endl;
-	for (string& err : algorithmErrors) cout << err << endl;
-	for (string& err : simulationErrors) cout << err << endl;
+	for (const string& err : houseErrors) cout << err << endl;
+	for (const string& err : algorithmErrors) cout << err << endl;
+	for (const string& err : simulationErrors) cout << err << endl;
 }

@@ -50,7 +50,7 @@ class Simulator {
 	void performStep(Robot& robot, int steps, int maxSteps, 
 		int maxStepsAfterWinner, int stepsAfterWinner);
 
-	void printErrors();
+	void printErrors() const;
 
 public:
 	
