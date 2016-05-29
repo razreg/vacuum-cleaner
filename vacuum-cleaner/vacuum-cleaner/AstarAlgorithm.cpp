@@ -47,14 +47,14 @@ Direction AstarAlgorithm::step(Direction prevStep) {
 
 	/* // for debugging the house as seen by the algorithm
 	if (battery.getCurrValue() <= 1 || stepsLeft == 0 || (!mappingPhase && houseIsClean())) {
-		cout << endl << "House mapped by algorithm:" << endl << endl;
-		for (size_t i = 0; i < houseMatrix.size(); ++i) {
-			for (size_t j = 0; j < houseMatrix[i].size(); ++j) {
-				cout << (houseMatrix[i][j] == '0' ? ' ' : houseMatrix[i][j]);
-			}
-			cout << endl;
-		}
-		cout << endl;
+	cout << endl << "House mapped by algorithm:" << endl << endl;
+	for (size_t i = 0; i < houseMatrix.size(); ++i) {
+	for (size_t j = 0; j < houseMatrix[i].size(); ++j) {
+	cout << (houseMatrix[i][j] == '0' ? ' ' : houseMatrix[i][j]);
+	}
+	cout << endl;
+	}
+	cout << endl;
 	} */
 
 	expectedPrevStep = direction;
@@ -62,7 +62,7 @@ Direction AstarAlgorithm::step(Direction prevStep) {
 }
 
 Direction AstarAlgorithm::algorithmIteration(SensorInformation& sensorInformation, bool restart) {
-	
+
 	Direction direction = STAY;
 	if (restart) {
 		restartDataForIteration();
@@ -74,7 +74,7 @@ Direction AstarAlgorithm::algorithmIteration(SensorInformation& sensorInformatio
 	updateDirtLevel(sensorInformation);
 
 	// if charging, stay unless unnecessary
-	if (inDockingStation() && battery.getCurrValue() < battery.getCapacity() 
+	if (inDockingStation() && battery.getCurrValue() < battery.getCapacity()
 		&& battery.getCurrValue() <= stepsLeft * battery.getConsumptionRate()) {
 		restartDataForIteration();
 		return direction; // stay
@@ -84,7 +84,10 @@ Direction AstarAlgorithm::algorithmIteration(SensorInformation& sensorInformatio
 		if (inDockingStation()) {
 			return direction; // stay
 		}
-		followPathToDocking = true; // we can finish now
+		if (!followPathToDocking) {
+			getPathToDocking();
+			followPathToDocking = true; // we can finish now
+		}
 	}
 	// check if we have enough steps to go back to docking
 	if (!followPathToDocking || goingToDock == nullptr) {
@@ -93,8 +96,12 @@ Direction AstarAlgorithm::algorithmIteration(SensorInformation& sensorInformatio
 		}
 		else {
 			heuristicCostToDocking = getPathToDocking();
-			followPathToDocking = isReturnTripFeasable(heuristicCostToDocking)
+			bool tempFollowPathToDocking = isReturnTripFeasable(heuristicCostToDocking)
 				&& !isReturnTripFeasable(heuristicCostToDocking + 2);
+			if (!followPathToDocking && tempFollowPathToDocking) {
+				getPathToDocking();
+				followPathToDocking = true; // we can finish now
+			}
 		}
 		if (!followPathToDocking && keepMoving(sensorInformation)) {
 			goingToDock = nullptr; // we're going to make a move so next time need to calculate way to dock again
@@ -168,7 +175,7 @@ void AstarAlgorithm::restartDataForIteration() {
 	goingToDock = nullptr;
 }
 
-void AstarAlgorithm::DataPool::updateNode(shared_ptr<Node> node, Position& position, 
+void AstarAlgorithm::DataPool::updateNode(shared_ptr<Node> node, Position& position,
 	shared_ptr<Node> parent, int realCost, int heuristicCost) {
 	node->position = position;
 	node->realCost = realCost;
@@ -263,7 +270,7 @@ bool AstarAlgorithm::greyExists() const {
 	for (size_t row = firstRowNotBlack; row < lastRowNotBlackPlusOne; ++row) {
 		for (size_t col = firstColNotBlack; col < lastColNotBlackPlusOne; ++col) {
 			Position temp = Position(col, row);
-			if (houseMatrix[row][col] != BLACK && houseMatrix[row][col] != WALL 
+			if (houseMatrix[row][col] != BLACK && houseMatrix[row][col] != WALL
 				&& blackNeighborExists(temp)) {
 				return true;
 			}
@@ -537,7 +544,7 @@ void AstarAlgorithm::restartAlgorithm() {
 }
 
 Direction AstarAlgorithm::getOppositeDirection(Direction direction) {
-	return 
+	return
 		direction == NORTH ? SOUTH :
 		direction == SOUTH ? NORTH :
 		direction == WEST ? EAST :

@@ -7,6 +7,10 @@
 
 class _305623571_C : public AstarAlgorithm {
 
+	Direction pickPrefered(unsigned int directions, Direction& preferNext);
+
+protected:
+
 	virtual void resetPreferNext() override {
 		setPreferNext(WEST);
 	};
@@ -14,8 +18,6 @@ class _305623571_C : public AstarAlgorithm {
 	virtual Direction chooseSimpleDirection() override;
 
 	virtual Direction chooseSimpleDirectionToBlack() override;
-
-	Direction pickPrefered(unsigned int directions, Direction& preferNext);
 
 	virtual bool isReturnTripFeasable(size_t pathLength) override {
 		return AstarAlgorithm::isReturnTripFeasable(pathLength*1.05); // somewhat conservative
