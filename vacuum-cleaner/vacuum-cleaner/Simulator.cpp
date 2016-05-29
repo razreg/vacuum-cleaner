@@ -169,12 +169,16 @@ void Simulator::executeOnHouse(list<Robot>& robots, House& house) {
 		winnerNumSteps = steps;
 	}
 	collectScores(robots, house.getName(), steps, winnerNumSteps);
-	saveVideos(robots);
+	if (captureVideo) saveVideos(robots);
 	logger.info("Simulation completed for house [" + house.getName() + "]");
 }
 
-void Simulator::saveVideos(const list<Robot>& robots) const {
-	for (const Robot& robot : robots) {
+void Simulator::saveVideos(list<Robot>& robots) {
+	for (Robot& robot : robots) {
+		// wait a bit at the end of the video so it won't end so abruptly
+		for (int i = 0; i < 5; ++i) {
+			robot.captureSnapshot();
+		}
 		robot.saveVideo();
 	}
 }
@@ -207,7 +211,7 @@ void Simulator::performStep(Robot& robot, int steps, int maxSteps, int maxStepsA
 		robot.aboutToFinish(min(maxStepsAfterWinner, maxSteps - steps));
 	}
 	robot.step(); // this also updates the sensor and the battery but not the house
-	robot.captureSnapshot(); // TODO capture image before or after illegal step
+	if (captureVideo) robot.captureSnapshot();
 	if (!robot.getHouse().isInside(robot.getPosition()) ||
 		robot.getHouse().isWall(robot.getPosition())) {
 		logger.warn("Algorithm [" + robot.getAlgorithmName() +

@@ -55,7 +55,7 @@ class Simulator {
 
 	void printErrors() const;
 
-	void saveVideos(const list<Robot>& robots) const;
+	void saveVideos(list<Robot>& robots);
 
 public:
 	

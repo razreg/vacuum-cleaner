@@ -16,6 +16,7 @@ void Video::makeTempDirectory() {
 }
 
 void Video::removeTempDirectory() {
+	/* TODO
 	string cmd = "rm -rf " + tempDir;
 	if (system(cmd.c_str()) == -1) {
 		logger.error("Failed to remove directory " + tempDir);
@@ -23,7 +24,7 @@ void Video::removeTempDirectory() {
 	}
 	else if (logger.debugEnabled()) {
 		logger.debug("Removed temporary directory " + tempDir);
-	}
+	}*/
 }
 
 void Video::generateTempDirName() {
@@ -42,7 +43,7 @@ void Video::init(size_t rows, size_t cols, string houseName, string algorithmNam
 	this->cols = cols;
 	this->imagePrefix = tempDir + "/" + algorithmName + "-" + houseName + "-image";
 	this->videoOutput = "./" + algorithmName + "_" + houseName + ".mpg";
-	counter = 1;
+	counter = 0;
 }
 
 void Video::composeImage(const House& house, const Position& robotPosition) {
@@ -79,7 +80,7 @@ void Video::composeImage(const House& house, const Position& robotPosition) {
 }
 
 void Video::encode() const {
-	string ffmpegCmd = "ffmpeg -v 8 -y -i " + imagePrefix + "%5d.jpg " + videoOutput;
+	string ffmpegCmd = "ffmpeg -y -i " + imagePrefix + "%05d.jpg " + videoOutput;
 	int ret = system(ffmpegCmd.c_str());
 	if (ret == -1) {
 		logger.error("Failed to save video to " + videoOutput);
