@@ -22,7 +22,7 @@ void Simulator::execute(size_t numThreads) {
 	logger.info("Running simulation with " + to_string(actualNumThreads) + " thread(s)" + 
 		(numHouses < numThreads ? " (" + to_string(numThreads) + 
 			" requested but only " + to_string(numHouses) + " house files were found)": ""));
-	if (actualNumThreads > 1) {
+	if (actualNumThreads > 1 && !captureVideo) {
 		vector<unique_ptr<thread>> threads(actualNumThreads);
 		for (auto& thread_ptr : threads) {
 			thread_ptr = make_unique<thread>(&Simulator::executeThread, this);

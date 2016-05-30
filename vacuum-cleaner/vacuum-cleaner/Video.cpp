@@ -16,7 +16,6 @@ void Video::makeTempDirectory() {
 }
 
 void Video::removeTempDirectory() {
-	/* TODO
 	string cmd = "rm -rf " + tempDir;
 	if (system(cmd.c_str()) == -1) {
 		logger.error("Failed to remove directory " + tempDir);
@@ -24,7 +23,7 @@ void Video::removeTempDirectory() {
 	}
 	else if (logger.debugEnabled()) {
 		logger.debug("Removed temporary directory " + tempDir);
-	}*/
+	}
 }
 
 void Video::generateTempDirName() {

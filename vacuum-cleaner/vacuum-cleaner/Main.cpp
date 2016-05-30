@@ -37,6 +37,10 @@ int main(int argc, char** argv) {
 		cout << MainHelper::getUsage() << endl;
 		return INVALID_ARGUMENTS;
 	}
+	if (video && threads > 1) {
+		cout << "Cannot capture video concurrently. Please rerun with either -video or -threads" << endl;
+		return INVALID_ARGUMENTS;
+	}
 	if (logger.debugEnabled()) {
 		logger.debug("Using config file directory path as [" + configPath + "]");
 		logger.debug("Using house files directory path as [" + housesPath + "]");
