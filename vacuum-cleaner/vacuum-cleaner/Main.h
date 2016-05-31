@@ -12,7 +12,6 @@
 #include "AlgorithmRegistrar.h"
 
 using namespace std;
-namespace fs = boost::filesystem;
 
 // exit codes
 const int SUCCESS = 0;

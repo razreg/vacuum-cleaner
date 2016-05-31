@@ -26,6 +26,7 @@ class Simulator {
 	vector<string> simulationErrors; // updates in threads only when errorMutex is locked - thread-safe
 	vector<string> houseErrors; // updates in threads only when errorMutex is locked - thread-safe
 	vector<string>& algorithmErrors; // never updated in simulator - thread-safe
+	vector<string> videoErrors; // never updated in threads - thread-safe
 	Results results; // updates in threads only when resultsMutex is locked - thread-safe
 
 	// thread-safety devices
@@ -56,6 +57,8 @@ class Simulator {
 	void printErrors() const;
 
 	void saveVideos(list<Robot>& robots);
+
+	void updateVideoErrors(Robot& robot);
 
 public:
 	

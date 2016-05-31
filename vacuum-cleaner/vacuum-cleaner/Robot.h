@@ -30,6 +30,7 @@ class Robot {
 
 	bool captureVideo;
 	Video video;
+	vector<string> videoErrors;
 	
 	bool illegalStepPerformed = false;
 	bool batteryDead = false;
@@ -108,9 +109,11 @@ public:
 		video.composeImage(house, position);
 	};
 
-	void saveVideo() const {
-		video.encode();
+	void saveVideo(bool removeTempFiles = false) {
+		video.encode(videoErrors, removeTempFiles);
 	};
+
+	vector<string> getVideoErrors();
 
 };
 

@@ -66,8 +66,18 @@ void Simulator::collectScores(list<Robot>& robots, string houseName, int simulat
 void Simulator::updateRobotListWithHouse(list<Robot>& robots, House& house) {
 	logger.debug("Defining house [" + house.getName() + "] for robot list");
 	for (Robot& robot : robots) {
+		updateVideoErrors(robot);
 		robot.restart();
 		robot.setHouse(House(house));
+	}
+}
+
+void Simulator::updateVideoErrors(Robot& robot) {
+	if (!captureVideo) return;
+	vector<string> currVideoErrors = robot.getVideoErrors();
+	if (!currVideoErrors.empty()) {
+		// videoErros is never used when there is more than one thread so this is thread safe
+		videoErrors.insert(end(videoErrors), begin(currVideoErrors), end(currVideoErrors));
 	}
 }
 
@@ -98,6 +108,10 @@ void Simulator::executeThread() {
 		updateRobotListWithHouse(robots, house);
 		logger.info("Simulation started on house [" + house.getName() + "]");
 		executeOnHouse(robots, house);
+	}
+
+	for (Robot& robot : robots) {
+		updateVideoErrors(robot);
 	}
 
 	logger.info("Thread closing after running on " + to_string(houseCount) + " house(s)" + 
@@ -179,7 +193,7 @@ void Simulator::saveVideos(list<Robot>& robots) {
 		for (int i = 0; i < 5; ++i) {
 			robot.captureSnapshot();
 		}
-		robot.saveVideo();
+		robot.saveVideo(true);
 	}
 }
 
@@ -268,11 +282,13 @@ void Simulator::printErrors() const {
 		for (const string& err : houseErrors) cout << err << endl;
 		return;
 	}
-	if (!houseErrors.empty() || !algorithmErrors.empty() || !simulationErrors.empty()) {
+	if (!houseErrors.empty() || !algorithmErrors.empty() || 
+		!simulationErrors.empty() || !videoErrors.empty()) {
 		cout << endl;
 		cout << "Errors:" << endl;
 	}
 	for (const string& err : houseErrors) cout << err << endl;
 	for (const string& err : algorithmErrors) cout << err << endl;
 	for (const string& err : simulationErrors) cout << err << endl;
+	if (captureVideo) for (const string& err : videoErrors) cout << err << endl;
 }

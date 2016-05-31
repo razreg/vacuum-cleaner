@@ -23,6 +23,7 @@
 #include "uniqueptr.h"
 
 using namespace std;
+namespace fs = boost::filesystem;
 
 typedef int(*ScoreFormula)(const map<string, int>&);
 

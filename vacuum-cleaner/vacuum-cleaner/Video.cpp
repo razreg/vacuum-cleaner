@@ -3,41 +3,71 @@
 #include <string>
 
 Logger Video::logger = Logger("Video");
+int Video::randSeed = 1;
 
 void Video::makeTempDirectory() {
 	string cmd = "mkdir -p " + tempDir;
 	if (system(cmd.c_str()) == -1) {
 		logger.error("Failed to create directory " + tempDir);
-		// TODO handle failure
+		failure = MKDIR;
 	}
 	else if (logger.debugEnabled()) {
 		logger.debug("Created temporary directory " + tempDir);
 	}
 }
 
-void Video::removeTempDirectory() {
-	string cmd = "rm -rf " + tempDir;
-	if (system(cmd.c_str()) == -1) {
-		logger.error("Failed to remove directory " + tempDir);
-		// TODO handle failure
+void Video::removeTempDirectory(string dir) const {
+	try {
+		fs::path path(dir);
+		if (fs::is_directory(path)) {
+			string cmd = "rm -rf " + dir;
+			if (system(cmd.c_str()) == -1) {
+				logger.error("Failed to remove directory " + dir);
+			}
+			else if (logger.debugEnabled()) {
+				logger.debug("Removed temporary directory " + dir);
+			}
+		}
+		if (dir != BASE_DIR) {
+			path = fs::path(BASE_DIR);
+			if (fs::is_directory(path) && fs::is_empty(path)) {
+				removeTempDirectory(BASE_DIR);
+			}
+		}
 	}
-	else if (logger.debugEnabled()) {
-		logger.debug("Removed temporary directory " + tempDir);
+	catch (exception& e) {
+		logger.error("Exception thrown while trying to remove temporary folder");
 	}
 }
 
 void Video::generateTempDirName() {
 	char randStr[20];
-	char alphanum[] = "0123456789" "ABCDEFGHIJKLMNOPQRSTUVWXYZ" "abcdefghijklmnopqrstuvwxyz";
-	srand(time(NULL));
+	char alphanum[] = "0AaBbCc1DdEeFf2GgHhIiJ3jKkLlM4mNnOoP5pQqRr6SsTtUu7VvWwX8xYyZz9";
+	srand(randSeed++);
 	for (size_t i = 0; i < sizeof(randStr) - 1; ++i) {
-		randStr[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
+		randStr[i] = alphanum[rand() % sizeof(randStr)];
 	}
 	randStr[sizeof(randStr) - 1] = '\0';
-	tempDir = "./tmp/sim-images-" + string(randStr);
+	tempDir = BASE_DIR + "tmp-" + string(randStr);
 }
 
-void Video::init(size_t rows, size_t cols, string houseName, string algorithmName) {
+void Video::init(size_t rows, size_t cols, string houseName, 
+	string algorithmName, vector<string>& errors) {
+
+	failure = NONE;
+	failedFrames = 0;
+
+	if (!tempDir.empty()) removeTempDirectory(tempDir);
+	generateTempDirName();
+	makeTempDirectory();
+	if (failure == MKDIR) {
+		errors.push_back("Error: In the simulation " + algorithmName + ", " 
+			+ houseName + ": folder creation " + tempDir + " failed");
+		return;
+	}
+
+	this->algorithmName = algorithmName;
+	this->houseName = houseName;
 	this->rows = rows;
 	this->cols = cols;
 	this->imagePrefix = tempDir + "/" + algorithmName + "-" + houseName + "-image";
@@ -46,6 +76,10 @@ void Video::init(size_t rows, size_t cols, string houseName, string algorithmNam
 }
 
 void Video::composeImage(const House& house, const Position& robotPosition) {
+	if (failure != NONE) {
+		if (failure == FRAME) failedFrames++;
+		return;
+	}
 	string counterStr = to_string(counter);
 	if (counterStr.length() > 5) {
 		return;
@@ -71,21 +105,32 @@ void Video::composeImage(const House& house, const Position& robotPosition) {
 	int ret = system(montageCmd.c_str());
 	if (ret == -1) {
 		logger.error("Failed to save frame to " + frameFileName);
-		// TODO handle failure
+		failure = FRAME;
+
+		failedFrames++;
 	}
 	else {
 		counter++;
 	}
 }
 
-void Video::encode() const {
+void Video::encode(vector<string>& errors, bool removeTempFiles) {
+	if (failure != NONE) return;
 	string ffmpegCmd = "ffmpeg -y -i " + imagePrefix + "%05d.jpg " + videoOutput;
 	int ret = system(ffmpegCmd.c_str());
 	if (ret == -1) {
+		failure = ENCODE;
 		logger.error("Failed to save video to " + videoOutput);
-		// TODO handle failure
+		errors.push_back("Error: In the simulation " + algorithmName + ", " 
+			+ houseName + ": video file creation failed");
 	}
 	else if (logger.debugEnabled()) {
 		logger.debug("Saved video to " + videoOutput);
 	}
+	if (removeTempFiles) removeTempDirectory(tempDir);
+}
+
+string Video::getFrameErrorString() const {
+	return "Error: In the simulation " + algorithmName + ", " + houseName +
+		": the creation of " + to_string(failedFrames) + " images has failed";
 }
