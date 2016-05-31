@@ -26,13 +26,19 @@ int main(int argc, char** argv) {
 	string algorithmsPath = workingDir;
 	string scoreFormulaPath = SCORE_FORMULA_PLACEHOLDER;
 	size_t threads = 1;
+	bool video = false;
 
 	// parse command line arguments
 	logger.debug("Parsing command line arguments");
-	bool isValid = parseArgs(argc, argv, configPath, housesPath, algorithmsPath, scoreFormulaPath, threads);
+	bool isValid = parseArgs(argc, argv, configPath, housesPath, algorithmsPath, 
+		scoreFormulaPath, threads, video);
 	if (!isValid) {
 		logger.fatal("Invalid arguments");
 		cout << MainHelper::getUsage() << endl;
+		return INVALID_ARGUMENTS;
+	}
+	if (video && threads > 1) {
+		cout << "Cannot capture video concurrently. Please rerun with either -video or -threads" << endl;
 		return INVALID_ARGUMENTS;
 	}
 	if (logger.debugEnabled()) {
@@ -47,7 +53,7 @@ int main(int argc, char** argv) {
 		(returnCode = mainHelper.setScoreFormula(scoreFormulaPath)) == SUCCESS &&
 		(returnCode = mainHelper.setAlgorithms(algorithmsPath)) == SUCCESS &&
 		(returnCode = mainHelper.setHousePaths(housesPath)) == SUCCESS &&
-		(returnCode = mainHelper.runSimulator()) == SUCCESS;
+		(returnCode = mainHelper.runSimulator(video)) == SUCCESS;
 	
 	return returnCode;
 }
@@ -125,8 +131,8 @@ int MainHelper::setHousePaths(string& housesPath) {
 	return SUCCESS;
 }
 
-int MainHelper::runSimulator() {
-	Simulator simulator(configMap, scoreFormula, housePathVector, registrar, algorithmErrors);
+int MainHelper::runSimulator(bool video) {
+	Simulator simulator(configMap, scoreFormula, housePathVector, registrar, algorithmErrors, video);
 	try {
 		simulator.execute(threads);
 	}
@@ -386,7 +392,7 @@ bool MainHelper::loadScoreFormula(const string& scoreFormulaPath) {
 }
 
 bool parseArgs(int argc, char** argv, string& configPath, string& housesPath, string& algorithmsPath,
-	string &scoreFormula, size_t& threads) {
+	string &scoreFormula, size_t& threads, bool& video) {
 
 	bool valid = true;
 	for (int i = 1; valid && i < argc; ++i) {
@@ -412,6 +418,9 @@ bool parseArgs(int argc, char** argv, string& configPath, string& housesPath, st
 					threads = 1;
 				}
 			}
+		}
+		else if (string(argv[i]) == "-video") {
+			video = true;
 		}
 	}
 	return valid;

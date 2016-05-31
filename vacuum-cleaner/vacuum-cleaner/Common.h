@@ -23,6 +23,7 @@
 #include "uniqueptr.h"
 
 using namespace std;
+namespace fs = boost::filesystem;
 
 typedef int(*ScoreFormula)(const map<string, int>&);
 
@@ -39,7 +40,7 @@ const string BATTERY_RECHARGE_RATE = "BatteryRechargeRate";
 enum LogLevel { DEBUG, INFO, WARN, ERROR, FATAL, OFF };
 const string loggerLevels[] = { "DEBUG", "INFO", "WARN", "ERROR", "FATAL" };
 
-const LogLevel LOG_LEVEL = OFF;
+const LogLevel LOG_LEVEL = DEBUG;
 
 // simple logger which simply writes to cout but with nice format
 class Logger {

@@ -56,4 +56,21 @@ void Robot::restart() {
 	prevStep = Direction::Stay;
 	illegalStepPerformed = false;
 	batteryDead = false;
+	videoErrors.clear();
+}
+
+void Robot::setHouse(House&& house) {
+	this->house = forward<House>(house);
+	updateSensorWithHouse();
+	if (captureVideo) {
+		video.init(this->house.getNumRows(), this->house.getNumCols(), 
+			this->house.getName(), algorithmName, videoErrors);
+	}
+}
+
+vector<string> Robot::getVideoErrors() {
+	if (video.framesFailed()) {
+		videoErrors.push_back(video.getFrameErrorString());
+	}
+	return videoErrors;
 }

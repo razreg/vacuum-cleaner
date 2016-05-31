@@ -10,6 +10,7 @@
 #include "Battery.h"
 #include "Position.h"
 #include "Common.h"
+#include "Video.h"
 
 static const string directions[] = { "East", "West", "South", "North", "Stay" };
 
@@ -26,6 +27,11 @@ class Robot {
 	Battery battery;
 	Position position;
 	Direction prevStep;
+
+	bool captureVideo;
+	Video video;
+	vector<string> videoErrors;
+	
 	bool illegalStepPerformed = false;
 	bool batteryDead = false;
 
@@ -37,21 +43,19 @@ class Robot {
 
 public:
 
-	Robot(const map<string, int>& configMap, AbstractAlgorithm& algorithm, string algorithmName, House&& house) :
-		algorithm(algorithm), algorithmName(algorithmName), house(house) {
+	Robot(const map<string, int>& configMap, AbstractAlgorithm& algorithm, string algorithmName, 
+		House&& house, bool captureVideo = false) :
+		algorithm(algorithm), algorithmName(algorithmName), house(house), captureVideo(captureVideo) {
 		updateSensorWithHouse();
 		configure(configMap);
 	};
 
-	Robot(const map<string, int>& configMap, AbstractAlgorithm& algorithm, string algorithmName) : 
-		algorithm(algorithm), algorithmName(algorithmName) {
+	Robot(const map<string, int>& configMap, AbstractAlgorithm& algorithm, string algorithmName, bool captureVideo = false) :
+		algorithm(algorithm), algorithmName(algorithmName), captureVideo(captureVideo) {
 		configure(configMap);
 	};
 
-	void setHouse(House&& house) {
-		this->house = forward<House>(house);
-		updateSensorWithHouse();
-	};
+	void setHouse(House&& house);
 
 	void restart();
 
@@ -100,6 +104,16 @@ public:
 	bool isFinished() {
 		return house.getTotalDust() == 0 && inDocking();
 	};
+
+	void captureSnapshot() {
+		video.composeImage(house, position);
+	};
+
+	void saveVideo(bool removeTempFiles = false) {
+		video.encode(videoErrors, removeTempFiles);
+	};
+
+	vector<string> getVideoErrors();
 
 };
 

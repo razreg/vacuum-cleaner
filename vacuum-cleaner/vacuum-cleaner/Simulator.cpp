@@ -2,10 +2,10 @@
 
 Logger Simulator::logger = Logger("Simulator");
 
-Simulator::Simulator(map<string, int>& configMap, ScoreFormula scoreFormula, 
-	vector<fs::path>& housePathVector, AlgorithmRegistrar& registrar, vector<string>& algorithmErrors) :
+Simulator::Simulator(map<string, int>& configMap, ScoreFormula scoreFormula, vector<fs::path>& housePathVector, 
+	AlgorithmRegistrar& registrar, vector<string>& algorithmErrors, bool video) :
 	configMap(configMap), housePathVector(housePathVector), registrar(registrar), 
-	algorithmErrors(algorithmErrors), results(), housePathIndex(0) {
+	algorithmErrors(algorithmErrors), results(), housePathIndex(0), captureVideo(video) { 
 	
 	maxStepsAfterWinner = configMap.find(MAX_STEPS_AFTER_WINNER)->second;
 	vector<string> houseNames;
@@ -22,7 +22,7 @@ void Simulator::execute(size_t numThreads) {
 	logger.info("Running simulation with " + to_string(actualNumThreads) + " thread(s)" + 
 		(numHouses < numThreads ? " (" + to_string(numThreads) + 
 			" requested but only " + to_string(numHouses) + " house files were found)": ""));
-	if (actualNumThreads > 1) {
+	if (actualNumThreads > 1 && !captureVideo) {
 		vector<unique_ptr<thread>> threads(actualNumThreads);
 		for (auto& thread_ptr : threads) {
 			thread_ptr = make_unique<thread>(&Simulator::executeThread, this);
@@ -45,7 +45,7 @@ void Simulator::initRobotList(list<Robot>& robots, list<unique_ptr<AbstractAlgor
 	auto namesIter = algorithmNames.begin();
 	for (auto iter = algorithms.begin(); 
 	iter != algorithms.end() && namesIter != algorithmNames.end(); ++iter, ++namesIter) {
-		robots.emplace_back(configMap, **iter, *namesIter);
+		robots.emplace_back(configMap, **iter, *namesIter, captureVideo);
 	}
 }
 
@@ -66,8 +66,18 @@ void Simulator::collectScores(list<Robot>& robots, string houseName, int simulat
 void Simulator::updateRobotListWithHouse(list<Robot>& robots, House& house) {
 	logger.debug("Defining house [" + house.getName() + "] for robot list");
 	for (Robot& robot : robots) {
+		updateVideoErrors(robot);
 		robot.restart();
 		robot.setHouse(House(house));
+	}
+}
+
+void Simulator::updateVideoErrors(Robot& robot) {
+	if (!captureVideo) return;
+	vector<string> currVideoErrors = robot.getVideoErrors();
+	if (!currVideoErrors.empty()) {
+		// videoErros is never used when there is more than one thread so this is thread safe
+		videoErrors.insert(end(videoErrors), begin(currVideoErrors), end(currVideoErrors));
 	}
 }
 
@@ -98,6 +108,10 @@ void Simulator::executeThread() {
 		updateRobotListWithHouse(robots, house);
 		logger.info("Simulation started on house [" + house.getName() + "]");
 		executeOnHouse(robots, house);
+	}
+
+	for (Robot& robot : robots) {
+		updateVideoErrors(robot);
 	}
 
 	logger.info("Thread closing after running on " + to_string(houseCount) + " house(s)" + 
@@ -169,7 +183,18 @@ void Simulator::executeOnHouse(list<Robot>& robots, House& house) {
 		winnerNumSteps = steps;
 	}
 	collectScores(robots, house.getName(), steps, winnerNumSteps);
+	if (captureVideo) saveVideos(robots);
 	logger.info("Simulation completed for house [" + house.getName() + "]");
+}
+
+void Simulator::saveVideos(list<Robot>& robots) {
+	for (Robot& robot : robots) {
+		// wait a bit at the end of the video so it won't end so abruptly
+		for (int i = 0; i < 5; ++i) {
+			robot.captureSnapshot();
+		}
+		robot.saveVideo(true);
+	}
 }
 
 void Simulator::robotFinishedCleaning(Robot& robot, int steps, int& winnerNumSteps, 
@@ -200,6 +225,7 @@ void Simulator::performStep(Robot& robot, int steps, int maxSteps, int maxStepsA
 		robot.aboutToFinish(min(maxStepsAfterWinner, maxSteps - steps));
 	}
 	robot.step(); // this also updates the sensor and the battery but not the house
+	if (captureVideo) robot.captureSnapshot();
 	if (!robot.getHouse().isInside(robot.getPosition()) ||
 		robot.getHouse().isWall(robot.getPosition())) {
 		logger.warn("Algorithm [" + robot.getAlgorithmName() +
@@ -256,11 +282,13 @@ void Simulator::printErrors() const {
 		for (const string& err : houseErrors) cout << err << endl;
 		return;
 	}
-	if (!houseErrors.empty() || !algorithmErrors.empty() || !simulationErrors.empty()) {
+	if (!houseErrors.empty() || !algorithmErrors.empty() || 
+		!simulationErrors.empty() || !videoErrors.empty()) {
 		cout << endl;
 		cout << "Errors:" << endl;
 	}
 	for (const string& err : houseErrors) cout << err << endl;
 	for (const string& err : algorithmErrors) cout << err << endl;
 	for (const string& err : simulationErrors) cout << err << endl;
+	if (captureVideo) for (const string& err : videoErrors) cout << err << endl;
 }

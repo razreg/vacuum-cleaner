@@ -63,7 +63,7 @@ public:
 		return this->numRows;
 	};
 
-	int getnumCols() const {
+	int getNumCols() const {
 		return this->numCols;
 	};
 
@@ -92,6 +92,10 @@ public:
 	bool clean(const Position& position);
 
 	int getTotalDust();
+
+	char getCellValue(size_t row, size_t col) const {
+		return matrix[row][col];
+	};
 
 	static House deseriallize(fs::path filePath);
 };

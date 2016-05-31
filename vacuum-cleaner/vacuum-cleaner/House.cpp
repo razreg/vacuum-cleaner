@@ -21,7 +21,7 @@ House House::deseriallize(fs::path filePath) {
 	string filename = filePath.filename().string();
 	string houseFileError = filename + ": invalid house file format";
 
-	// House data
+	// House data 
 	string currLine, houseName;
 	size_t nRows = 0, nCols = 0;
 	size_t maxNumSteps = 0;
