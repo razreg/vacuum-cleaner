@@ -108,7 +108,6 @@ void Video::composeImage(const House& house, const Position& robotPosition) {
 	if (ret == -1) {
 		logger.error("Failed to save frame to " + frameFileName);
 		failure = FRAME;
-
 		failedFrames++;
 	}
 	else {
