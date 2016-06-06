@@ -16,13 +16,15 @@ void Video::makeTempDirectory() {
 	}
 }
 
-void Video::removeTempDirectory(string dir) const {
+void Video::removeTempDirectory(string dir, vector<string>& errors) const {
 	try {
 		fs::path path(dir);
 		if (fs::is_directory(path)) {
 			string cmd = "rm -rf " + dir;
 			if (system(cmd.c_str()) == -1) {
 				logger.error("Failed to remove directory " + dir);
+				errors.push_back("Error: In the simulation " + algorithmName + ", "
+					+ houseName + ": folder removal of " + tempDir + " failed");
 			}
 			else if (logger.debugEnabled()) {
 				logger.debug("Removed temporary directory " + dir);
@@ -31,7 +33,7 @@ void Video::removeTempDirectory(string dir) const {
 		if (dir != BASE_DIR) {
 			path = fs::path(BASE_DIR);
 			if (fs::is_directory(path) && fs::is_empty(path)) {
-				removeTempDirectory(BASE_DIR);
+				removeTempDirectory(BASE_DIR, errors);
 			}
 		}
 	}
@@ -57,7 +59,7 @@ void Video::init(size_t rows, size_t cols, string houseName,
 	failure = NONE;
 	failedFrames = 0;
 
-	if (!tempDir.empty()) removeTempDirectory(tempDir);
+	if (!tempDir.empty()) removeTempDirectory(tempDir, errors);
 	generateTempDirName();
 	makeTempDirectory();
 	if (failure == MKDIR) {
@@ -89,11 +91,11 @@ void Video::composeImage(const House& house, const Position& robotPosition) {
 	for (size_t row = 0; row < rows; ++row) {
 		for (size_t col = 0; col < cols; ++col) {
 			if (robotPosition.getX() == col && robotPosition.getY() == row) {
-				tiles.push_back("R");
+				tiles.push_back(PATH_TO_AVATARS + "R");
 			}
 			else {
 				char cell = house.getCellValue(row, col);
-				tiles.push_back(cell == ' ' ? "0" : string() + cell);
+				tiles.push_back(cell == ' ' ? PATH_TO_AVATARS + "0" : PATH_TO_AVATARS + cell);
 			}
 		}
 	}
@@ -127,7 +129,7 @@ void Video::encode(vector<string>& errors, bool removeTempFiles) {
 	else if (logger.debugEnabled()) {
 		logger.debug("Saved video to " + videoOutput);
 	}
-	if (removeTempFiles) removeTempDirectory(tempDir);
+	if (removeTempFiles) removeTempDirectory(tempDir, errors);
 }
 
 string Video::getFrameErrorString() const {

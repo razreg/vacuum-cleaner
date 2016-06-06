@@ -11,6 +11,7 @@
 using namespace std;
 
 const string BASE_DIR = "./tmp/";
+const string PATH_TO_AVATARS = "./avatars/";
 
 class Video {
 
@@ -35,7 +36,7 @@ class Video {
 
 	void makeTempDirectory();
 
-	void removeTempDirectory(string dir) const;
+	void removeTempDirectory(string dir, vector<string>& errors) const;
 
 	void generateTempDirName();
 
@@ -45,7 +46,8 @@ public:
 
 	~Video() {
 		if (!tempDir.empty()) {
-			removeTempDirectory(tempDir);
+			vector<string> tempErrors;
+			removeTempDirectory(tempDir, tempErrors);
 		}
 	};
 
