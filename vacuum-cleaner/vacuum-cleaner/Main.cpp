@@ -3,7 +3,7 @@
 const string MainHelper::usage =
 	"Usage: simulator [-config <config path>] [-house_path <house path>] "
 	"[-algorithm_path <algorithm path>] [-score_formula <score .so path>] "
-	"[-threads <num threads>]";
+	"[-threads <num threads>] [-video]";
 
 AlgorithmRegistrar& MainHelper::registrar = AlgorithmRegistrar::getInstance();
 
