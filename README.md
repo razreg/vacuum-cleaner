@@ -13,3 +13,9 @@ We were asked to create a simulator for a robotic vacuum cleaner where various a
 </ol>
 
 All code was written in C++11 for Unix environment (tested on Ubuntu).
+
+<br>
+<div align="center">
+<img src="./documentation/video-examples/video1_screenshot.png" />
+<br><b>Image 1: Simulator video screen-shot</b>
+</div>
